@@ -113,7 +113,7 @@ const StudentDashboard = () => {
   ];
 
   return (
-    <div className="w-full px-4 lg:px-6 py-4 space-y-3">
+    <div className="w-full px-4 lg:px-6 py-3 space-y-3">
       {/* Top Section: Welcome Banner with Cards + Right Sidebar */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
         {/* Welcome Banner with embedded stat cards */}
@@ -123,40 +123,40 @@ const StudentDashboard = () => {
             targetExam="IBPS PO"
             performanceLevel={62}
           >
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-5 gap-1.5">
               <JourneyStatCard
                 icon={CalendarIcon}
                 label="Journey Day"
                 value="156"
-                subtitle="Days in pursuit"
+                subtitle="Days"
                 color="from-blue-500 to-cyan-500"
               />
               <JourneyStatCard
                 icon={Flame}
                 label="Active Streak"
                 value="23"
-                subtitle="Days running"
+                subtitle="Days"
                 color="from-orange-500 to-red-500"
               />
               <JourneyStatCard
                 icon={FileCheck}
                 label="Mock Tests"
                 value="47"
-                subtitle="Tests taken"
+                subtitle="Tests"
                 color="from-green-500 to-emerald-500"
               />
               <JourneyStatCard
                 icon={Award}
                 label="Real Exams"
                 value="12"
-                subtitle="Completed"
+                subtitle="Done"
                 color="from-purple-500 to-pink-500"
               />
               <JourneyStatCard
                 icon={Clock}
                 label="Study Hours"
                 value="347"
-                subtitle="Total logged"
+                subtitle="Hours"
                 color="from-indigo-500 to-blue-500"
               />
             </div>
@@ -164,18 +164,18 @@ const StudentDashboard = () => {
         </div>
         
         {/* Right Sidebar: Attendance, Current Affairs, Schedule */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           {/* Weekly Attendance */}
-          <Card className="p-3">
+          <Card className="p-2.5">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-semibold">Weekly Attendance</h3>
-              <span className="text-xs text-muted-foreground">5/7</span>
+              <h3 className="text-[10px] font-semibold">Weekly Attendance</h3>
+              <span className="text-[9px] text-muted-foreground">5/7</span>
             </div>
             <div className="grid grid-cols-7 gap-1">
               {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, idx) => (
-                <div key={day} className="flex flex-col items-center gap-1">
-                  <span className="text-[10px] text-muted-foreground">{day}</span>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] ${
+                <div key={day} className="flex flex-col items-center gap-0.5">
+                  <span className="text-[9px] text-muted-foreground">{day}</span>
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] ${
                     [0, 5].includes(idx) ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
                   }`}>
                     {[0, 5].includes(idx) ? '✕' : '✓'}
@@ -186,32 +186,32 @@ const StudentDashboard = () => {
           </Card>
           
           {/* Current Affairs Preview */}
-          <Card className="p-3">
-            <h3 className="text-xs font-semibold mb-2">Current Affairs</h3>
-            <div className="aspect-video bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex items-center justify-center mb-2">
+          <Card className="p-2.5">
+            <h3 className="text-[10px] font-semibold mb-1.5">Current Affairs</h3>
+            <div className="aspect-video bg-gradient-to-br from-blue-50 to-purple-50 rounded-md flex items-center justify-center mb-1.5">
               <img 
                 src="https://images.unsplash.com/photo-1585241645927-c7a8e5840c42?w=400&h=200&fit=crop" 
                 alt="Current Affairs"
-                className="w-full h-full object-cover rounded-lg"
+                className="w-full h-full object-cover rounded-md"
               />
             </div>
-            <p className="text-[10px] text-muted-foreground line-clamp-2">Supreme Court Digital Privacy Verdict</p>
+            <p className="text-[9px] text-muted-foreground line-clamp-2">Supreme Court Digital Privacy Verdict</p>
           </Card>
           
           {/* Today's Schedule - Compact */}
-          <Card className="p-3">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-semibold">Today's Schedule</h3>
-              <span className="text-[10px] text-muted-foreground">1/4</span>
+          <Card className="p-2.5">
+            <div className="flex items-center justify-between mb-1.5">
+              <h3 className="text-[10px] font-semibold">Today's Schedule</h3>
+              <span className="text-[9px] text-muted-foreground">1/4</span>
             </div>
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-[10px] p-1.5 bg-green-50 rounded">
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-[9px] p-1.5 bg-green-50 rounded">
                 <span className="text-muted-foreground truncate">Mock Test</span>
-                <span className="text-green-600 font-medium">Done</span>
+                <span className="text-green-600 font-medium ml-1">Done</span>
               </div>
-              <div className="flex items-center justify-between text-[10px] p-1.5 bg-blue-50 rounded">
-                <span className="text-muted-foreground truncate">Video Lecture</span>
-                <span className="text-blue-600 font-medium">Now</span>
+              <div className="flex items-center justify-between text-[9px] p-1.5 bg-blue-50 rounded">
+                <span className="text-muted-foreground truncate">Video</span>
+                <span className="text-blue-600 font-medium ml-1">Now</span>
               </div>
             </div>
           </Card>
@@ -224,21 +224,21 @@ const StudentDashboard = () => {
       {/* Bottom Section: Study Activity + Upcoming */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <div>
-          <h2 className="text-base font-semibold mb-2">Study Activity Heatmap</h2>
+          <h2 className="text-sm font-semibold mb-2">Study Activity Heatmap</h2>
           <StudyHeatmap className="w-full" />
         </div>
         <div>
-          <h2 className="text-base font-semibold mb-2">Upcoming Exams</h2>
+          <h2 className="text-sm font-semibold mb-2">Upcoming Exams</h2>
           <div className="space-y-2">
             {upcomingExamsData.slice(0, 3).map((exam) => (
-              <Card key={exam.id} className="p-3 hover:shadow-md transition-shadow">
+              <Card key={exam.id} className="p-2.5 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-sm truncate">{exam.name}</h4>
-                    <p className="text-xs text-muted-foreground">{exam.date}</p>
+                    <h4 className="font-semibold text-xs truncate">{exam.name}</h4>
+                    <p className="text-[10px] text-muted-foreground">{exam.date}</p>
                   </div>
                   <Link to={`/student/tests/${exam.category}/${exam.examId}`}>
-                    <Button size="sm" className="h-8 px-3 text-xs">Start</Button>
+                    <Button size="sm" className="h-7 px-2 text-[10px]">Start</Button>
                   </Link>
                 </div>
               </Card>

@@ -33,44 +33,44 @@ const WelcomeBanner = ({ name, targetExam = 'IBPS PO', performanceLevel = 45, ch
   const levelInfo = getLevelInfo(performanceLevel);
   
   return (
-    <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-sm p-6 border border-gray-100">
-      <div className="flex items-start justify-between gap-4 mb-4">
+    <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-sm p-4 border border-gray-100">
+      <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-xl font-bold text-gray-900">
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-lg font-bold text-gray-900">
               Welcome, {name}!
             </h1>
-            <div className={`bg-gradient-to-r ${levelInfo.color} text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-md`}>
+            <div className={`bg-gradient-to-r ${levelInfo.color} text-white px-2 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 shadow-md`}>
               <Award className="h-3 w-3" />
               {levelInfo.name}
             </div>
           </div>
-          <p className="text-sm text-gray-600 mb-2">
+          <p className="text-xs text-gray-600 mb-2">
             Track your preparation progress and upcoming exams.
           </p>
           
-          <div className="flex flex-wrap gap-2 items-center">
-            <div className="bg-blue-50 text-blue-700 text-xs py-1 px-3 rounded-full font-medium border border-blue-200">
+          <div className="flex flex-wrap gap-1.5 items-center">
+            <div className="bg-blue-50 text-blue-700 text-[10px] py-0.5 px-2 rounded-full font-medium border border-blue-200">
               🎯 Target: {targetExam}
             </div>
-            <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+            <div className="text-[10px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
               {levelInfo.tier} Level
             </div>
           </div>
         </div>
         
-        <div className="w-20 h-20 rounded-full border-4 border-gray-200 flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 shrink-0">
+        <div className="w-16 h-16 rounded-full border-2 border-gray-200 flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 shrink-0">
           <img 
             src="https://api.dicebear.com/7.x/avataaars/svg?seed={name}" 
             alt="Student" 
-            className="w-16 h-16 rounded-full"
+            className="w-14 h-14 rounded-full"
           />
         </div>
       </div>
       
       {/* Stat Cards */}
       {children && (
-        <div className="mt-4">
+        <div className="mt-3">
           {children}
         </div>
       )}
