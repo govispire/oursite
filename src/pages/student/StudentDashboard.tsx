@@ -114,85 +114,111 @@ const StudentDashboard = () => {
 
   return (
     <div className="w-full px-4 lg:px-6 py-4 space-y-3">
-      {/* Top Section: Welcome Banner + Weekly Attendance */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        <div className="lg:col-span-2">
+      {/* Top Section: Welcome Banner with Cards + Right Sidebar */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
+        {/* Welcome Banner with embedded stat cards */}
+        <div className="lg:col-span-3">
           <WelcomeBanner 
             name={user?.name || 'Student'} 
             targetExam="IBPS PO"
             performanceLevel={62}
-          />
+          >
+            <div className="grid grid-cols-5 gap-2">
+              <JourneyStatCard
+                icon={CalendarIcon}
+                label="Journey Day"
+                value="156"
+                subtitle="Days in pursuit"
+                color="from-blue-500 to-cyan-500"
+              />
+              <JourneyStatCard
+                icon={Flame}
+                label="Active Streak"
+                value="23"
+                subtitle="Days running"
+                color="from-orange-500 to-red-500"
+              />
+              <JourneyStatCard
+                icon={FileCheck}
+                label="Mock Tests"
+                value="47"
+                subtitle="Tests taken"
+                color="from-green-500 to-emerald-500"
+              />
+              <JourneyStatCard
+                icon={Award}
+                label="Real Exams"
+                value="12"
+                subtitle="Completed"
+                color="from-purple-500 to-pink-500"
+              />
+              <JourneyStatCard
+                icon={Clock}
+                label="Study Hours"
+                value="347"
+                subtitle="Total logged"
+                color="from-indigo-500 to-blue-500"
+              />
+            </div>
+          </WelcomeBanner>
         </div>
-        <Card className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold">Weekly Attendance</h3>
-            <span className="text-xs text-muted-foreground">Present: 5/7</span>
-          </div>
-          <div className="grid grid-cols-7 gap-2">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, idx) => (
-              <div key={day} className="flex flex-col items-center gap-1">
-                <span className="text-xs text-muted-foreground">{day}</span>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs ${
-                  [0, 5].includes(idx) ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
-                }`}>
-                  {[0, 5].includes(idx) ? '✕' : '✓'}
+        
+        {/* Right Sidebar: Attendance, Current Affairs, Schedule */}
+        <div className="space-y-3">
+          {/* Weekly Attendance */}
+          <Card className="p-3">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-semibold">Weekly Attendance</h3>
+              <span className="text-xs text-muted-foreground">5/7</span>
+            </div>
+            <div className="grid grid-cols-7 gap-1">
+              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, idx) => (
+                <div key={day} className="flex flex-col items-center gap-1">
+                  <span className="text-[10px] text-muted-foreground">{day}</span>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] ${
+                    [0, 5].includes(idx) ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
+                  }`}>
+                    {[0, 5].includes(idx) ? '✕' : '✓'}
+                  </div>
                 </div>
+              ))}
+            </div>
+          </Card>
+          
+          {/* Current Affairs Preview */}
+          <Card className="p-3">
+            <h3 className="text-xs font-semibold mb-2">Current Affairs</h3>
+            <div className="aspect-video bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg flex items-center justify-center mb-2">
+              <img 
+                src="https://images.unsplash.com/photo-1585241645927-c7a8e5840c42?w=400&h=200&fit=crop" 
+                alt="Current Affairs"
+                className="w-full h-full object-cover rounded-lg"
+              />
+            </div>
+            <p className="text-[10px] text-muted-foreground line-clamp-2">Supreme Court Digital Privacy Verdict</p>
+          </Card>
+          
+          {/* Today's Schedule - Compact */}
+          <Card className="p-3">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-semibold">Today's Schedule</h3>
+              <span className="text-[10px] text-muted-foreground">1/4</span>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-[10px] p-1.5 bg-green-50 rounded">
+                <span className="text-muted-foreground truncate">Mock Test</span>
+                <span className="text-green-600 font-medium">Done</span>
               </div>
-            ))}
-          </div>
-        </Card>
-      </div>
-      
-      {/* Journey Progress Cards - Compact */}
-      <div className="grid grid-cols-5 gap-2">
-        <JourneyStatCard
-          icon={CalendarIcon}
-          label="Journey Day"
-          value="156"
-          subtitle="Days in pursuit"
-          color="from-blue-500 to-cyan-500"
-        />
-        <JourneyStatCard
-          icon={Flame}
-          label="Active Streak"
-          value="23"
-          subtitle="Days running"
-          color="from-orange-500 to-red-500"
-        />
-        <JourneyStatCard
-          icon={FileCheck}
-          label="Mock Tests"
-          value="47"
-          subtitle="Tests taken"
-          color="from-green-500 to-emerald-500"
-        />
-        <JourneyStatCard
-          icon={Award}
-          label="Real Exams"
-          value="12"
-          subtitle="Completed"
-          color="from-purple-500 to-pink-500"
-        />
-        <JourneyStatCard
-          icon={Clock}
-          label="Study Hours"
-          value="347"
-          subtitle="Total logged"
-          color="from-indigo-500 to-blue-500"
-        />
-      </div>
-      
-      {/* Current Affairs & Today's Schedule - Compact */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        <div className="lg:col-span-2">
-          <CurrentAffairsSlider />
-        </div>
-        <div>
-          <TodaySchedule />
+              <div className="flex items-center justify-between text-[10px] p-1.5 bg-blue-50 rounded">
+                <span className="text-muted-foreground truncate">Video Lecture</span>
+                <span className="text-blue-600 font-medium">Now</span>
+              </div>
+            </div>
+          </Card>
         </div>
       </div>
       
-      {/* Selected Exams - Compact */}
+      {/* Selected Exams */}
       <SelectedExamsSection />
       
       {/* Bottom Section: Study Activity + Upcoming */}
