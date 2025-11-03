@@ -113,100 +113,112 @@ const StudentDashboard = () => {
   ];
 
   return (
-    <div className="w-full px-4 lg:px-6 py-6 space-y-4 sm:space-y-6">
-      <div className="flex flex-col space-y-4 sm:space-y-6">
-        {/* Welcome Banner with Level System */}
-        <WelcomeBanner 
-          name={user?.name || 'Student'} 
-          targetExam="IBPS PO"
-          performanceLevel={62}
-        />
-        
-        {/* Journey Progress Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
-          <JourneyStatCard
-            icon={CalendarIcon}
-            label="Journey Day"
-            value="156"
-            subtitle="Days in pursuit"
-            color="from-blue-500 to-cyan-500"
-          />
-          <JourneyStatCard
-            icon={Flame}
-            label="Active Streak"
-            value="23"
-            subtitle="Days running"
-            color="from-orange-500 to-red-500"
-          />
-          <JourneyStatCard
-            icon={FileCheck}
-            label="Mock Tests"
-            value="47"
-            subtitle="Tests taken"
-            color="from-green-500 to-emerald-500"
-          />
-          <JourneyStatCard
-            icon={Award}
-            label="Real Exams"
-            value="12"
-            subtitle="Completed"
-            color="from-purple-500 to-pink-500"
-          />
-          <JourneyStatCard
-            icon={Clock}
-            label="Study Hours"
-            value="347"
-            subtitle="Total logged"
-            color="from-indigo-500 to-blue-500"
+    <div className="w-full px-4 lg:px-6 py-4 space-y-3">
+      {/* Top Section: Welcome Banner + Weekly Attendance */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <div className="lg:col-span-2">
+          <WelcomeBanner 
+            name={user?.name || 'Student'} 
+            targetExam="IBPS PO"
+            performanceLevel={62}
           />
         </div>
-        
-        {/* Current Affairs Slider & Today's Schedule */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <Card className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold">Weekly Attendance</h3>
+            <span className="text-xs text-muted-foreground">Present: 5/7</span>
+          </div>
+          <div className="grid grid-cols-7 gap-2">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, idx) => (
+              <div key={day} className="flex flex-col items-center gap-1">
+                <span className="text-xs text-muted-foreground">{day}</span>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs ${
+                  [0, 5].includes(idx) ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
+                }`}>
+                  {[0, 5].includes(idx) ? '✕' : '✓'}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+      
+      {/* Journey Progress Cards - Compact */}
+      <div className="grid grid-cols-5 gap-2">
+        <JourneyStatCard
+          icon={CalendarIcon}
+          label="Journey Day"
+          value="156"
+          subtitle="Days in pursuit"
+          color="from-blue-500 to-cyan-500"
+        />
+        <JourneyStatCard
+          icon={Flame}
+          label="Active Streak"
+          value="23"
+          subtitle="Days running"
+          color="from-orange-500 to-red-500"
+        />
+        <JourneyStatCard
+          icon={FileCheck}
+          label="Mock Tests"
+          value="47"
+          subtitle="Tests taken"
+          color="from-green-500 to-emerald-500"
+        />
+        <JourneyStatCard
+          icon={Award}
+          label="Real Exams"
+          value="12"
+          subtitle="Completed"
+          color="from-purple-500 to-pink-500"
+        />
+        <JourneyStatCard
+          icon={Clock}
+          label="Study Hours"
+          value="347"
+          subtitle="Total logged"
+          color="from-indigo-500 to-blue-500"
+        />
+      </div>
+      
+      {/* Current Affairs & Today's Schedule - Compact */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+        <div className="lg:col-span-2">
           <CurrentAffairsSlider />
+        </div>
+        <div>
           <TodaySchedule />
         </div>
-        
-        {/* Selected Exams with Offers */}
-        <SelectedExamsSection />
-        
-        {/* Study Activity Heatmap - Full Width */}
+      </div>
+      
+      {/* Selected Exams - Compact */}
+      <SelectedExamsSection />
+      
+      {/* Bottom Section: Study Activity + Upcoming */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <div>
-          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Study Activity Heatmap</h2>
+          <h2 className="text-base font-semibold mb-2">Study Activity Heatmap</h2>
           <StudyHeatmap className="w-full" />
         </div>
-        
-        {/* Upcoming Exams Section */}
         <div>
-          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Upcoming Exams</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {upcomingExamsData.map((exam) => (
-              <Card key={exam.id} className="p-4 hover:shadow-md transition-shadow border border-gray-100">
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="font-semibold text-base mb-1">{exam.name}</h4>
-                      <p className="text-sm text-gray-500">{exam.date}</p>
-                    </div>
-                    <div className="bg-blue-100 p-2 rounded-lg">
-                      <FileCheck className="h-5 w-5 text-blue-600" />
-                    </div>
+          <h2 className="text-base font-semibold mb-2">Upcoming Exams</h2>
+          <div className="space-y-2">
+            {upcomingExamsData.slice(0, 3).map((exam) => (
+              <Card key={exam.id} className="p-3 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-sm truncate">{exam.name}</h4>
+                    <p className="text-xs text-muted-foreground">{exam.date}</p>
                   </div>
-                  <Link to={`/student/tests/${exam.category}/${exam.examId}`} className="w-full">
-                    <Button className="w-full" size="sm">Start Test</Button>
+                  <Link to={`/student/tests/${exam.category}/${exam.examId}`}>
+                    <Button size="sm" className="h-8 px-3 text-xs">Start</Button>
                   </Link>
                 </div>
               </Card>
             ))}
           </div>
         </div>
-        
-        {/* Performance Analytics Charts Section */}
-        <div className="mb-4 sm:mb-6">
-          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Performance Analytics</h2>
-          <PerformanceAnalytics />
-        </div>
-        
       </div>
     </div>
   );
