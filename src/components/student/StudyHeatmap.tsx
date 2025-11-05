@@ -284,24 +284,24 @@ const StudyHeatmap: React.FC<StudyHeatmapProps> = ({ className }) => {
   );
 
   return (
-    <Card className={`p-3 sm:p-6 hover:shadow-md transition-shadow ${className}`}>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 sm:mb-6 gap-3">
+    <Card className={`p-3 sm:p-4 hover:shadow-md transition-shadow ${className}`}>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
         <div className="flex items-center gap-2">
-          <BarChart className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
-          <h3 className="font-medium text-base sm:text-xl">Study Activity - 2025</h3>
-          <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full font-medium">
+          <BarChart className="h-4 w-4 text-green-600" />
+          <h3 className="font-medium text-sm sm:text-base">Study Activity - 2025</h3>
+          <span className="bg-blue-100 text-blue-800 text-[10px] px-2 py-0.5 rounded-full font-medium">
             Current
           </span>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+        <div className="flex flex-col sm:flex-row gap-2">
           {/* View Type Toggle */}
-          <div className="flex rounded-md bg-gray-100 p-1">
+          <div className="flex rounded-md bg-gray-100 p-0.5">
             <Button
               variant={viewType === 'heatmap' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewType('heatmap')}
-              className="px-2 py-1 h-7 text-xs"
+              className="px-2 py-1 h-6 text-[10px]"
             >
               <Grid3X3 className="h-3 w-3 mr-1" />
               Heatmap
@@ -310,7 +310,7 @@ const StudyHeatmap: React.FC<StudyHeatmapProps> = ({ className }) => {
               variant={viewType === 'calendar' ? 'default' : 'ghost'}
               size="sm"
               onClick={() => setViewType('calendar')}
-              className="px-2 py-1 h-7 text-xs"
+              className="px-2 py-1 h-6 text-[10px]"
             >
               <Calendar className="h-3 w-3 mr-1" />
               Calendar
@@ -319,16 +319,16 @@ const StudyHeatmap: React.FC<StudyHeatmapProps> = ({ className }) => {
           
           {/* Time Range Toggle */}
           <Tabs value={currentView} onValueChange={(value) => setCurrentView(value as TimeRange)}>
-            <TabsList className="grid w-fit grid-cols-2">
-              <TabsTrigger value="6months" className="text-xs sm:text-sm">6M</TabsTrigger>
-              <TabsTrigger value="1year" className="text-xs sm:text-sm">1Y</TabsTrigger>
+            <TabsList className="grid w-fit grid-cols-2 h-6">
+              <TabsTrigger value="6months" className="text-[10px] px-2 py-0.5">6M</TabsTrigger>
+              <TabsTrigger value="1year" className="text-[10px] px-2 py-0.5">1Y</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
       </div>
       
       {/* Statistics */}
-      <div className="flex gap-3 sm:gap-6 mb-3 sm:mb-6 text-xs sm:text-sm">
+      <div className="flex gap-3 sm:gap-4 mb-3 text-[10px] sm:text-xs">
         <div>
           <span className="text-gray-600 font-medium">{studyDays}</span>
           <span className="ml-1 text-gray-500">study days</span>
@@ -343,87 +343,53 @@ const StudyHeatmap: React.FC<StudyHeatmapProps> = ({ className }) => {
         </div>
       </div>
       
-      {/* Calendar Container with Horizontal Scroll for Mobile */}
-      <div className="mb-3 sm:mb-6">
-        <div className="flex gap-1 sm:gap-2">
+      {/* Calendar Container - Properly Contained */}
+      <div className="mb-3 overflow-hidden">
+        <div className="flex gap-1">
           {/* Weekday labels column */}
           <div className="flex flex-col flex-shrink-0">
             {/* Spacer for month row */}
-            <div className={`${isMobile ? 'h-6' : 'h-8'} mb-1 sm:mb-2`}></div>
+            <div className="h-6 mb-1"></div>
             {/* Weekday labels */}
-            <div className={`space-y-1`}>
+            <div className="space-y-1">
               {dayLabels.map((day, idx) => (
-                <div key={idx} className={`${getCellSize()} flex items-center justify-center text-xs text-gray-500 font-medium`}>
+                <div key={idx} className={`${getCellSize()} flex items-center justify-center text-[10px] text-gray-500 font-medium`}>
                   {day}
                 </div>
               ))}
             </div>
           </div>
           
-          {/* Calendar grid with horizontal scroll */}
-          <div className="flex-1 min-w-0">
-            {isMobile ? (
-              <ScrollArea className="w-full">
-                <div className={`flex ${getMonthGapSize()} pb-2`} style={{ minWidth: 'max-content' }}>
-                  {monthsData.map((monthData, monthIndex) => (
-                    <div key={monthIndex} className="flex flex-col flex-shrink-0">
-                      {/* Month label */}
-                      <div className={`h-6 mb-2 flex items-center justify-center`}>
-                        <span className="text-xs font-medium text-gray-700 text-center whitespace-nowrap">
-                          {monthData.monthName}
-                        </span>
-                      </div>
-                      
-                      {/* Month calendar grid */}
-                      <div className="space-y-1">
-                        {[0, 1, 2, 3, 4, 5, 6].map((dayIndex) => (
-                          <div key={dayIndex} className={`flex ${getGapSize()}`}>
-                            {monthData.weeks.map((week, weekIndex) => {
-                              const day = week[dayIndex];
-                              if (!day) return <div key={weekIndex} className={getCellSize()}></div>;
-                              
-                              return viewType === 'heatmap' 
-                                ? renderHeatmapCell(day, monthIndex, weekIndex, dayIndex)
-                                : renderCalendarCell(day, monthIndex, weekIndex, dayIndex);
-                            })}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <ScrollBar orientation="horizontal" />
-              </ScrollArea>
-            ) : (
-              <div className={`flex ${getMonthGapSize()}`}>
-                {monthsData.map((monthData, monthIndex) => (
-                  <div key={monthIndex} className="flex flex-col flex-shrink-0">
-                    {/* Month label */}
-                    <div className={`h-8 mb-2 flex items-center justify-center`}>
-                      <span className="text-sm font-medium text-gray-700 text-center">
-                        {monthData.monthName}
-                      </span>
-                    </div>
-                    
-                    {/* Month calendar grid */}
-                    <div className="space-y-1">
-                      {[0, 1, 2, 3, 4, 5, 6].map((dayIndex) => (
-                        <div key={dayIndex} className={`flex ${getGapSize()}`}>
-                          {monthData.weeks.map((week, weekIndex) => {
-                            const day = week[dayIndex];
-                            if (!day) return <div key={weekIndex} className={getCellSize()}></div>;
-                            
-                            return viewType === 'heatmap' 
-                              ? renderHeatmapCell(day, monthIndex, weekIndex, dayIndex)
-                              : renderCalendarCell(day, monthIndex, weekIndex, dayIndex);
-                          })}
-                        </div>
-                      ))}
-                    </div>
+          {/* Calendar grid with proper sizing */}
+          <div className="flex-1 min-w-0 overflow-x-auto">
+            <div className={`flex ${getMonthGapSize()} min-w-max pb-2`}>
+              {monthsData.map((monthData, monthIndex) => (
+                <div key={monthIndex} className="flex flex-col flex-shrink-0">
+                  {/* Month label */}
+                  <div className="h-6 mb-1 flex items-center justify-center">
+                    <span className="text-[10px] font-medium text-gray-700 text-center whitespace-nowrap">
+                      {monthData.monthName}
+                    </span>
                   </div>
-                ))}
-              </div>
-            )}
+                  
+                  {/* Month calendar grid */}
+                  <div className="space-y-1">
+                    {[0, 1, 2, 3, 4, 5, 6].map((dayIndex) => (
+                      <div key={dayIndex} className={`flex ${getGapSize()}`}>
+                        {monthData.weeks.map((week, weekIndex) => {
+                          const day = week[dayIndex];
+                          if (!day) return <div key={weekIndex} className={getCellSize()}></div>;
+                          
+                          return viewType === 'heatmap' 
+                            ? renderHeatmapCell(day, monthIndex, weekIndex, dayIndex)
+                            : renderCalendarCell(day, monthIndex, weekIndex, dayIndex);
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
