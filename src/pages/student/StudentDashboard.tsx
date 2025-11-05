@@ -113,148 +113,148 @@ const StudentDashboard = () => {
   ];
 
   return (
-    <div className="w-full px-4 lg:px-6 py-3 space-y-3">
-      {/* Top Section: Welcome Banner + Target Exam + Weekly Attendance */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
-        {/* Welcome Banner */}
-        <div className="lg:col-span-6 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-xl p-4 text-white relative overflow-hidden">
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-lg">✨</span>
-              <h1 className="text-lg font-bold">Welcome back, {user?.name || 'Student User'}!</h1>
+    <div className="flex gap-4 p-4 bg-gray-50 min-h-screen">
+      {/* Main Content */}
+      <div className="flex-1 space-y-4">
+        {/* Welcome Banner with Target Exam */}
+        <Card className="bg-gradient-to-r from-cyan-400 to-blue-400 p-6 text-white border-0 shadow-lg">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold mb-2">Welcome, {user?.name || 'Dinesh Kumar'}</h1>
+              <p className="text-white/90">Track your preparation progress and upcoming exams.</p>
             </div>
-            <p className="text-sm text-white/90">Keep up the great work on your IBPS PO preparation</p>
+            <Card className="bg-white p-4 min-w-[200px]">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
+                  <span className="text-blue-600">🎯</span>
+                </div>
+                <span className="text-sm text-gray-600 font-medium">Target Exam</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-lg font-bold text-gray-900">IBPS PO</span>
+                <span className="bg-cyan-400 text-white text-xs px-3 py-1 rounded-full font-medium">Active</span>
+              </div>
+            </Card>
           </div>
-          <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
-            <p className="text-xs font-semibold">Performance</p>
-            <p className="text-lg font-bold">62%</p>
-          </div>
+        </Card>
+
+        {/* 4 Stats Cards */}
+        <div className="grid grid-cols-4 gap-4">
+          <Card className="p-4 bg-white">
+            <h3 className="text-sm font-semibold mb-1">Total Journey Days</h3>
+            <p className="text-4xl font-bold mb-1">347</p>
+            <p className="text-xs text-gray-500">Preparation ongoing</p>
+          </Card>
+          <Card className="p-4 bg-white">
+            <h3 className="text-sm font-semibold mb-1">Total Study Hours</h3>
+            <p className="text-4xl font-bold mb-1">91</p>
+            <p className="text-xs text-gray-500">6+ hours today</p>
+          </Card>
+          <Card className="p-4 bg-white">
+            <h3 className="text-sm font-semibold mb-1">Total Active Days</h3>
+            <p className="text-4xl font-bold mb-1">67</p>
+            <p className="text-xs text-gray-500">Continuously studying</p>
+          </Card>
+          <Card className="p-4 bg-white">
+            <h3 className="text-sm font-semibold mb-1">Total Mock Test</h3>
+            <p className="text-4xl font-bold mb-1">40</p>
+            <p className="text-xs text-gray-500">Last test 2 days ago</p>
+          </Card>
         </div>
-        
-        {/* Target Exam Card */}
-        <div className="lg:col-span-3 bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-              <span className="text-lg">🎯</span>
+
+        {/* Current Affairs - Top Picks */}
+        <div>
+          <h2 className="text-xl font-bold mb-3 text-red-700">Top Picks</h2>
+          <CurrentAffairsSlider />
+        </div>
+      </div>
+
+      {/* Right Sidebar */}
+      <div className="w-80 space-y-4">
+        {/* Class Attendance */}
+        <Card className="p-4 bg-white">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold">Class attendance</h3>
+            <Button variant="outline" size="sm" className="h-8 text-xs">
+              month ▾
+            </Button>
+          </div>
+          
+          {/* Weekly Grid */}
+          <div className="mb-4">
+            <div className="grid grid-cols-7 gap-2 mb-2">
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                <div key={day} className="text-center text-xs font-medium text-gray-600">
+                  {day}
+                </div>
+              ))}
             </div>
-            <span className="text-xs text-gray-600 font-medium">Target Exam</span>
+            <div className="grid grid-cols-7 gap-2">
+              {[true, true, true, true, false, false, false,
+                false, true, true, true, true, false, false,
+                true, true, true, true, true, false, false].map((present, idx) => (
+                <div
+                  key={idx}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                    idx === 7 ? 'bg-orange-500' : present ? 'bg-green-500' : 'bg-gray-300'
+                  }`}
+                >
+                  {idx === 7 ? '○' : present ? '✓' : '✕'}
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-lg font-bold">IBPS PO</span>
-            <span className="bg-cyan-400 text-white text-xs px-3 py-1 rounded-full font-medium">Active</span>
+
+          {/* Calendar */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <Button variant="ghost" size="sm">◀</Button>
+              <h4 className="font-semibold">September 2030</h4>
+              <Button variant="ghost" size="sm">▶</Button>
+            </div>
+            <div className="grid grid-cols-7 gap-1 text-center text-xs">
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                <div key={day} className="text-gray-500 py-1">{day}</div>
+              ))}
+              {[19, 20, 21, 22, 23, 24, 25].map((date) => (
+                <div key={date} className="py-2 hover:bg-gray-100 rounded cursor-pointer">
+                  {date}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-        
-        {/* Weekly Attendance */}
-        <div className="lg:col-span-3 bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-gray-900">Weekly Attendance</span>
-            <span className="text-xs text-gray-600">Present</span>
-          </div>
-          <div className="grid grid-cols-7 gap-1.5">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, idx) => (
-              <div key={day} className="flex flex-col items-center gap-1">
-                <span className="text-[9px] text-gray-600">{day}</span>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-                  [0, 4].includes(idx) ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'
-                }`}>
-                  {[0, 4].includes(idx) ? '✕' : '✓'}
+
+          {/* Agenda */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-semibold">Agenda</h4>
+              <Button variant="ghost" size="sm">⋯</Button>
+            </div>
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <span className="text-xs text-gray-500 w-16">08:00 am</span>
+                <div className="flex-1">
+                  <p className="text-xs text-gray-500">All Grade</p>
+                  <p className="text-sm font-medium">Homeroom & Announcement</p>
                 </div>
               </div>
-            ))}
-          </div>
-          <div className="text-right mt-1">
-            <span className="text-xs font-semibold text-green-600">5/7</span>
-          </div>
-        </div>
-      </div>
-      
-      {/* Stats Row - 5 Cards */}
-      <div className="grid grid-cols-5 gap-3">
-        <Card className="p-3 bg-white border border-gray-100 shadow-sm">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center">
-              <CalendarIcon className="h-4 w-4 text-white" />
-            </div>
-          </div>
-          <p className="text-xs text-gray-600 mb-1">Journey Day</p>
-          <p className="text-2xl font-bold text-gray-900">156</p>
-        </Card>
-        
-        <Card className="p-3 bg-white border border-gray-100 shadow-sm">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-red-400 flex items-center justify-center">
-              <Flame className="h-4 w-4 text-white" />
-            </div>
-          </div>
-          <p className="text-xs text-gray-600 mb-1">Active Streak</p>
-          <p className="text-2xl font-bold text-gray-900">23</p>
-        </Card>
-        
-        <Card className="p-3 bg-white border border-gray-100 shadow-sm">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-400 to-emerald-400 flex items-center justify-center">
-              <FileCheck className="h-4 w-4 text-white" />
-            </div>
-          </div>
-          <p className="text-xs text-gray-600 mb-1">Mock Tests</p>
-          <p className="text-2xl font-bold text-gray-900">47</p>
-        </Card>
-        
-        <Card className="p-3 bg-white border border-gray-100 shadow-sm">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
-              <Award className="h-4 w-4 text-white" />
-            </div>
-          </div>
-          <p className="text-xs text-gray-600 mb-1">Real Exams</p>
-          <p className="text-2xl font-bold text-gray-900">12</p>
-        </Card>
-        
-        <Card className="p-3 bg-white border border-gray-100 shadow-sm">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-400 to-blue-400 flex items-center justify-center">
-              <Clock className="h-4 w-4 text-white" />
-            </div>
-          </div>
-          <p className="text-xs text-gray-600 mb-1">Study Hours</p>
-          <p className="text-2xl font-bold text-gray-900">347</p>
-        </Card>
-      </div>
-      
-      {/* Current Affairs & Today's Schedule */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <CurrentAffairsSlider />
-        <TodaySchedule />
-      </div>
-      
-      {/* Selected Exams */}
-      <SelectedExamsSection />
-      
-      {/* Bottom Section: Study Activity + Upcoming */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <div>
-          <h2 className="text-sm font-semibold mb-2">Study Activity Heatmap</h2>
-          <StudyHeatmap className="w-full" />
-        </div>
-        <div>
-          <h2 className="text-sm font-semibold mb-2">Upcoming Exams</h2>
-          <div className="space-y-2">
-            {upcomingExamsData.slice(0, 3).map((exam) => (
-              <Card key={exam.id} className="p-2.5 hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-xs truncate">{exam.name}</h4>
-                    <p className="text-[10px] text-muted-foreground">{exam.date}</p>
-                  </div>
-                  <Link to={`/student/tests/${exam.category}/${exam.examId}`}>
-                    <Button size="sm" className="h-7 px-2 text-[10px]">Start</Button>
-                  </Link>
+              <div className="flex gap-3">
+                <span className="text-xs text-gray-500 w-16">10:00 am</span>
+                <div className="flex-1">
+                  <p className="text-xs text-gray-500">Grade 3-5</p>
+                  <p className="text-sm font-medium">Math Review & Practice</p>
                 </div>
-              </Card>
-            ))}
+              </div>
+              <div className="flex gap-3">
+                <span className="text-xs text-gray-500 w-16">10:30 am</span>
+                <div className="flex-1">
+                  <p className="text-xs text-gray-500">Grade 6-8</p>
+                  <p className="text-sm font-medium">Science Experiment & Discussion</p>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );
