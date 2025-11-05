@@ -10,7 +10,7 @@ import JourneyStatCard from '@/components/dashboard/JourneyStatCard';
 import CurrentAffairsSlider from '@/components/dashboard/CurrentAffairsSlider';
 import TodaySchedule from '@/components/dashboard/TodaySchedule';
 import { SelectedExamsSection } from '@/components/dashboard/SelectedExamsSection';
-import { Calendar as CalendarIcon, Flame, FileCheck, Award, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, Flame, FileCheck, Award, Clock, ChevronLeft, ChevronRight, Newspaper } from 'lucide-react';
 import { useCalendarTasks } from '@/hooks/useCalendarTasks';
 import ExamCountdownCard from '@/components/student/calendar/ExamCountdownCard';
 import StudyHeatmap from '@/components/student/StudyHeatmap';
@@ -162,10 +162,51 @@ const StudentDashboard = () => {
           </Card>
         </div>
 
-        {/* Current Affairs - Top Picks */}
+        {/* Current Affairs - Top Picks with Images Carousel */}
         <div>
           <h2 className="text-lg font-bold mb-2 text-red-700">Top Picks</h2>
-          <CurrentAffairsSlider />
+          <Card className="p-4 bg-white">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Newspaper className="h-5 w-5 text-blue-600" />
+                <h3 className="font-semibold">Current Affairs</h3>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { title: 'M Adhikari-Jeminah Dagar named in ICC Women\'s World Cup Team of Tournament', category: 'CRICKET', image: 'https://images.unsplash.com/photo-1531415074968-036ba1b575da?w=400' },
+                { title: 'Delhi air quality remains \'very poor\'', category: 'DELHI', image: 'https://images.unsplash.com/photo-1587474260584-136574528ed5?w=400' },
+                { title: 'Sexually harassed in spinfire incident in Bengaluru', category: 'KARNATAKA', image: 'https://images.unsplash.com/photo-1560128484-1234567890ab?w=400' },
+                { title: 'Mirabai Chanu\'s weight class axed from 2028 Olympics', category: 'OTHER SPORTS', image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400' }
+              ].map((item, idx) => (
+                <div key={idx} className="relative group cursor-pointer overflow-hidden rounded-lg">
+                  <img 
+                    src={item.image} 
+                    alt={item.title}
+                    className="w-full h-48 object-cover transition-transform group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 flex flex-col justify-end">
+                    <span className="text-white text-[10px] font-bold mb-1 uppercase">{item.category}</span>
+                    <p className="text-white text-xs font-medium line-clamp-3">{item.title}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+
+        {/* Study Activity Heatmap */}
+        <div>
+          <h2 className="text-lg font-bold mb-2">Study Activity</h2>
+          <StudyHeatmap />
         </div>
       </div>
 
