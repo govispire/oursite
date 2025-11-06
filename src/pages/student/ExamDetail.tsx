@@ -14,6 +14,7 @@ import { SyllabusTab } from '@/components/student/exam/SyllabusTab';
 import { PreviousCutoffTab } from '@/components/student/exam/PreviousCutoffTab';
 import { DoubtsTab } from '@/components/student/exam/DoubtsTab';
 import { ExamRoadmap } from '@/components/student/exam/ExamRoadmap';
+import { ExamAdvertisementCarousel } from '@/components/student/exam/ExamAdvertisementCarousel';
 import { useExamProgress } from '@/hooks/useExamProgress';
 import { getExamsByCategory } from '@/data/examData';
 
@@ -132,6 +133,9 @@ const ExamDetail = () => {
 
       {/* Exam Roadmap Section */}
       <ExamRoadmap examId={examId!} examName={examName} />
+
+      {/* Advertisement Carousel */}
+      <ExamAdvertisementCarousel examId={examId!} examName={examName} />
       
       <Card className="overflow-hidden">
         <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab}>

@@ -81,7 +81,7 @@ export const ExamProgressDashboard: React.FC<ExamProgressDashboardProps> = ({
       {/* Test Type Progress */}
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Test Type Progress</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {testTypeStats.map((testType) => {
             const progress = getTypeProgress(testType.key as keyof ExamProgressData['testTypes']);
             return (
@@ -98,9 +98,8 @@ export const ExamProgressDashboard: React.FC<ExamProgressDashboardProps> = ({
                   </Badge>
                 </div>
                 <Progress value={progress.percentage} className="h-2" />
-                <div className="flex justify-between text-xs text-gray-500">
+                <div className="text-xs text-gray-500">
                   <span>{Math.round(progress.percentage)}% Complete</span>
-                  <span>Avg: {progress.averageScore}%</span>
                 </div>
               </div>
             );

@@ -246,9 +246,9 @@ export const TestTypeGrid: React.FC<TestTypeGridProps> = ({
       </div>
 
       {/* Tests Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
         {tests.map((test) => (
-          <Card key={test.testId} className={`p-4 transition-all duration-200 hover:shadow-md ${getStatusBackgroundColor(test.status, test.score, test.maxScore)}`}>
+          <Card key={test.testId} className={`p-3 transition-all duration-200 hover:shadow-md ${getStatusBackgroundColor(test.status, test.score, test.maxScore)}`}>
             <div className="space-y-3">
               {/* Test Header */}
               <div className="flex items-start justify-between">
