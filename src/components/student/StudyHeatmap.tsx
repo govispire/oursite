@@ -284,7 +284,7 @@ const StudyHeatmap: React.FC<StudyHeatmapProps> = ({ className }) => {
   );
 
   return (
-    <Card className={`p-3 sm:p-4 hover:shadow-md transition-shadow ${className}`}>
+    <Card className={`p-3 sm:p-4 hover:shadow-md transition-shadow w-full ${className}`}>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
         <div className="flex items-center gap-2">
           <BarChart className="h-4 w-4 text-green-600" />
