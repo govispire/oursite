@@ -142,6 +142,16 @@ export const useSelfCareExams = () => {
     });
   };
 
+  const archiveExam = (id: string) => {
+    setExams(prev => prev.map(exam => 
+      exam.id === id ? { ...exam, isArchived: true } : exam
+    ));
+    toast({
+      title: "Exam Archived",
+      description: "Exam has been moved to history.",
+    });
+  };
+
   const isFinalStage = (stages: ExamStage[], stageIndex: number) => {
     return stageIndex === stages.length - 1 || stages[stageIndex].name.toLowerCase().includes('final');
   };
@@ -233,6 +243,9 @@ export const useSelfCareExams = () => {
         exam.stages.some(stage => stage.name.toLowerCase().includes('interview') && stage.status === 'cleared')
       ).length,
       totalSelected: allExams.filter(exam => exam.finalStatus === 'selected').length,
+      totalAmountSpent: allExams
+        .filter(exam => exam.paymentStatus === 'paid')
+        .reduce((sum, exam) => sum + parseFloat(exam.examFeeAmount || '0'), 0),
     };
   };
 
@@ -242,6 +255,7 @@ export const useSelfCareExams = () => {
     addExam,
     updateExam,
     deleteExam,
+    archiveExam,
     updateStage,
     getMetrics
   };

@@ -4,10 +4,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Grid, List, Clock, Users, Target, CheckCircle, RotateCcw, BarChart3, Play, Pause, BookOpen } from 'lucide-react';
+import { Grid, List, Clock, Users, Target, CheckCircle, RotateCcw, BarChart3, Play, Pause, BookOpen, Bookmark } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { TestAnalysisModal } from './TestAnalysisModal';
 import { generateMockAnalysisData } from '@/data/testAnalysisData';
+import { useBookmarkedTests } from '@/hooks/useBookmarkedTests';
+import { toast } from '@/hooks/use-toast';
 
 interface TestItem {
   id: string;
@@ -39,6 +41,7 @@ const EnhancedTestTypeGrid: React.FC<EnhancedTestTypeGridProps> = ({ tests, test
   const [selectedSubject, setSelectedSubject] = useState('all');
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [selectedTestForAnalysis, setSelectedTestForAnalysis] = useState<TestItem | null>(null);
+  const { isTestBookmarked, toggleBookmark } = useBookmarkedTests();
 
   const filteredTests = tests.filter(test => 
     selectedSubject === 'all' || test.subject === selectedSubject
@@ -64,18 +67,46 @@ const EnhancedTestTypeGrid: React.FC<EnhancedTestTypeGridProps> = ({ tests, test
     return 'not-started';
   };
 
+  const handleBookmarkToggle = (test: TestItem) => {
+    const bookmarkData = {
+      testId: test.id,
+      testName: test.title,
+      examId: test.category,
+      examName: test.category,
+      testType: testType,
+      category: test.category,
+      addedAt: Date.now()
+    };
+    
+    const isBookmarked = toggleBookmark(bookmarkData);
+    toast({
+      title: isBookmarked ? "Test Bookmarked" : "Bookmark Removed",
+      description: isBookmarked ? `${test.title} added to bookmarks` : `${test.title} removed from bookmarks`,
+    });
+  };
+
   const TestCard = ({ test, isListView = false }: { test: TestItem; isListView?: boolean }) => (
     <Card className={`overflow-hidden ${isListView ? 'mb-2' : ''} hover:shadow-md transition-shadow`}>
       <CardContent className={`p-4 ${isListView ? 'flex items-center justify-between' : ''}`}>
         <div className={isListView ? 'flex items-center gap-4 flex-1' : ''}>
           <div className={isListView ? 'flex-1' : 'mb-3'}>
             <div className="flex items-center justify-between mb-2">
-              <h3 className={`font-semibold ${isListView ? 'text-base' : 'text-lg'}`}>{test.title}</h3>
-              {!isListView && (
-                <Badge variant={test.difficulty === 'Easy' ? 'default' : test.difficulty === 'Medium' ? 'secondary' : 'destructive'}>
-                  {test.difficulty}
-                </Badge>
-              )}
+              <h3 className={`font-semibold ${isListView ? 'text-base' : 'text-lg'} flex-1`}>{test.title}</h3>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleBookmarkToggle(test)}
+                  className={`h-8 w-8 p-0 ${isTestBookmarked(test.id) ? 'text-yellow-500' : 'text-gray-400'}`}
+                >
+                  <Bookmark className={`h-4 w-4 ${isTestBookmarked(test.id) ? 'fill-yellow-500' : ''}`} />
+                </Button>
+                {!isListView && (
+                  <Badge variant={test.difficulty === 'Easy' ? 'default' : test.difficulty === 'Medium' ? 'secondary' : 'destructive'}>
+                    {test.difficulty}
+                  </Badge>
+                )}
+              </div>
             </div>
             <div className={`text-sm text-gray-600 ${isListView ? 'flex gap-4' : 'space-y-1'}`}>
               <div className="flex items-center gap-1">
