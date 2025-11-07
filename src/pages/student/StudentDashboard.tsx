@@ -16,6 +16,7 @@ import ExamCountdownCard from '@/components/student/calendar/ExamCountdownCard';
 import StudyHeatmap from '@/components/student/StudyHeatmap';
 import PerformanceAnalytics from '@/components/student/PerformanceAnalytics';
 import NewsArticleDialog from '@/components/student/NewsArticleDialog';
+import StatCardDialog from '@/components/student/StatCardDialog';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -24,6 +25,7 @@ const StudentDashboard = () => {
   const [currentNewsIndex, setCurrentNewsIndex] = useState(0);
   const [selectedNews, setSelectedNews] = useState<any>(null);
   const [newsDialogOpen, setNewsDialogOpen] = useState(false);
+  const [statDialogType, setStatDialogType] = useState<'journey' | 'hours' | 'active' | 'tests' | null>(null);
   const { getWeeklyStats, getNearestExam } = useCalendarTasks();
   
   const weeklyStats = getWeeklyStats();
@@ -207,24 +209,36 @@ const StudentDashboard = () => {
             </div>
           </Card>
 
-          {/* 4 Stats Cards - Very Compact */}
+          {/* 4 Stats Cards - Very Compact - Now Clickable */}
           <div className="grid grid-cols-4 gap-2">
-            <Card className="p-2 bg-white">
+            <Card 
+              className="p-2 bg-white cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setStatDialogType('journey')}
+            >
               <h3 className="text-[10px] font-semibold mb-0.5 text-gray-900">Total Journey Days</h3>
               <p className="text-2xl font-bold mb-0">347</p>
               <p className="text-[9px] text-gray-500">Preparation ongoing</p>
             </Card>
-            <Card className="p-2 bg-white">
+            <Card 
+              className="p-2 bg-white cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setStatDialogType('hours')}
+            >
               <h3 className="text-[10px] font-semibold mb-0.5 text-gray-900">Total Study Hours</h3>
-              <p className="text-2xl font-bold mb-0">91</p>
+              <p className="text-2xl font-bold mb-0">195</p>
               <p className="text-[9px] text-gray-500">6+ hours today</p>
             </Card>
-            <Card className="p-2 bg-white">
+            <Card 
+              className="p-2 bg-white cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setStatDialogType('active')}
+            >
               <h3 className="text-[10px] font-semibold mb-0.5 text-gray-900">Total Active Days</h3>
               <p className="text-2xl font-bold mb-0">67</p>
               <p className="text-[9px] text-gray-500">Continuously studying</p>
             </Card>
-            <Card className="p-2 bg-white">
+            <Card 
+              className="p-2 bg-white cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setStatDialogType('tests')}
+            >
               <h3 className="text-[10px] font-semibold mb-0.5 text-gray-900">Total Mock Test</h3>
               <p className="text-2xl font-bold mb-0">40</p>
               <p className="text-[9px] text-gray-500">Last test 2 days ago</p>
@@ -411,6 +425,15 @@ const StudentDashboard = () => {
         open={newsDialogOpen}
         onOpenChange={setNewsDialogOpen}
       />
+
+      {/* Stat Card Detail Dialogs */}
+      {statDialogType && (
+        <StatCardDialog
+          type={statDialogType}
+          open={!!statDialogType}
+          onOpenChange={(open) => !open && setStatDialogType(null)}
+        />
+      )}
     </div>
   );
 };
