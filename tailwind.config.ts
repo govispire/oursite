@@ -30,9 +30,10 @@ export default {
 					foreground: 'hsl(var(--primary-foreground))'
 				},
                 brand: {
-                    blue: "#5bbbfc",
-                    darkblue: "#097ff5",
-                    light: "#f0f9ff",
+                    teal: "#20c996",
+                    darkteal: "#179771",
+                    light: "#e6faf5",
+                    green: "#1ab386",
                 },
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
