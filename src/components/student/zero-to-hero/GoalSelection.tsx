@@ -41,7 +41,7 @@ const GoalSelection = () => {
       title: '30-Day Mastery',
       description: 'Go from Zero to Hero',
       icon: Rocket,
-      color: 'from-blue-500 to-purple-600',
+      color: 'from-primary to-brand-darkteal',
       features: ['Complete transformation', 'Deep learning', 'Master concepts'],
       recommended: true
     }
@@ -76,7 +76,7 @@ const GoalSelection = () => {
           <Card 
             key={goal.duration}
             className={`relative overflow-hidden border-2 transition-all hover:shadow-xl cursor-pointer ${
-              selectedGoal === goal.duration ? 'border-blue-500 shadow-lg' : 'border-gray-200'
+              selectedGoal === goal.duration ? 'border-primary shadow-lg' : 'border-gray-200'
             }`}
             onClick={() => handleGoalSelect(goal.duration)}
           >
