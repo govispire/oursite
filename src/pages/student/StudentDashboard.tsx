@@ -184,76 +184,76 @@ const StudentDashboard = () => {
 
   return (
     <div className="h-screen overflow-y-auto bg-gray-50">
-      <div className="flex gap-3 p-3 max-w-full">
+      <div className="flex flex-col lg:flex-row gap-3 p-2 sm:p-3 max-w-full">
         {/* Main Content */}
-        <div className="flex-1 min-w-0 space-y-3">
+        <div className="flex-1 min-w-0 space-y-2 sm:space-y-3">
           {/* Welcome Banner with Target Exam - Compact */}
-          <Card className="bg-gradient-to-r from-cyan-400 to-blue-400 p-3 text-white border-0 shadow-lg">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <h1 className="text-xl font-bold mb-0.5 truncate">Welcome, {user?.name || 'Student User'}</h1>
-                <p className="text-xs text-white/90">Track your preparation progress and upcoming exams.</p>
+          <Card className="bg-gradient-to-r from-cyan-400 to-blue-400 p-2 sm:p-3 text-white border-0 shadow-lg">
+            <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-2 sm:gap-3">
+              <div className="flex-1 min-w-0 w-full sm:w-auto">
+                <h1 className="text-base sm:text-xl font-bold mb-0.5 truncate">Welcome, {user?.name || 'Student User'}</h1>
+                <p className="text-[10px] sm:text-xs text-white/90">Track your preparation progress and upcoming exams.</p>
               </div>
-              <Card className="bg-white p-2 min-w-[150px] flex-shrink-0">
+              <Card className="bg-white p-1.5 sm:p-2 w-full sm:min-w-[150px] sm:w-auto flex-shrink-0">
                 <div className="flex items-center gap-1.5 mb-1">
-                  <div className="w-5 h-5 rounded-full bg-blue-50 flex items-center justify-center">
-                    <span className="text-xs">🎯</span>
+                  <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-blue-50 flex items-center justify-center">
+                    <span className="text-[10px] sm:text-xs">🎯</span>
                   </div>
-                  <span className="text-[10px] text-gray-600 font-medium">Target Exam</span>
+                  <span className="text-[9px] sm:text-[10px] text-gray-600 font-medium">Target Exam</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-gray-900">IBPS PO</span>
-                  <span className="bg-cyan-400 text-white text-[10px] px-2 py-0.5 rounded-full font-medium">Active</span>
+                  <span className="text-xs sm:text-sm font-bold text-gray-900">IBPS PO</span>
+                  <span className="bg-cyan-400 text-white text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full font-medium">Active</span>
                 </div>
               </Card>
             </div>
           </Card>
 
           {/* 4 Stats Cards - Very Compact - Now Clickable */}
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2">
             <Card 
-              className="p-2 bg-white cursor-pointer hover:shadow-md transition-shadow"
+              className="p-1.5 sm:p-2 bg-white cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => setStatDialogType('journey')}
             >
-              <h3 className="text-[10px] font-semibold mb-0.5 text-gray-900">Total Journey Days</h3>
-              <p className="text-2xl font-bold mb-0">347</p>
-              <p className="text-[9px] text-gray-500">Preparation ongoing</p>
+              <h3 className="text-[9px] sm:text-[10px] font-semibold mb-0.5 text-gray-900 line-clamp-1">Total Journey Days</h3>
+              <p className="text-xl sm:text-2xl font-bold mb-0">347</p>
+              <p className="text-[8px] sm:text-[9px] text-gray-500 line-clamp-1">Preparation ongoing</p>
             </Card>
             <Card 
-              className="p-2 bg-white cursor-pointer hover:shadow-md transition-shadow"
+              className="p-1.5 sm:p-2 bg-white cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => setStatDialogType('hours')}
             >
-              <h3 className="text-[10px] font-semibold mb-0.5 text-gray-900">Total Study Hours</h3>
-              <p className="text-2xl font-bold mb-0">195</p>
-              <p className="text-[9px] text-gray-500">6+ hours today</p>
+              <h3 className="text-[9px] sm:text-[10px] font-semibold mb-0.5 text-gray-900 line-clamp-1">Total Study Hours</h3>
+              <p className="text-xl sm:text-2xl font-bold mb-0">195</p>
+              <p className="text-[8px] sm:text-[9px] text-gray-500 line-clamp-1">6+ hours today</p>
             </Card>
             <Card 
-              className="p-2 bg-white cursor-pointer hover:shadow-md transition-shadow"
+              className="p-1.5 sm:p-2 bg-white cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => setStatDialogType('active')}
             >
-              <h3 className="text-[10px] font-semibold mb-0.5 text-gray-900">Total Active Days</h3>
-              <p className="text-2xl font-bold mb-0">67</p>
-              <p className="text-[9px] text-gray-500">Continuously studying</p>
+              <h3 className="text-[9px] sm:text-[10px] font-semibold mb-0.5 text-gray-900 line-clamp-1">Total Active Days</h3>
+              <p className="text-xl sm:text-2xl font-bold mb-0">67</p>
+              <p className="text-[8px] sm:text-[9px] text-gray-500 line-clamp-1">Continuously studying</p>
             </Card>
             <Card 
-              className="p-2 bg-white cursor-pointer hover:shadow-md transition-shadow"
+              className="p-1.5 sm:p-2 bg-white cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => setStatDialogType('tests')}
             >
-              <h3 className="text-[10px] font-semibold mb-0.5 text-gray-900">Total Mock Test</h3>
-              <p className="text-2xl font-bold mb-0">40</p>
-              <p className="text-[9px] text-gray-500">Last test 2 days ago</p>
+              <h3 className="text-[9px] sm:text-[10px] font-semibold mb-0.5 text-gray-900 line-clamp-1">Total Mock Test</h3>
+              <p className="text-xl sm:text-2xl font-bold mb-0">40</p>
+              <p className="text-[8px] sm:text-[9px] text-gray-500 line-clamp-1">Last test 2 days ago</p>
             </Card>
           </div>
 
           {/* Current Affairs - Top Picks with Images Carousel */}
           <div>
-            <h2 className="text-base font-bold mb-2 text-red-700">Top Picks</h2>
-            <Card className="p-3 bg-white">
+            <h2 className="text-sm sm:text-base font-bold mb-1.5 sm:mb-2 text-red-700">Top Picks</h2>
+            <Card className="p-2 sm:p-3 bg-white">
               <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Newspaper className="h-4 w-4 text-blue-600" />
-                  <h3 className="font-semibold text-sm">Current Affairs</h3>
-                  <div className="flex gap-2 ml-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <Newspaper className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
+                  <h3 className="font-semibold text-xs sm:text-sm">Current Affairs</h3>
+                  <div className="hidden sm:flex gap-2 ml-2">
                     {currentAffairsData.map((_, idx) => (
                       <div
                         key={idx}
@@ -265,15 +265,15 @@ const StudentDashboard = () => {
                   </div>
                 </div>
                 <div className="flex gap-1">
-                  <Button variant="outline" size="sm" className="h-7 w-7 p-0" onClick={handlePrevNews}>
-                    <ChevronLeft className="h-3 w-3" />
+                  <Button variant="outline" size="sm" className="h-6 w-6 sm:h-7 sm:w-7 p-0" onClick={handlePrevNews}>
+                    <ChevronLeft className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                   </Button>
-                  <Button variant="outline" size="sm" className="h-7 w-7 p-0" onClick={handleNextNews}>
-                    <ChevronRight className="h-3 w-3" />
+                  <Button variant="outline" size="sm" className="h-6 w-6 sm:h-7 sm:w-7 p-0" onClick={handleNextNews}>
+                    <ChevronRight className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                   </Button>
                 </div>
               </div>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-1.5 sm:gap-2">
                 {currentAffairsData.map((item, idx) => (
                   <div 
                     key={idx} 
@@ -283,11 +283,11 @@ const StudentDashboard = () => {
                     <img 
                       src={item.image} 
                       alt={item.title}
-                      className="w-full h-48 object-cover transition-transform group-hover:scale-105"
+                      className="w-full h-32 sm:h-40 lg:h-48 object-cover transition-transform group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-2 flex flex-col justify-end">
-                      <span className="text-white text-[9px] font-bold mb-1 uppercase">{item.category}</span>
-                      <p className="text-white text-xs font-medium line-clamp-3">{item.title}</p>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-1.5 sm:p-2 flex flex-col justify-end">
+                      <span className="text-white text-[8px] sm:text-[9px] font-bold mb-0.5 sm:mb-1 uppercase">{item.category}</span>
+                      <p className="text-white text-[10px] sm:text-xs font-medium line-clamp-2 sm:line-clamp-3">{item.title}</p>
                     </div>
                   </div>
                 ))}
@@ -297,13 +297,13 @@ const StudentDashboard = () => {
 
           {/* Study Activity Heatmap - Below the fold */}
           <div>
-            <h2 className="text-base font-bold mb-2">Study Activity</h2>
+            <h2 className="text-sm sm:text-base font-bold mb-1.5 sm:mb-2">Study Activity</h2>
             <StudyHeatmap />
           </div>
         </div>
 
-        {/* Right Sidebar - Fixed Width */}
-        <div className="w-64 flex-shrink-0 space-y-3">
+        {/* Right Sidebar - Fixed Width - Hidden on mobile */}
+        <div className="hidden lg:block w-64 flex-shrink-0 space-y-3">
           {/* Your Presence */}
           <Card className="p-2.5 bg-white">
             <div className="flex items-center justify-between mb-2">
