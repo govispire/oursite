@@ -57,16 +57,16 @@ const StudentCourses = () => {
 
       {/* Category Filter Banner */}
       {hasFilters && (
-        <Card className="bg-primary/5 border-primary/20">
+        <Card className="bg-green-50 border-green-200">
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-medium text-foreground">Filtered Results</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-medium text-green-900">Filtered Results</h3>
+                <p className="text-sm text-green-700">
                   Showing courses for: {selectedCategories.join(', ')}
                 </p>
               </div>
-              <Badge variant="secondary" className="bg-primary/10 text-primary border border-primary/20">
+              <Badge variant="secondary" className="bg-green-100 text-green-800">
                 {finalCourses.length} courses
               </Badge>
             </div>

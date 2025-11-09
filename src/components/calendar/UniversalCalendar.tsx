@@ -222,10 +222,116 @@ const UniversalCalendar: React.FC<UniversalCalendarProps> = ({ userRole, initial
 
   return (
     <div className="min-h-screen bg-gray-50 p-3 md:p-6">
+      {/* Header */}
+      <div className="mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+              {userRole.charAt(0).toUpperCase() + userRole.slice(1)} Calendar
+            </h1>
+            <p className="text-sm text-gray-600">
+              {getRoleDescription()}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            {/* Mobile Filters */}
+            {isMobile && (
+              <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex items-center gap-2">
+                    <Menu className="h-4 w-4" />
+                    Filters
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-[380px] overflow-y-auto">
+                  <div className="py-4">
+                    <CalendarSidebar
+                      selectedDate={selectedDate}
+                      onDateSelect={handleSidebarDateSelect}
+                      eventFilters={eventFilters}
+                      onFilterChange={handleFilterChange}
+                      todayEvents={todayEvents}
+                      onToggleTask={handleToggleTask}
+                      userRole={userRole}
+                    />
+                  </div>
+                </SheetContent>
+              </Sheet>
+            )}
+
+            {/* Enhanced View Tabs - Removed Week/Day, Added Progress/List */}
+            <Tabs value={viewType} onValueChange={(value) => setViewType(value as ViewType)}>
+              <TabsList>
+                <TabsTrigger value="month">{isMobile ? 'Month' : 'Month'}</TabsTrigger>
+                <TabsTrigger value="progress">{isMobile ? 'Progress' : 'Progress'}</TabsTrigger>
+                <TabsTrigger value="list">{isMobile ? 'List' : 'List'}</TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            {/* Quick Add Task Button */}
+            <Button 
+              onClick={() => handleAddEvent(selectedDate || new Date())}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              size="sm"
+            >
+              <Plus className="h-4 w-4" />
+              {!isMobile && <span className="ml-1">Add Task</span>}
+            </Button>
+          </div>
+        </div>
+
+        {/* Enhanced Quick Stats Bar */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4">
+          <Card className="p-3">
+            <div className="text-sm text-gray-600">Total Tasks</div>
+            <div className="text-lg font-bold text-blue-600">{progressStats.total}</div>
+          </Card>
+          <Card className="p-3">
+            <div className="text-sm text-gray-600">Completed</div>
+            <div className="text-lg font-bold text-green-600">{progressStats.completed}</div>
+          </Card>
+          <Card className="p-3">
+            <div className="text-sm text-gray-600">Pending</div>
+            <div className="text-lg font-bold text-orange-600">{progressStats.pending}</div>
+          </Card>
+          <Card className="p-3">
+            <div className="text-sm text-gray-600">Overdue</div>
+            <div className="text-lg font-bold text-red-600">{progressStats.overdue}</div>
+          </Card>
+          <Card className="p-3">
+            <div className="text-sm text-gray-600">Success Rate</div>
+            <div className="text-lg font-bold text-purple-600">{progressStats.completionRate}%</div>
+          </Card>
+        </div>
+      </div>
+
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Main Calendar/Views - Left Side */}
-        <div className="lg:col-span-8">
+        {/* Event Filter Sidebar - Desktop Only */}
+        {!isMobile && (
+          <div className="lg:col-span-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Event Filters</CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                <CalendarSidebar
+                  selectedDate={selectedDate}
+                  onDateSelect={handleSidebarDateSelect}
+                  eventFilters={eventFilters}
+                  onFilterChange={handleFilterChange}
+                  todayEvents={todayEvents}
+                  onToggleTask={handleToggleTask}
+                  userRole={userRole}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Main Calendar/Views */}
+        <div className="lg:col-span-9">
           <Card>
             {viewType === 'month' && (
               <>
@@ -281,61 +387,74 @@ const UniversalCalendar: React.FC<UniversalCalendarProps> = ({ userRole, initial
             )}
           </Card>
         </div>
-
-        {/* Event Filter Sidebar & Upcoming Events - Right Side */}
-        <div className="lg:col-span-4 space-y-6">
-          {/* Mobile Filter Sheet */}
-          {isMobile && (
-            <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="w-full">
-                  <Menu className="h-4 w-4 mr-2" />
-                  Event Filters & Upcoming Tasks
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[380px] overflow-y-auto">
-                <div className="py-4">
-                  <CalendarSidebar
-                    selectedDate={selectedDate}
-                    onDateSelect={handleSidebarDateSelect}
-                    eventFilters={eventFilters}
-                    onFilterChange={handleFilterChange}
-                    todayEvents={todayEvents}
-                    onToggleTask={handleToggleTask}
-                    userRole={userRole}
-                  />
-                </div>
-              </SheetContent>
-            </Sheet>
-          )}
-
-          {/* Desktop Sidebar */}
-          {!isMobile && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Event Filters & Upcoming</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4">
-                <CalendarSidebar
-                  selectedDate={selectedDate}
-                  onDateSelect={handleSidebarDateSelect}
-                  eventFilters={eventFilters}
-                  onFilterChange={handleFilterChange}
-                  todayEvents={todayEvents}
-                  onToggleTask={handleToggleTask}
-                  userRole={userRole}
-                />
-              </CardContent>
-            </Card>
-          )}
-        </div>
       </div>
+
+      {/* Recent Tasks - Only show in month view */}
+      {viewType === 'month' && (
+        <div className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Recent Tasks</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {events.slice(0, 5).map((event) => (
+                  <div key={event.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${eventCategories.find(cat => cat.value === event.category)?.color || 'bg-gray-400'}`} />
+                      <div>
+                        <div className={`font-medium ${event.completed ? 'line-through text-gray-500' : ''}`}>
+                          {event.title}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {format(event.date, 'MMM d')} at {event.time}
+                          {event.assignedTo && event.assignedTo !== userRole && (
+                            <span className="ml-2 text-blue-600">→ {event.assignedTo}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-1 text-xs rounded-full border ${
+                        event.priority === 'urgent' ? 'bg-red-100 text-red-800 border-red-200' :
+                        event.priority === 'high' ? 'bg-orange-100 text-orange-800 border-orange-200' :
+                        event.priority === 'medium' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+                        'bg-green-100 text-green-800 border-green-200'
+                      }`}>
+                        {event.priority}
+                      </span>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">⋮</Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => handleEditEvent(event)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleDeleteEvent(event.id)}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Floating Add Button for Mobile */}
       {isMobile && (
         <Button
           onClick={() => handleAddEvent(selectedDate || new Date())}
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-primary hover:bg-brand-darkteal shadow-lg"
+          className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg"
           size="icon"
         >
           <Plus className="h-6 w-6" />
