@@ -1,8 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card } from '@/components/ui/card';
-import { Calendar, Award, FileCheck, Clock } from 'lucide-react';
+import { Calendar, Award, FileCheck, Clock, BarChart, Grid3X3, Info } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import { addDays, format, startOfWeek } from 'date-fns';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface StatCardDialogProps {
   type: 'journey' | 'hours' | 'active' | 'tests';
@@ -11,33 +19,282 @@ interface StatCardDialogProps {
 }
 
 const StatCardDialog = ({ type, open, onOpenChange }: StatCardDialogProps) => {
-  // Generate year-wise heatmap data from 2020 to current year
-  const generateYearlyHeatmap = () => {
-    const startYear = 2020;
-    const currentYear = new Date().getFullYear();
-    const years = [];
+  const [viewType, setViewType] = useState<'heatmap' | 'calendar'>('heatmap');
+
+  // Generate study data for a specific year
+  const generateStudyDataForYear = (year: number) => {
+    const data: Record<string, number> = {};
+    const startDate = new Date(year, 0, 1);
+    const endDate = year === new Date().getFullYear() ? new Date() : new Date(year, 11, 31);
+    const totalDays = Math.floor((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)) + 1;
     
-    for (let year = startYear; year <= currentYear; year++) {
-      const months = [];
-      const endMonth = year === currentYear ? new Date().getMonth() : 11;
+    for (let i = 0; i < totalDays; i++) {
+      const date = new Date(startDate.getTime() + (i * 24 * 60 * 60 * 1000));
+      const formattedDate = format(date, 'yyyy-MM-dd');
       
-      for (let month = 0; month <= endMonth; month++) {
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const days = [];
-        
-        for (let day = 1; day <= daysInMonth; day++) {
-          // Random activity level (0-4) for demo
-          const level = Math.random() > 0.3 ? Math.floor(Math.random() * 5) : 0;
-          days.push({ day, level });
-        }
-        months.push({ month, days });
+      const random = Math.random();
+      let minutes = 0;
+      
+      if (random > 0.9) {
+        minutes = Math.floor(Math.random() * 120) + 600;
+      } else if (random > 0.75) {
+        minutes = Math.floor(Math.random() * 300) + 300;
+      } else if (random > 0.5) {
+        minutes = Math.floor(Math.random() * 120) + 240;
+      } else if (random > 0.3) {
+        minutes = Math.floor(Math.random() * 120) + 120;
+      } else if (random > 0.1) {
+        minutes = Math.floor(Math.random() * 120);
       }
-      years.push({ year, months });
+      
+      data[formattedDate] = minutes;
     }
-    return years;
+    
+    return data;
   };
 
-  const yearlyData = generateYearlyHeatmap();
+  // Get color based on study minutes
+  const getColor = (minutes: number): string => {
+    if (minutes === 0) return 'bg-gray-100 border border-gray-200';
+    if (minutes < 120) return 'bg-green-100 border border-green-200';
+    if (minutes < 240) return 'bg-green-200 border border-green-300';
+    if (minutes < 300) return 'bg-green-400 border border-green-500';
+    if (minutes < 600) return 'bg-green-600 border border-green-700';
+    return 'bg-pink-500 border border-pink-600';
+  };
+
+  // Format time
+  const formatTime = (minutes: number): string => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours === 0) return `${mins} minutes`;
+    if (mins === 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
+    return `${hours}h ${mins}m`;
+  };
+
+  // Generate calendar for a specific year
+  const generateCalendarForYear = (year: number, studyData: Record<string, number>) => {
+    const months = [];
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const endMonth = year === currentYear ? today.getMonth() : 11;
+    
+    for (let month = 0; month <= endMonth; month++) {
+      const monthStart = new Date(year, month, 1);
+      const monthEnd = new Date(year, month + 1, 0);
+      
+      const weeks = [];
+      let currentDate = startOfWeek(monthStart, { weekStartsOn: 1 });
+      
+      while (currentDate <= monthEnd || currentDate.getMonth() === monthStart.getMonth()) {
+        const days = [];
+        
+        for (let i = 0; i < 7; i++) {
+          const day = addDays(currentDate, i);
+          const dateKey = format(day, 'yyyy-MM-dd');
+          const minutes = studyData[dateKey] || 0;
+          
+          days.push({
+            date: day,
+            dateKey,
+            minutes,
+            dayOfWeek: format(day, 'EEE'),
+            dayOfMonth: format(day, 'd'),
+            isCurrentMonth: day.getMonth() === monthStart.getMonth(),
+            isToday: format(day, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd')
+          });
+        }
+        
+        weeks.push(days);
+        currentDate = addDays(currentDate, 7);
+        
+        if (currentDate > monthEnd && weeks.length > 0) break;
+      }
+      
+      months.push({
+        monthName: format(monthStart, 'MMM'),
+        fullMonthName: format(monthStart, 'MMMM yyyy'),
+        weeks
+      });
+    }
+    
+    return months;
+  };
+
+  // Render heatmap cell
+  const renderHeatmapCell = (day: any, key: string) => (
+    <TooltipProvider key={key}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            className={`w-3 h-3 rounded-sm cursor-pointer transition-all
+              ${day.isCurrentMonth 
+                ? `${getColor(day.minutes)} hover:ring-1 hover:ring-blue-400` 
+                : 'bg-transparent'
+              }
+              ${day.isToday ? 'ring-1 ring-blue-500' : ''}
+            `}
+          />
+        </TooltipTrigger>
+        {day.isCurrentMonth && (
+          <TooltipContent>
+            <div className="text-xs">
+              <p className="font-semibold">{format(day.date, 'EEEE, MMMM d, yyyy')}</p>
+              {day.minutes > 0 
+                ? <p>{formatTime(day.minutes)} of study</p>
+                : <p>No study activity</p>
+              }
+            </div>
+          </TooltipContent>
+        )}
+      </Tooltip>
+    </TooltipProvider>
+  );
+
+  // Render calendar cell
+  const renderCalendarCell = (day: any, key: string) => (
+    <TooltipProvider key={key}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div
+            className={`w-3 h-3 rounded-sm cursor-pointer transition-all flex items-center justify-center border text-[8px] leading-none
+              ${day.isCurrentMonth 
+                ? `${getColor(day.minutes)} hover:ring-1 hover:ring-blue-400` 
+                : 'bg-transparent text-gray-300'
+              }
+              ${day.isToday ? 'ring-1 ring-blue-500' : ''}
+              ${day.minutes > 0 ? 'text-white font-bold' : 'text-gray-700'}
+            `}
+          >
+            {day.isCurrentMonth ? day.dayOfMonth : ''}
+          </div>
+        </TooltipTrigger>
+        {day.isCurrentMonth && (
+          <TooltipContent>
+            <div className="text-xs">
+              <p className="font-semibold">{format(day.date, 'EEEE, MMMM d, yyyy')}</p>
+              {day.minutes > 0 
+                ? <p>{formatTime(day.minutes)} of study</p>
+                : <p>No study activity</p>
+              }
+            </div>
+          </TooltipContent>
+        )}
+      </Tooltip>
+    </TooltipProvider>
+  );
+
+  // Render year heatmap
+  const renderYearHeatmap = (year: number) => {
+    const studyData = generateStudyDataForYear(year);
+    const monthsData = generateCalendarForYear(year, studyData);
+    const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    
+    // Calculate statistics
+    const allDays = monthsData.flatMap(month => month.weeks.flatMap(week => week));
+    const studyDays = allDays.filter(day => day.minutes > 0 && day.isCurrentMonth).length;
+    const totalHours = allDays.filter(day => day.isCurrentMonth).reduce((sum, day) => sum + day.minutes, 0) / 60;
+    const averagePerDay = totalHours / allDays.filter(day => day.isCurrentMonth).length;
+
+    return (
+      <Card key={year} className="p-4 w-full">
+        <div className="flex justify-between items-center mb-3">
+          <div className="flex items-center gap-2">
+            <BarChart className="h-4 w-4 text-green-600" />
+            <h3 className="font-medium text-base">Study Activity - {year}</h3>
+            {year === new Date().getFullYear() && (
+              <span className="bg-blue-100 text-blue-800 text-[10px] px-2 py-0.5 rounded-full font-medium">
+                Current
+              </span>
+            )}
+          </div>
+        </div>
+        
+        {/* Statistics */}
+        <div className="flex gap-4 mb-3 text-xs">
+          <div>
+            <span className="text-gray-600 font-medium">{studyDays}</span>
+            <span className="ml-1 text-gray-500">study days</span>
+          </div>
+          <div>
+            <span className="text-gray-600 font-medium">{totalHours.toFixed(1)}h</span>
+            <span className="ml-1 text-gray-500">total</span>
+          </div>
+          <div>
+            <span className="text-gray-600 font-medium">{averagePerDay.toFixed(1)}h</span>
+            <span className="ml-1 text-gray-500">avg/day</span>
+          </div>
+        </div>
+        
+        {/* Calendar Container */}
+        <div className="mb-3 overflow-hidden">
+          <div className="flex gap-1">
+            {/* Weekday labels column */}
+            <div className="flex flex-col flex-shrink-0">
+              <div className="h-6 mb-1"></div>
+              <div className="space-y-1">
+                {dayLabels.map((day, idx) => (
+                  <div key={idx} className="w-3 h-3 flex items-center justify-center text-[10px] text-gray-500 font-medium">
+                    {day.charAt(0)}
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Calendar grid */}
+            <div className="flex-1 min-w-0 overflow-x-auto">
+              <div className="flex gap-4 min-w-max pb-2">
+                {monthsData.map((monthData, monthIndex) => (
+                  <div key={monthIndex} className="flex flex-col flex-shrink-0">
+                    <div className="h-6 mb-1 flex items-center justify-center">
+                      <span className="text-[10px] font-medium text-gray-700 text-center whitespace-nowrap">
+                        {monthData.monthName}
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-1">
+                      {[0, 1, 2, 3, 4, 5, 6].map((dayIndex) => (
+                        <div key={dayIndex} className="flex gap-1">
+                          {monthData.weeks.map((week, weekIndex) => {
+                            const day = week[dayIndex];
+                            if (!day) return <div key={weekIndex} className="w-3 h-3"></div>;
+                            
+                            return viewType === 'heatmap' 
+                              ? renderHeatmapCell(day, `${year}-${monthIndex}-${weekIndex}-${dayIndex}`)
+                              : renderCalendarCell(day, `${year}-${monthIndex}-${weekIndex}-${dayIndex}`);
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Time range labels */}
+        <div className="flex justify-between items-center text-xs text-gray-500 mb-3">
+          <span>Jan</span>
+          <span>Dec</span>
+        </div>
+        
+        {/* Legend */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="text-xs font-medium text-gray-600">Less</div>
+            <div className="w-3 h-3 rounded-sm bg-gray-100 border border-gray-200"></div>
+            <div className="w-3 h-3 rounded-sm bg-green-100 border border-green-200"></div>
+            <div className="w-3 h-3 rounded-sm bg-green-200 border border-green-300"></div>
+            <div className="w-3 h-3 rounded-sm bg-green-400 border border-green-500"></div>
+            <div className="w-3 h-3 rounded-sm bg-green-600 border border-green-700"></div>
+            <div className="w-3 h-3 rounded-sm bg-pink-500 border border-pink-600"></div>
+            <div className="text-xs font-medium text-gray-600">More</div>
+          </div>
+        </div>
+      </Card>
+    );
+  };
 
   // Streak badges data
   const streakBadges = [
@@ -74,58 +331,41 @@ const StatCardDialog = ({ type, open, onOpenChange }: StatCardDialogProps) => {
   const renderContent = () => {
     switch (type) {
       case 'journey':
+        const currentYear = new Date().getFullYear();
+        const years = [currentYear, currentYear - 1, currentYear - 2]; // 2025, 2024, 2023
+        
         return (
-          <ScrollArea className="h-[600px] pr-4">
-            <div className="space-y-8">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-lg mb-2">Your Journey Timeline</h3>
-                <p className="text-sm text-gray-600">Activity heatmap showing your engagement from January 2020 to present</p>
-              </div>
-              
-              {yearlyData.map((yearData) => (
-                <div key={yearData.year} className="space-y-3">
-                  <h4 className="font-bold text-lg text-gray-900">{yearData.year}</h4>
-                  <div className="space-y-4">
-                    {yearData.months.map((monthData) => {
-                      const monthName = new Date(yearData.year, monthData.month).toLocaleString('default', { month: 'short' });
-                      return (
-                        <div key={monthData.month}>
-                          <div className="text-xs font-medium text-gray-600 mb-1">{monthName}</div>
-                          <div className="flex flex-wrap gap-1">
-                            {monthData.days.map((dayData) => (
-                              <div
-                                key={dayData.day}
-                                className={`w-3 h-3 rounded-sm ${
-                                  dayData.level === 0 ? 'bg-gray-100' :
-                                  dayData.level === 1 ? 'bg-green-200' :
-                                  dayData.level === 2 ? 'bg-green-400' :
-                                  dayData.level === 3 ? 'bg-green-600' :
-                                  'bg-green-800'
-                                }`}
-                                title={`${monthName} ${dayData.day}, ${yearData.year}`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-              
-              <div className="flex items-center gap-4 text-xs text-gray-600 pt-4 border-t">
-                <span>Less</span>
-                <div className="flex gap-1">
-                  <div className="w-3 h-3 bg-gray-100 rounded-sm" />
-                  <div className="w-3 h-3 bg-green-200 rounded-sm" />
-                  <div className="w-3 h-3 bg-green-400 rounded-sm" />
-                  <div className="w-3 h-3 bg-green-600 rounded-sm" />
-                  <div className="w-3 h-3 bg-green-800 rounded-sm" />
-                </div>
-                <span>More</span>
+          <div className="space-y-4">
+            {/* View Type Toggle */}
+            <div className="flex justify-end">
+              <div className="flex rounded-md bg-gray-100 p-0.5">
+                <Button
+                  variant={viewType === 'heatmap' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewType('heatmap')}
+                  className="px-2 py-1 h-7 text-xs"
+                >
+                  <Grid3X3 className="h-3 w-3 mr-1" />
+                  Heatmap
+                </Button>
+                <Button
+                  variant={viewType === 'calendar' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewType('calendar')}
+                  className="px-2 py-1 h-7 text-xs"
+                >
+                  <Calendar className="h-3 w-3 mr-1" />
+                  Calendar
+                </Button>
               </div>
             </div>
-          </ScrollArea>
+            
+            <ScrollArea className="h-[calc(90vh-120px)]">
+              <div className="space-y-6 pr-4">
+                {years.map((year) => renderYearHeatmap(year))}
+              </div>
+            </ScrollArea>
+          </div>
         );
 
       case 'active':
