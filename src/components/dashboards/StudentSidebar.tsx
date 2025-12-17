@@ -28,8 +28,10 @@ import {
   Zap,
   Newspaper,
   Bell,
-  TrendingUpDown
+  TrendingUpDown,
+  Gift,
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const menuItems = [
   {
@@ -38,29 +40,9 @@ const menuItems = [
     icon: LayoutDashboard,
   },
   {
-    title: 'Courses',
-    url: '/student/courses',
-    icon: BookOpen,
-  },
-  {
-    title: 'Tests',
-    url: '/student/tests',
-    icon: FileText,
-  },
-  {
     title: 'Calendar',
     url: '/student/calendar',
     icon: Calendar,
-  },
-  {
-    title: 'Performance',
-    url: '/student/performance',
-    icon: TrendingUp,
-  },
-  {
-    title: 'Zero to Hero',
-    url: '/student/zero-to-hero',
-    icon: TrendingUpDown,
   },
   {
     title: 'Mentorship',
@@ -68,9 +50,31 @@ const menuItems = [
     icon: Users,
   },
   {
+    title: 'Courses',
+    url: '/student/courses',
+    icon: BookOpen,
+  },
+  {
+    title: 'Zero to Hero',
+    url: '/student/zero-to-hero',
+    icon: TrendingUpDown,
+  },
+  {
+    title: 'Tests',
+    url: '/student/tests',
+    icon: FileText,
+  },
+  {
     title: 'Current Affairs',
     url: '/student/current-affairs',
     icon: Newspaper,
+  },
+  {
+    title: 'Daily Free Quizzes',
+    url: '/student/daily-quizzes',
+    icon: Gift,
+    isHighlighted: true,
+    badge: 'TODAY',
   },
   {
     title: 'Speed Drills',
@@ -78,9 +82,19 @@ const menuItems = [
     icon: Zap,
   },
   {
+    title: 'Performance',
+    url: '/student/performance',
+    icon: TrendingUp,
+  },
+  {
     title: 'Exam Notifications',
     url: '/student/exam-notifications',
     icon: Bell,
+  },
+  {
+    title: 'Self Care',
+    url: '/student/self-care',
+    icon: Heart,
   },
   {
     title: 'PDF Courses',
@@ -91,11 +105,6 @@ const menuItems = [
     title: 'Doubt Forum',
     url: '/student/doubt-forum',
     icon: MessageSquare,
-  },
-  {
-    title: 'Self Care',
-    url: '/student/self-care',
-    icon: Heart,
   },
   {
     title: 'FAQ',
@@ -111,10 +120,10 @@ export function StudentSidebar() {
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-2 px-4 py-2">
-          <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">S</span>
+          <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center">
+            <span className="text-primary-foreground font-bold text-sm">P</span>
           </div>
-          <span className="font-semibold text-gray-900">Student Portal</span>
+          <span className="font-semibold text-foreground">PrepSmart</span>
         </div>
       </SidebarHeader>
 
@@ -128,10 +137,26 @@ export function StudentSidebar() {
                   <SidebarMenuButton
                     asChild
                     isActive={location.pathname === item.url}
+                    className={cn(
+                      item.isHighlighted && !location.pathname.includes(item.url) && 
+                      "bg-primary/10 hover:bg-primary/20 border border-primary/20"
+                    )}
                   >
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+                    <Link to={item.url} className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-2">
+                        <item.icon className={cn(
+                          "h-4 w-4",
+                          item.isHighlighted && "text-primary"
+                        )} />
+                        <span className={cn(
+                          item.isHighlighted && "font-medium text-primary"
+                        )}>{item.title}</span>
+                      </div>
+                      {item.badge && (
+                        <Badge variant="default" className="text-[9px] px-1.5 py-0 h-4 bg-primary text-primary-foreground">
+                          {item.badge}
+                        </Badge>
+                      )}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -142,8 +167,8 @@ export function StudentSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <div className="px-4 py-2 text-xs text-gray-500">
-          © 2025 Student Portal
+        <div className="px-4 py-2 text-xs text-muted-foreground">
+          © 2025 PrepSmart
         </div>
       </SidebarFooter>
     </Sidebar>

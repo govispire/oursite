@@ -10,13 +10,14 @@ import JourneyStatCard from '@/components/dashboard/JourneyStatCard';
 import CurrentAffairsSlider from '@/components/dashboard/CurrentAffairsSlider';
 import TodaySchedule from '@/components/dashboard/TodaySchedule';
 import { SelectedExamsSection } from '@/components/dashboard/SelectedExamsSection';
-import { Calendar as CalendarIcon, Flame, FileCheck, Award, Clock, ChevronLeft, ChevronRight, Newspaper } from 'lucide-react';
+import { Calendar as CalendarIcon, Flame, FileCheck, Award, Clock, ChevronLeft, ChevronRight, Newspaper, Target, Gift, Brain, BarChart3, AlertTriangle, Play } from 'lucide-react';
 import { useCalendarTasks } from '@/hooks/useCalendarTasks';
 import ExamCountdownCard from '@/components/student/calendar/ExamCountdownCard';
 import StudyHeatmap from '@/components/student/StudyHeatmap';
 import PerformanceAnalytics from '@/components/student/PerformanceAnalytics';
 import NewsArticleDialog from '@/components/student/NewsArticleDialog';
 import StatCardDialog from '@/components/student/StatCardDialog';
+import { Progress } from '@/components/ui/progress';
 
 const StudentDashboard = () => {
   const { user } = useAuth();
@@ -30,6 +31,31 @@ const StudentDashboard = () => {
   
   const weeklyStats = getWeeklyStats();
   const nearestExam = getNearestExam();
+
+  // Today's goal data
+  const todaysGoal = {
+    completed: 70,
+    tasks: [
+      { title: 'Study: 2 hrs', completed: true },
+      { title: 'Quiz: 1 Daily Quiz', completed: true },
+      { title: 'Revision: 20 Qs', completed: false },
+    ],
+    streak: 6,
+    badges: 3,
+  };
+
+  // Daily free quizzes
+  const dailyQuizzes = [
+    { title: 'Quantitative Aptitude', icon: BarChart3, duration: '10 mins' },
+    { title: 'Reasoning', icon: Brain, duration: '10 mins' },
+    { title: 'Current Affairs', icon: Newspaper, duration: '5 mins' },
+  ];
+
+  // Weak topics based on last tests
+  const weakTopics = [
+    { topic: 'Data Interpretation', accuracy: 42 },
+    { topic: 'Syllogism', accuracy: 48 },
+  ];
 
   // Current affairs data with topics
   const currentAffairsData = [
@@ -187,25 +213,92 @@ const StudentDashboard = () => {
       <div className="flex flex-col lg:flex-row gap-3 p-2 sm:p-3 max-w-full">
         {/* Main Content */}
         <div className="flex-1 min-w-0 space-y-3 w-full lg:w-auto">
-          {/* Welcome Banner with Target Exam - Compact */}
-          <Card className="bg-gradient-to-r from-cyan-400 to-blue-400 p-2 sm:p-3 text-white border-0 shadow-lg">
-            <div className="flex flex-col sm:flex-row items-start justify-between gap-2 sm:gap-3">
-              <div className="flex-1 min-w-0 w-full sm:w-auto">
-                <h1 className="text-base sm:text-xl font-bold mb-0.5 truncate">Welcome, {user?.name || 'Student User'}</h1>
-                <p className="text-[10px] sm:text-xs text-white/90">Track your preparation progress and upcoming exams.</p>
-              </div>
-              <Card className="bg-white p-1.5 sm:p-2 w-full sm:w-auto sm:min-w-[150px] flex-shrink-0">
-                <div className="flex items-center gap-1.5 mb-0.5 sm:mb-1">
-                  <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-blue-50 flex items-center justify-center">
-                    <span className="text-[10px] sm:text-xs">🎯</span>
+          {/* Welcome Banner with Target Exam & Today's Goal */}
+          <Card className="bg-gradient-to-r from-primary/90 to-primary p-3 sm:p-4 text-primary-foreground border-0 shadow-lg">
+            <div className="flex flex-col gap-3">
+              {/* Top Row: Welcome + Target Exam */}
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-2 sm:gap-3">
+                <div className="flex-1 min-w-0 w-full sm:w-auto">
+                  <h1 className="text-base sm:text-xl font-bold mb-0.5 truncate">👋 Welcome, {user?.name || 'Student User'}</h1>
+                  <p className="text-[10px] sm:text-xs text-primary-foreground/80">Track your preparation progress and upcoming exams.</p>
+                </div>
+                <Card className="bg-white p-1.5 sm:p-2 w-full sm:w-auto sm:min-w-[150px] flex-shrink-0">
+                  <div className="flex items-center gap-1.5 mb-0.5 sm:mb-1">
+                    <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Target className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-primary" />
+                    </div>
+                    <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium">Target Exam</span>
                   </div>
-                  <span className="text-[9px] sm:text-[10px] text-gray-600 font-medium">Target Exam</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs sm:text-sm font-bold text-foreground">IBPS PO</span>
+                    <span className="bg-primary text-primary-foreground text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full font-medium">Active</span>
+                  </div>
+                </Card>
+              </div>
+
+              {/* Today's Goal Section */}
+              <div className="bg-white/10 rounded-lg p-2 sm:p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Target className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="text-xs sm:text-sm font-semibold">Today's Goal</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs sm:text-sm font-bold text-gray-900">IBPS PO</span>
-                  <span className="bg-cyan-400 text-white text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full font-medium">Active</span>
+                <Progress value={todaysGoal.completed} className="h-2 mb-2 bg-white/20" />
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {todaysGoal.tasks.map((task, idx) => (
+                    <div key={idx} className="flex items-center gap-1 text-[10px] sm:text-xs">
+                      <span className={task.completed ? 'text-green-300' : 'text-yellow-300'}>
+                        {task.completed ? '✔' : '⏳'}
+                      </span>
+                      <span>{task.title}</span>
+                    </div>
+                  ))}
                 </div>
-              </Card>
+                <div className="flex gap-3 text-[10px] sm:text-xs">
+                  <div className="flex items-center gap-1">
+                    <Flame className="h-3 w-3 text-orange-300" />
+                    <span>Streak: {todaysGoal.streak} Days</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Award className="h-3 w-3 text-yellow-300" />
+                    <span>Badges: {todaysGoal.badges}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Daily Free Quizzes Action Card */}
+          <Card className="p-3 sm:p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-primary/20">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                <Gift className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-foreground">Daily Free Quizzes (Today)</h3>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Complete today's quizzes to maintain your streak</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mb-3">
+              {dailyQuizzes.map((quiz, idx) => (
+                <div key={idx} className="flex items-center gap-2 p-2 bg-white rounded-lg border border-primary/10">
+                  <quiz.icon className="h-4 w-4 text-primary" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm font-medium text-foreground truncate">{quiz.title}</p>
+                    <p className="text-[9px] sm:text-[10px] text-muted-foreground flex items-center gap-1">
+                      <Clock className="h-2.5 w-2.5" /> {quiz.duration}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" className="flex-1 sm:flex-none text-xs sm:text-sm">
+                <Play className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                Start Today's Quiz
+              </Button>
+              <Button variant="outline" size="sm" className="text-xs sm:text-sm">
+                View All
+              </Button>
             </div>
           </Card>
 
@@ -215,35 +308,54 @@ const StudentDashboard = () => {
               className="p-1.5 sm:p-2 bg-white cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => setStatDialogType('journey')}
             >
-              <h3 className="text-[9px] sm:text-[10px] font-semibold mb-0.5 text-gray-900 truncate">Total Journey Days</h3>
+              <h3 className="text-[9px] sm:text-[10px] font-semibold mb-0.5 text-foreground truncate">Total Journey Days</h3>
               <p className="text-xl sm:text-2xl font-bold mb-0">347</p>
-              <p className="text-[8px] sm:text-[9px] text-gray-500 truncate">Preparation ongoing</p>
+              <p className="text-[8px] sm:text-[9px] text-muted-foreground truncate">Preparation ongoing</p>
             </Card>
             <Card 
               className="p-1.5 sm:p-2 bg-white cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => setStatDialogType('hours')}
             >
-              <h3 className="text-[9px] sm:text-[10px] font-semibold mb-0.5 text-gray-900 truncate">Total Study Hours</h3>
+              <h3 className="text-[9px] sm:text-[10px] font-semibold mb-0.5 text-foreground truncate">Total Study Hours</h3>
               <p className="text-xl sm:text-2xl font-bold mb-0">195</p>
-              <p className="text-[8px] sm:text-[9px] text-gray-500 truncate">6+ hours today</p>
+              <p className="text-[8px] sm:text-[9px] text-muted-foreground truncate">6+ hours today</p>
             </Card>
             <Card 
               className="p-1.5 sm:p-2 bg-white cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => setStatDialogType('active')}
             >
-              <h3 className="text-[9px] sm:text-[10px] font-semibold mb-0.5 text-gray-900 truncate">Total Active Days</h3>
+              <h3 className="text-[9px] sm:text-[10px] font-semibold mb-0.5 text-foreground truncate">Total Active Days</h3>
               <p className="text-xl sm:text-2xl font-bold mb-0">67</p>
-              <p className="text-[8px] sm:text-[9px] text-gray-500 truncate">Continuously studying</p>
+              <p className="text-[8px] sm:text-[9px] text-muted-foreground truncate">Continuously studying</p>
             </Card>
             <Card 
               className="p-1.5 sm:p-2 bg-white cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => setStatDialogType('tests')}
             >
-              <h3 className="text-[9px] sm:text-[10px] font-semibold mb-0.5 text-gray-900 truncate">Total Mock Test</h3>
+              <h3 className="text-[9px] sm:text-[10px] font-semibold mb-0.5 text-foreground truncate">Total Mock Test</h3>
               <p className="text-xl sm:text-2xl font-bold mb-0">40</p>
-              <p className="text-[8px] sm:text-[9px] text-gray-500 truncate">Last test 2 days ago</p>
+              <p className="text-[8px] sm:text-[9px] text-muted-foreground truncate">Last test 2 days ago</p>
             </Card>
           </div>
+
+          {/* Weak Topic Suggestion Card */}
+          <Card className="p-3 sm:p-4 bg-orange-50 border border-orange-200">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="h-4 w-4 text-orange-600" />
+              <h3 className="text-sm sm:text-base font-semibold text-foreground">Focus Areas (Based on Last Tests)</h3>
+            </div>
+            <div className="space-y-2 mb-3">
+              {weakTopics.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between p-2 bg-white rounded-lg border border-orange-100">
+                  <span className="text-xs sm:text-sm font-medium text-foreground">{item.topic}</span>
+                  <span className="text-[10px] sm:text-xs text-orange-600 font-medium">Accuracy: {item.accuracy}%</span>
+                </div>
+              ))}
+            </div>
+            <Button variant="outline" size="sm" className="w-full sm:w-auto border-orange-300 text-orange-700 hover:bg-orange-100">
+              Practice Now
+            </Button>
+          </Card>
 
           {/* Your Presence & Today's Schedule - Mobile Only */}
           <div className="lg:hidden">
