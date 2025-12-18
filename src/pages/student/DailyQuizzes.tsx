@@ -9,8 +9,12 @@ import {
   Trophy, Clock, Target, Brain, TrendingUp, Star, 
   Play, CheckCircle, Lock, Flame, Award, Zap,
   Calculator, BookOpen, FileText, Globe, Users,
-  ChevronRight, Sparkles, AlertTriangle, BarChart3
+  ChevronRight, Sparkles, AlertTriangle, BarChart3, ArrowLeft
 } from 'lucide-react';
+import { toast } from 'sonner';
+import QuizAttempt, { QuizResult } from '@/components/student/quiz/QuizAttempt';
+import StreakRewards from '@/components/student/quiz/StreakRewards';
+import { getQuestionsForQuiz } from '@/data/quizQuestionsData';
 
 interface Quiz {
   id: string;
@@ -62,19 +66,28 @@ const subjectColors: Record<string, string> = {
 
 const DailyQuizzes = () => {
   const [selectedSubject, setSelectedSubject] = useState<string>('all');
-  
-  const todayQuizzes: Quiz[] = [
+  const [activeQuiz, setActiveQuiz] = useState<Quiz | null>(null);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([
     { id: '1', title: 'Number System Basics', subject: 'Quantitative Aptitude', questions: 15, duration: 10, difficulty: 'Easy', completed: true, score: 87, isLocked: false },
     { id: '2', title: 'Percentage & Profit Loss', subject: 'Quantitative Aptitude', questions: 15, duration: 12, difficulty: 'Medium', completed: false, isLocked: false, isNew: true },
-    { id: '3', title: 'Coding-Decoding', subject: 'Reasoning', questions: 20, duration: 15, difficulty: 'Easy', completed: true, score: 92, isLocked: false },
+    { id: '3', title: 'Coding-Decoding', subject: 'Reasoning', questions: 15, duration: 15, difficulty: 'Easy', completed: true, score: 92, isLocked: false },
     { id: '4', title: 'Syllogism Advanced', subject: 'Reasoning', questions: 15, duration: 12, difficulty: 'Hard', completed: false, isLocked: false },
-    { id: '5', title: 'Reading Comprehension', subject: 'English', questions: 20, duration: 15, difficulty: 'Medium', completed: false, isLocked: false },
+    { id: '5', title: 'Reading Comprehension', subject: 'English', questions: 15, duration: 15, difficulty: 'Medium', completed: false, isLocked: false },
     { id: '6', title: 'Error Spotting', subject: 'English', questions: 15, duration: 10, difficulty: 'Easy', completed: true, score: 78, isLocked: false },
-    { id: '7', title: 'Banking Awareness', subject: 'General Awareness', questions: 25, duration: 15, difficulty: 'Medium', completed: false, isLocked: false, isNew: true },
-    { id: '8', title: 'Weekly Current Affairs', subject: 'Current Affairs', questions: 30, duration: 20, difficulty: 'Medium', completed: false, isLocked: false },
-    { id: '9', title: 'Data Interpretation', subject: 'Quantitative Aptitude', questions: 20, duration: 18, difficulty: 'Hard', completed: false, isLocked: true },
+    { id: '7', title: 'Banking Awareness', subject: 'General Awareness', questions: 15, duration: 15, difficulty: 'Medium', completed: false, isLocked: false, isNew: true },
+    { id: '8', title: 'Weekly Current Affairs', subject: 'Current Affairs', questions: 15, duration: 20, difficulty: 'Medium', completed: false, isLocked: false },
+    { id: '9', title: 'Data Interpretation', subject: 'Quantitative Aptitude', questions: 15, duration: 18, difficulty: 'Hard', completed: false, isLocked: true },
     { id: '10', title: 'Blood Relations', subject: 'Reasoning', questions: 15, duration: 12, difficulty: 'Medium', completed: false, isLocked: true },
-  ];
+  ]);
+
+  const [streakData, setStreakData] = useState({
+    currentStreak: 6,
+    longestStreak: 14,
+    totalQuizzesCompleted: 89,
+    lastCompletedDate: new Date().toISOString(),
+    todayCompleted: true,
+    weeklyProgress: [true, true, true, true, true, true, false]
+  });
 
   const leaderboard: LeaderboardEntry[] = [
     { rank: 1, name: 'Priya Sharma', avatar: 'PS', score: 2840, streak: 45, quizzesCompleted: 156 },
@@ -84,7 +97,7 @@ const DailyQuizzes = () => {
     { rank: 5, name: 'Sneha Reddy', avatar: 'SR', score: 2490, streak: 25, quizzesCompleted: 118 },
     { rank: 6, name: 'Amit Verma', avatar: 'AV', score: 2420, streak: 22, quizzesCompleted: 112 },
     { rank: 7, name: 'Neha Gupta', avatar: 'NG', score: 2350, streak: 19, quizzesCompleted: 105 },
-    { rank: 8, name: 'You', avatar: 'YU', score: 2180, streak: 6, quizzesCompleted: 89 },
+    { rank: 8, name: 'You', avatar: 'YU', score: 2180, streak: streakData.currentStreak, quizzesCompleted: streakData.totalQuizzesCompleted },
   ];
 
   const recommendations: Recommendation[] = [
@@ -138,11 +151,11 @@ const DailyQuizzes = () => {
   const subjects = ['all', 'Quantitative Aptitude', 'Reasoning', 'English', 'General Awareness', 'Current Affairs'];
   
   const filteredQuizzes = selectedSubject === 'all' 
-    ? todayQuizzes 
-    : todayQuizzes.filter(q => q.subject === selectedSubject);
+    ? quizzes 
+    : quizzes.filter(q => q.subject === selectedSubject);
 
-  const completedToday = todayQuizzes.filter(q => q.completed).length;
-  const totalToday = todayQuizzes.filter(q => !q.isLocked).length;
+  const completedToday = quizzes.filter(q => q.completed).length;
+  const totalToday = quizzes.filter(q => !q.isLocked).length;
 
   const getDifficultyColor = (difficulty: string) => {
     switch(difficulty) {
@@ -169,6 +182,79 @@ const DailyQuizzes = () => {
     return <span className="text-sm font-medium text-muted-foreground">#{rank}</span>;
   };
 
+  const handleStartQuiz = (quiz: Quiz) => {
+    if (quiz.isLocked) {
+      toast.error('This quiz is locked!', {
+        description: 'Complete more quizzes to unlock this one.'
+      });
+      return;
+    }
+    setActiveQuiz(quiz);
+  };
+
+  const handleQuizComplete = (result: QuizResult) => {
+    // Update quiz completion status
+    setQuizzes(prev => prev.map(q => 
+      q.id === result.quizId 
+        ? { ...q, completed: true, score: result.score }
+        : q
+    ));
+
+    // Update streak data
+    setStreakData(prev => ({
+      ...prev,
+      totalQuizzesCompleted: prev.totalQuizzesCompleted + 1,
+      weeklyProgress: prev.weeklyProgress.map((v, i) => 
+        i === new Date().getDay() - 1 || (i === 6 && new Date().getDay() === 0) ? true : v
+      )
+    }));
+
+    // Show completion toast
+    toast.success(`🎉 Quiz completed! Score: ${result.score}%`, {
+      description: `${result.correctAnswers}/${result.totalQuestions} correct answers`
+    });
+
+    // Check for streak milestone
+    if (streakData.currentStreak === 6) {
+      setStreakData(prev => ({ ...prev, currentStreak: 7 }));
+      toast.success('🔥 7 Day Streak Achieved!', {
+        description: 'You unlocked "Week Warrior" badge!'
+      });
+    }
+  };
+
+  const handleClaimReward = (rewardId: string) => {
+    console.log('Claiming reward:', rewardId);
+    // Handle reward claiming logic
+  };
+
+  // Show quiz attempt interface if a quiz is active
+  if (activeQuiz) {
+    const questions = getQuestionsForQuiz(activeQuiz.subject, activeQuiz.questions);
+    
+    return (
+      <div>
+        <Button 
+          variant="ghost" 
+          className="m-4"
+          onClick={() => setActiveQuiz(null)}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Quizzes
+        </Button>
+        <QuizAttempt
+          quizId={activeQuiz.id}
+          quizTitle={activeQuiz.title}
+          subject={activeQuiz.subject}
+          duration={activeQuiz.duration}
+          questions={questions}
+          onComplete={handleQuizComplete}
+          onExit={() => setActiveQuiz(null)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
@@ -184,7 +270,7 @@ const DailyQuizzes = () => {
           <Card className="px-4 py-2 bg-primary/5 border-primary/20">
             <div className="flex items-center gap-2">
               <Flame className="h-5 w-5 text-orange-500" />
-              <span className="font-semibold">6 Day Streak</span>
+              <span className="font-semibold">{streakData.currentStreak} Day Streak</span>
             </div>
           </Card>
           <Card className="px-4 py-2 bg-green-500/5 border-green-500/20">
@@ -293,7 +379,7 @@ const DailyQuizzes = () => {
                           Locked
                         </Button>
                       ) : (
-                        <Button size="sm">
+                        <Button size="sm" onClick={() => handleStartQuiz(quiz)}>
                           <Play className="h-4 w-4 mr-1" />
                           Start
                         </Button>
@@ -306,8 +392,14 @@ const DailyQuizzes = () => {
           </div>
         </div>
 
-        {/* Sidebar - Leaderboard & Recommendations */}
+        {/* Sidebar - Streak Rewards, Recommendations & Leaderboard */}
         <div className="space-y-6">
+          {/* Streak Rewards Card */}
+          <StreakRewards 
+            streakData={streakData}
+            onClaimReward={handleClaimReward}
+          />
+
           {/* Smart Recommendations */}
           <Card>
             <CardHeader className="pb-3">
@@ -318,7 +410,7 @@ const DailyQuizzes = () => {
               <p className="text-sm text-muted-foreground">Based on your performance & exam patterns</p>
             </CardHeader>
             <CardContent className="space-y-3">
-              {recommendations.map((rec, index) => (
+              {recommendations.slice(0, 3).map((rec, index) => (
                 <Card key={index} className="p-3 bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
@@ -375,7 +467,7 @@ const DailyQuizzes = () => {
                   <TabsTrigger value="monthly" className="flex-1">Month</TabsTrigger>
                 </TabsList>
                 <TabsContent value="daily" className="mt-0">
-                  <ScrollArea className="h-[400px]">
+                  <ScrollArea className="h-[300px]">
                     <div className="space-y-2">
                       {leaderboard.map((entry) => (
                         <div 
