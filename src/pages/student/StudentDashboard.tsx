@@ -292,12 +292,14 @@ const StudentDashboard = () => {
               ))}
             </div>
             <div className="flex gap-2">
-              <Button size="sm" className="flex-1 sm:flex-none text-xs sm:text-sm">
-                <Play className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                Start Today's Quiz
+              <Button size="sm" className="flex-1 sm:flex-none text-xs sm:text-sm" asChild>
+                <Link to="/student/daily-quizzes">
+                  <Play className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                  Start Today's Quiz
+                </Link>
               </Button>
-              <Button variant="outline" size="sm" className="text-xs sm:text-sm">
-                View All
+              <Button variant="outline" size="sm" className="text-xs sm:text-sm" asChild>
+                <Link to="/student/daily-quizzes">View All</Link>
               </Button>
             </div>
           </Card>
