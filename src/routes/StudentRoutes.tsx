@@ -24,6 +24,7 @@ import ExamCategorySelection from '@/pages/student/ExamCategorySelection';
 import CourseDetail from '@/pages/student/CourseDetail';
 import SubjectDetail from '@/pages/student/SubjectDetail';
 import InstructorDetail from '@/pages/student/InstructorDetail';
+import DailyQuizzes from '@/pages/student/DailyQuizzes';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import NotFound from '@/pages/NotFound';
 
@@ -51,6 +52,7 @@ const StudentRoutes = () => {
           <Route path="/mentorship" element={<MentorshipDashboard />} />
           <Route path="/mentorship/dashboard" element={<MentorshipDashboard />} />
           <Route path="/current-affairs" element={<CurrentAffairs />} />
+          <Route path="/daily-quizzes" element={<DailyQuizzes />} />
           <Route path="/speed-drills" element={<SpeedDrills />} />
           <Route path="/performance" element={<PerformanceAnalytics />} />
           <Route path="/zero-to-hero" element={<ZeroToHero />} />
