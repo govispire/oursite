@@ -8,9 +8,10 @@ import { Label } from '@/components/ui/label';
 import { 
   Clock, ChevronLeft, ChevronRight, Flag, CheckCircle, 
   XCircle, AlertTriangle, Trophy, Target, RotateCcw,
-  BookmarkPlus, Bookmark
+  BookmarkPlus, Bookmark, Flame
 } from 'lucide-react';
 import { toast } from 'sonner';
+import ConfettiCelebration from './ConfettiCelebration';
 
 interface Question {
   id: string;
@@ -58,6 +59,8 @@ const QuizAttempt: React.FC<QuizAttemptProps> = ({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [result, setResult] = useState<QuizResult | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [confettiType, setConfettiType] = useState<'quiz' | 'streak' | 'milestone'>('quiz');
 
   // Timer logic
   useEffect(() => {
@@ -147,6 +150,33 @@ const QuizAttempt: React.FC<QuizAttemptProps> = ({
     setResult(quizResult);
     setIsSubmitted(true);
     setShowResults(true);
+    
+    // Trigger confetti for good scores (>= 50%)
+    if (score >= 50) {
+      // Check for streak milestone from localStorage
+      try {
+        const storedStreak = localStorage.getItem('streak_data');
+        if (storedStreak) {
+          const parsed = JSON.parse(storedStreak);
+          const currentStreak = parsed.currentStreak || 0;
+          // Check if this quiz completion would hit a milestone
+          const milestones = [7, 14, 30, 50, 100];
+          if (milestones.includes(currentStreak + 1)) {
+            setConfettiType('milestone');
+          } else if (currentStreak > 0) {
+            setConfettiType('streak');
+          } else {
+            setConfettiType('quiz');
+          }
+        }
+      } catch (error) {
+        setConfettiType('quiz');
+      }
+      setShowConfetti(true);
+      // Reset confetti after animation
+      setTimeout(() => setShowConfetti(false), 100);
+    }
+    
     onComplete(quizResult);
   }, [answers, duration, onComplete, questions, quizId, timeRemaining]);
 
@@ -167,6 +197,7 @@ const QuizAttempt: React.FC<QuizAttemptProps> = ({
   if (showResults && result) {
     return (
       <div className="space-y-6 p-6">
+        <ConfettiCelebration trigger={showConfetti} type={confettiType} />
         <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
           <CardContent className="p-8 text-center">
             <div className="mb-6">
