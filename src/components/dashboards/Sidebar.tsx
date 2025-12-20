@@ -11,6 +11,15 @@ import {
   Target, Clock, TrendingUp, Gift
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+
+interface NavItem {
+  icon: React.ReactNode;
+  label: string;
+  to: string;
+  badge?: string;
+  highlight?: boolean;
+}
 
 interface SidebarItemProps {
   icon: React.ReactNode;
@@ -18,21 +27,31 @@ interface SidebarItemProps {
   to: string;
   active: boolean;
   collapsed: boolean;
+  badge?: string;
+  highlight?: boolean;
 }
 
-const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label, to, active, collapsed }) => {
+const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label, to, active, collapsed, badge, highlight }) => {
   return (
     <li className="mb-2">
       <Link 
         to={to} 
         className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-3 text-sm transition-all hover:bg-gray-100",
-          active ? "bg-brand-blue/10 text-brand-blue font-semibold" : "text-gray-700 font-medium"
+          "flex items-center justify-between gap-3 rounded-lg px-3 py-3 text-sm transition-all hover:bg-gray-100",
+          active ? "bg-brand-blue/10 text-brand-blue font-semibold" : "text-gray-700 font-medium",
+          highlight && !active && "bg-primary/5 border border-primary/20"
         )}
         title={label}
       >
-        {icon}
-        {!collapsed && <span className="font-semibold">{label}</span>}
+        <div className="flex items-center gap-3">
+          <span className={cn(highlight && "text-primary")}>{icon}</span>
+          {!collapsed && <span className={cn("font-semibold", highlight && "text-primary")}>{label}</span>}
+        </div>
+        {!collapsed && badge && (
+          <Badge className="text-[10px] px-1.5 py-0 h-5 bg-primary text-primary-foreground">
+            {badge}
+          </Badge>
+        )}
       </Link>
     </li>
   );
@@ -69,7 +88,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role, basePath, collapsed }) => {
           { icon: <TrendingUp size={18} />, label: 'Zero to Hero', to: `${basePath}/zero-to-hero` },
           { icon: <FileCheck size={18} />, label: 'Tests', to: `${basePath}/tests` },
           { icon: <FileText size={18} />, label: 'Current Affairs', to: `${basePath}/current-affairs` },
-          { icon: <Gift size={18} />, label: 'Daily Free Quizzes', to: `${basePath}/daily-quizzes` },
+          { icon: <Gift size={18} />, label: 'Daily Free Quizzes', to: `${basePath}/daily-quizzes`, badge: 'TODAY', highlight: true },
           { icon: <Lightbulb size={18} />, label: 'Speed Drills', to: `${basePath}/speed-drills` },
           { icon: <BarChart2 size={18} />, label: 'Performance Analytics', to: `${basePath}/performance` },
           { icon: <Bell size={18} />, label: 'Exam Notifications', to: `${basePath}/exam-notifications` },
@@ -155,7 +174,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role, basePath, collapsed }) => {
       
       <nav className="flex-1 overflow-y-auto p-4">
         <ul className={`space-y-1 ${collapsed ? 'items-center' : ''}`}>
-          {navItems.map((item) => (
+          {navItems.map((item: NavItem) => (
             <SidebarItem
               key={item.to}
               icon={item.icon}
@@ -163,6 +182,8 @@ const Sidebar: React.FC<SidebarProps> = ({ role, basePath, collapsed }) => {
               to={item.to}
               active={isActive(item.to)}
               collapsed={collapsed}
+              badge={item.badge}
+              highlight={item.highlight}
             />
           ))}
         </ul>
