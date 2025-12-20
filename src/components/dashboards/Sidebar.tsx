@@ -8,10 +8,16 @@ import {
   FileText, Lightbulb, BarChart2, Heart, FileQuestion,
   HelpCircle, Upload, Eye, CheckCircle, Users, Bell,
   PieChart, CreditCard, Settings, UserCheck, MessageSquare,
-  Target, Clock, TrendingUp, Gift, Flame
+  Target, Clock, TrendingUp, Gift, Flame, Trophy, Star, Award, Lock
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/hover-card';
+import { Progress } from '@/components/ui/progress';
 
 interface NavItem {
   icon: React.ReactNode;
@@ -20,6 +26,13 @@ interface NavItem {
   badge?: string;
   highlight?: boolean;
   showStreak?: boolean;
+}
+
+interface StreakMilestone {
+  days: number;
+  reward: string;
+  icon: React.ReactNode;
+  unlocked: boolean;
 }
 
 interface SidebarItemProps {
@@ -31,10 +44,67 @@ interface SidebarItemProps {
   badge?: string;
   highlight?: boolean;
   streak?: number;
+  longestStreak?: number;
   showStreak?: boolean;
 }
 
-const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label, to, active, collapsed, badge, highlight, streak, showStreak }) => {
+const StreakTooltipContent: React.FC<{ streak: number; longestStreak: number }> = ({ streak, longestStreak }) => {
+  const milestones: StreakMilestone[] = [
+    { days: 3, reward: 'Bronze Badge', icon: <Award className="h-4 w-4 text-amber-600" />, unlocked: streak >= 3 },
+    { days: 7, reward: '7-Day Champion', icon: <Trophy className="h-4 w-4 text-yellow-500" />, unlocked: streak >= 7 },
+    { days: 14, reward: 'Silver Badge', icon: <Star className="h-4 w-4 text-gray-400" />, unlocked: streak >= 14 },
+    { days: 30, reward: 'Gold Badge', icon: <Trophy className="h-4 w-4 text-yellow-400" />, unlocked: streak >= 30 },
+    { days: 50, reward: 'Quiz Master', icon: <Award className="h-4 w-4 text-purple-500" />, unlocked: streak >= 50 },
+    { days: 100, reward: 'Legend', icon: <Flame className="h-4 w-4 text-red-500" />, unlocked: streak >= 100 },
+  ];
+
+  const nextMilestone = milestones.find(m => !m.unlocked);
+  const progressToNext = nextMilestone ? (streak / nextMilestone.days) * 100 : 100;
+
+  return (
+    <div className="w-64 p-1">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="p-2 bg-orange-100 rounded-full">
+          <Flame className="h-5 w-5 text-orange-500" />
+        </div>
+        <div>
+          <p className="font-bold text-lg">{streak} Day Streak!</p>
+          <p className="text-xs text-muted-foreground">Best: {longestStreak} days</p>
+        </div>
+      </div>
+
+      {nextMilestone && (
+        <div className="mb-3 p-2 bg-muted/50 rounded-lg">
+          <div className="flex items-center justify-between text-xs mb-1">
+            <span className="text-muted-foreground">Next: {nextMilestone.reward}</span>
+            <span className="font-medium">{streak}/{nextMilestone.days}</span>
+          </div>
+          <Progress value={progressToNext} className="h-1.5" />
+        </div>
+      )}
+
+      <div className="space-y-1.5">
+        <p className="text-xs font-medium text-muted-foreground mb-2">Milestones</p>
+        {milestones.map((milestone) => (
+          <div 
+            key={milestone.days} 
+            className={cn(
+              "flex items-center gap-2 p-1.5 rounded-md text-xs transition-colors",
+              milestone.unlocked ? "bg-primary/5" : "opacity-50"
+            )}
+          >
+            {milestone.unlocked ? milestone.icon : <Lock className="h-4 w-4 text-muted-foreground" />}
+            <span className={cn("flex-1", milestone.unlocked && "font-medium")}>{milestone.reward}</span>
+            <span className="text-muted-foreground">{milestone.days}d</span>
+            {milestone.unlocked && <CheckCircle className="h-3 w-3 text-green-500" />}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label, to, active, collapsed, badge, highlight, streak, longestStreak, showStreak }) => {
   return (
     <li className="mb-2">
       <Link 
@@ -53,10 +123,17 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label, to, active, coll
         {!collapsed && (
           <div className="flex items-center gap-1.5">
             {showStreak && streak !== undefined && streak > 0 && (
-              <div className="flex items-center gap-0.5 bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full">
-                <Flame size={12} className="text-orange-500" />
-                <span className="text-[10px] font-bold">{streak}</span>
-              </div>
+              <HoverCard openDelay={100} closeDelay={100}>
+                <HoverCardTrigger asChild>
+                  <div className="flex items-center gap-0.5 bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full cursor-pointer hover:bg-orange-200 transition-colors">
+                    <Flame size={12} className="text-orange-500" />
+                    <span className="text-[10px] font-bold">{streak}</span>
+                  </div>
+                </HoverCardTrigger>
+                <HoverCardContent side="right" align="start" className="w-auto p-3">
+                  <StreakTooltipContent streak={streak} longestStreak={longestStreak || streak} />
+                </HoverCardContent>
+              </HoverCard>
             )}
             {badge && (
               <Badge className="text-[10px] px-1.5 py-0 h-5 bg-primary text-primary-foreground animate-pulse">
@@ -80,6 +157,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role, basePath, collapsed }) => {
   const location = useLocation();
   const { user } = useAuth();
   const [streak, setStreak] = useState(0);
+  const [longestStreak, setLongestStreak] = useState(0);
 
   // Load streak data from localStorage for students
   useEffect(() => {
@@ -89,6 +167,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role, basePath, collapsed }) => {
         if (storedStreak) {
           const parsed = JSON.parse(storedStreak);
           setStreak(parsed.currentStreak || 0);
+          setLongestStreak(parsed.longestStreak || 0);
         }
       } catch (error) {
         console.error('Error loading streak data:', error);
@@ -214,6 +293,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role, basePath, collapsed }) => {
               badge={item.badge}
               highlight={item.highlight}
               streak={streak}
+              longestStreak={longestStreak}
               showStreak={item.showStreak}
             />
           ))}
