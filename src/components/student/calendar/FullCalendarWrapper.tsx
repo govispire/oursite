@@ -160,11 +160,12 @@ const FullCalendarWrapper: React.FC<FullCalendarWrapperProps> = ({
             omitCommas: true
           }}
           eventDidMount={(info) => {
-            // Add tooltip with description
+            // Add tooltip with description - using textContent to prevent XSS
             if (info.event.extendedProps.description) {
               const tooltip = document.createElement('div');
-              tooltip.className = 'calendar-tooltip bg-white dark:bg-gray-800 p-2 rounded shadow-lg text-sm';
-              tooltip.innerHTML = info.event.extendedProps.description;
+              tooltip.className = 'calendar-tooltip bg-white dark:bg-gray-800 p-2 rounded shadow-lg text-sm max-w-xs';
+              // Use textContent instead of innerHTML to prevent XSS attacks
+              tooltip.textContent = info.event.extendedProps.description;
               
               const eventEl = info.el;
               eventEl.addEventListener('mouseover', () => {
