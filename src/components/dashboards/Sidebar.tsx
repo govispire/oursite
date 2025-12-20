@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -8,7 +8,7 @@ import {
   FileText, Lightbulb, BarChart2, Heart, FileQuestion,
   HelpCircle, Upload, Eye, CheckCircle, Users, Bell,
   PieChart, CreditCard, Settings, UserCheck, MessageSquare,
-  Target, Clock, TrendingUp, Gift
+  Target, Clock, TrendingUp, Gift, Flame
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +19,7 @@ interface NavItem {
   to: string;
   badge?: string;
   highlight?: boolean;
+  showStreak?: boolean;
 }
 
 interface SidebarItemProps {
@@ -29,9 +30,11 @@ interface SidebarItemProps {
   collapsed: boolean;
   badge?: string;
   highlight?: boolean;
+  streak?: number;
+  showStreak?: boolean;
 }
 
-const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label, to, active, collapsed, badge, highlight }) => {
+const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label, to, active, collapsed, badge, highlight, streak, showStreak }) => {
   return (
     <li className="mb-2">
       <Link 
@@ -47,10 +50,20 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label, to, active, coll
           <span className={cn(highlight && "text-primary")}>{icon}</span>
           {!collapsed && <span className={cn("font-semibold", highlight && "text-primary")}>{label}</span>}
         </div>
-        {!collapsed && badge && (
-          <Badge className="text-[10px] px-1.5 py-0 h-5 bg-primary text-primary-foreground animate-pulse">
-            {badge}
-          </Badge>
+        {!collapsed && (
+          <div className="flex items-center gap-1.5">
+            {showStreak && streak !== undefined && streak > 0 && (
+              <div className="flex items-center gap-0.5 bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full">
+                <Flame size={12} className="text-orange-500" />
+                <span className="text-[10px] font-bold">{streak}</span>
+              </div>
+            )}
+            {badge && (
+              <Badge className="text-[10px] px-1.5 py-0 h-5 bg-primary text-primary-foreground animate-pulse">
+                {badge}
+              </Badge>
+            )}
+          </div>
         )}
       </Link>
     </li>
@@ -66,6 +79,22 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ role, basePath, collapsed }) => {
   const location = useLocation();
   const { user } = useAuth();
+  const [streak, setStreak] = useState(0);
+
+  // Load streak data from localStorage for students
+  useEffect(() => {
+    if (role === 'student') {
+      try {
+        const storedStreak = localStorage.getItem('streak_data');
+        if (storedStreak) {
+          const parsed = JSON.parse(storedStreak);
+          setStreak(parsed.currentStreak || 0);
+        }
+      } catch (error) {
+        console.error('Error loading streak data:', error);
+      }
+    }
+  }, [role]);
   
   // Check if current path matches or is a sub-path of the nav item
   const isActive = (path: string) => {
@@ -88,7 +117,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role, basePath, collapsed }) => {
           { icon: <TrendingUp size={18} />, label: 'Zero to Hero', to: `${basePath}/zero-to-hero` },
           { icon: <FileCheck size={18} />, label: 'Tests', to: `${basePath}/tests` },
           { icon: <FileText size={18} />, label: 'Current Affairs', to: `${basePath}/current-affairs` },
-          { icon: <Gift size={18} />, label: 'Daily Free Quizzes', to: `${basePath}/daily-quizzes`, badge: 'TODAY', highlight: true },
+          { icon: <Gift size={18} />, label: 'Daily Free Quizzes', to: `${basePath}/daily-quizzes`, badge: 'TODAY', highlight: true, showStreak: true },
           { icon: <Lightbulb size={18} />, label: 'Speed Drills', to: `${basePath}/speed-drills` },
           { icon: <BarChart2 size={18} />, label: 'Performance Analytics', to: `${basePath}/performance` },
           { icon: <Bell size={18} />, label: 'Exam Notifications', to: `${basePath}/exam-notifications` },
@@ -184,6 +213,8 @@ const Sidebar: React.FC<SidebarProps> = ({ role, basePath, collapsed }) => {
               collapsed={collapsed}
               badge={item.badge}
               highlight={item.highlight}
+              streak={streak}
+              showStreak={item.showStreak}
             />
           ))}
         </ul>
