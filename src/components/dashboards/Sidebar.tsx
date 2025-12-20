@@ -48,7 +48,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ icon, label, to, active, coll
           {!collapsed && <span className={cn("font-semibold", highlight && "text-primary")}>{label}</span>}
         </div>
         {!collapsed && badge && (
-          <Badge className="text-[10px] px-1.5 py-0 h-5 bg-primary text-primary-foreground">
+          <Badge className="text-[10px] px-1.5 py-0 h-5 bg-primary text-primary-foreground animate-pulse">
             {badge}
           </Badge>
         )}
