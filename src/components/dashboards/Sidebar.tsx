@@ -8,7 +8,7 @@ import {
   FileText, Lightbulb, BarChart2, Heart, FileQuestion,
   HelpCircle, Upload, Eye, CheckCircle, Users, Bell,
   PieChart, CreditCard, Settings, UserCheck, MessageSquare,
-  Target, Clock, TrendingUp
+  Target, Clock, TrendingUp, Gift
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
@@ -69,6 +69,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role, basePath, collapsed }) => {
           { icon: <TrendingUp size={18} />, label: 'Zero to Hero', to: `${basePath}/zero-to-hero` },
           { icon: <FileCheck size={18} />, label: 'Tests', to: `${basePath}/tests` },
           { icon: <FileText size={18} />, label: 'Current Affairs', to: `${basePath}/current-affairs` },
+          { icon: <Gift size={18} />, label: 'Daily Free Quizzes', to: `${basePath}/daily-quizzes` },
           { icon: <Lightbulb size={18} />, label: 'Speed Drills', to: `${basePath}/speed-drills` },
           { icon: <BarChart2 size={18} />, label: 'Performance Analytics', to: `${basePath}/performance` },
           { icon: <Bell size={18} />, label: 'Exam Notifications', to: `${basePath}/exam-notifications` },
