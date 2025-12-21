@@ -25,6 +25,7 @@ import CourseDetail from '@/pages/student/CourseDetail';
 import SubjectDetail from '@/pages/student/SubjectDetail';
 import InstructorDetail from '@/pages/student/InstructorDetail';
 import DailyQuizzes from '@/pages/student/DailyQuizzes';
+import Rewards from '@/pages/student/Rewards';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import NotFound from '@/pages/NotFound';
 
@@ -61,6 +62,7 @@ const StudentRoutes = () => {
           <Route path="/pdf-courses" element={<PDFCourses />} />
           <Route path="/doubt-forum" element={<DoubtForum />} />
           <Route path="/faq" element={<FAQ />} />
+          <Route path="/rewards" element={<Rewards />} />
           <Route path="*" element={<NotFound />} />
         </Route>
         

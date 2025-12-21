@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfettiCelebration from './ConfettiCelebration';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 
 interface Question {
   id: string;
@@ -61,6 +62,7 @@ const QuizAttempt: React.FC<QuizAttemptProps> = ({
   const [result, setResult] = useState<QuizResult | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [confettiType, setConfettiType] = useState<'quiz' | 'streak' | 'milestone'>('quiz');
+  const { playSound } = useSoundEffects();
 
   // Timer logic
   useEffect(() => {
@@ -151,7 +153,7 @@ const QuizAttempt: React.FC<QuizAttemptProps> = ({
     setIsSubmitted(true);
     setShowResults(true);
     
-    // Trigger confetti for good scores (>= 50%)
+    // Trigger confetti and sounds for good scores (>= 50%)
     if (score >= 50) {
       // Check for streak milestone from localStorage
       try {
@@ -163,18 +165,26 @@ const QuizAttempt: React.FC<QuizAttemptProps> = ({
           const milestones = [7, 14, 30, 50, 100];
           if (milestones.includes(currentStreak + 1)) {
             setConfettiType('milestone');
+            playSound('milestone');
           } else if (currentStreak > 0) {
             setConfettiType('streak');
+            playSound('streak');
           } else {
             setConfettiType('quiz');
+            playSound('celebration');
           }
+        } else {
+          playSound('complete');
         }
       } catch (error) {
         setConfettiType('quiz');
+        playSound('complete');
       }
       setShowConfetti(true);
       // Reset confetti after animation
       setTimeout(() => setShowConfetti(false), 100);
+    } else {
+      playSound('complete');
     }
     
     onComplete(quizResult);
