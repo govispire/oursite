@@ -11,6 +11,7 @@ import EmployeeRoutes from '@/routes/EmployeeRoutes';
 import SuperAdminRoutes from '@/routes/SuperAdminRoutes';
 import OwnerRoutes from '@/routes/OwnerRoutes';
 import Index from '@/pages/Index';
+import Pricing from '@/pages/Pricing';
 import NotFound from '@/pages/NotFound';
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
             <div className="min-h-screen bg-background">
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/pricing" element={<Pricing />} />
                 <Route path="/student/*" element={<StudentRoutes />} />
                 <Route path="/mentor/*" element={<MentorRoutes />} />
                 <Route path="/admin/*" element={<AdminRoutes />} />
