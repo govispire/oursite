@@ -113,7 +113,7 @@ const platformStats = [
 
 const FeatureSection = () => {
   return (
-    <section id="features" className="w-full py-20 bg-gradient-to-br from-gray-50 to-white">
+    <section id="features" className="w-full py-20 bg-gradient-to-br from-gray-50 to-white scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         {/* Header */}
         <div className="text-center mb-16">

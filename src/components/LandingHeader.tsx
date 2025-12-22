@@ -21,10 +21,34 @@ const LandingHeader = () => {
         <div className="hidden md:flex items-center gap-8">
           <nav>
             <ul className="flex items-center gap-6">
-              <li><a href="#features" className="text-sm hover:text-brand-blue transition-colors">Features</a></li>
-              <li><a href="#exams" className="text-sm hover:text-brand-blue transition-colors">Exams</a></li>
+              <li>
+                <a 
+                  href="#features" 
+                  onClick={(e) => { e.preventDefault(); document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }); }}
+                  className="text-sm hover:text-brand-blue transition-colors cursor-pointer"
+                >
+                  Features
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="#exams" 
+                  onClick={(e) => { e.preventDefault(); document.getElementById('exams')?.scrollIntoView({ behavior: 'smooth' }); }}
+                  className="text-sm hover:text-brand-blue transition-colors cursor-pointer"
+                >
+                  Exams
+                </a>
+              </li>
               <li><Link to="/pricing" className="text-sm hover:text-brand-blue transition-colors">Pricing</Link></li>
-              <li><a href="#blog" className="text-sm hover:text-brand-blue transition-colors">Blog</a></li>
+              <li>
+                <a 
+                  href="#blog" 
+                  onClick={(e) => { e.preventDefault(); document.getElementById('blog')?.scrollIntoView({ behavior: 'smooth' }); }}
+                  className="text-sm hover:text-brand-blue transition-colors cursor-pointer"
+                >
+                  Blog
+                </a>
+              </li>
             </ul>
           </nav>
           
@@ -59,10 +83,34 @@ const LandingHeader = () => {
         <div className="md:hidden absolute top-16 left-0 right-0 bg-white z-50 border-b shadow-md">
           <nav className="max-w-7xl mx-auto px-4 py-4">
             <ul className="flex flex-col gap-4">
-              <li><a href="#features" className="block py-2">Features</a></li>
-              <li><a href="#exams" className="block py-2">Exams</a></li>
+              <li>
+                <a 
+                  href="#features" 
+                  onClick={(e) => { e.preventDefault(); document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }); setIsMenuOpen(false); }}
+                  className="block py-2"
+                >
+                  Features
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="#exams" 
+                  onClick={(e) => { e.preventDefault(); document.getElementById('exams')?.scrollIntoView({ behavior: 'smooth' }); setIsMenuOpen(false); }}
+                  className="block py-2"
+                >
+                  Exams
+                </a>
+              </li>
               <li><Link to="/pricing" className="block py-2">Pricing</Link></li>
-              <li><a href="#blog" className="block py-2">Blog</a></li>
+              <li>
+                <a 
+                  href="#blog" 
+                  onClick={(e) => { e.preventDefault(); document.getElementById('blog')?.scrollIntoView({ behavior: 'smooth' }); setIsMenuOpen(false); }}
+                  className="block py-2"
+                >
+                  Blog
+                </a>
+              </li>
               <li className="pt-2 border-t">
                 <Dialog>
                   <DialogTrigger asChild>
