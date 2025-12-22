@@ -117,7 +117,7 @@ const ExamCategoryIcons = () => {
   const [selectedCategory, setSelectedCategory] = useState<ExamCategory | null>(null);
 
   return (
-    <section className="w-full py-12 bg-background">
+    <section id="exams" className="w-full py-12 bg-background scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 md:px-6">
         <div className="text-center mb-10">
           <Badge className="bg-primary/10 text-primary mb-4">Choose Your Path</Badge>
