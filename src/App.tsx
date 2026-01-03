@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -12,6 +11,8 @@ import SuperAdminRoutes from '@/routes/SuperAdminRoutes';
 import OwnerRoutes from '@/routes/OwnerRoutes';
 import Index from '@/pages/Index';
 import Pricing from '@/pages/Pricing';
+import Blog from '@/pages/Blog';
+import CurrentAffairs from '@/pages/CurrentAffairs';
 import NotFound from '@/pages/NotFound';
 
 function App() {
@@ -24,6 +25,8 @@ function App() {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/pricing" element={<Pricing />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/current-affairs" element={<CurrentAffairs />} />
                 <Route path="/student/*" element={<StudentRoutes />} />
                 <Route path="/mentor/*" element={<MentorRoutes />} />
                 <Route path="/admin/*" element={<AdminRoutes />} />
