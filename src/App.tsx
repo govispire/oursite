@@ -12,7 +12,9 @@ import OwnerRoutes from '@/routes/OwnerRoutes';
 import Index from '@/pages/Index';
 import Pricing from '@/pages/Pricing';
 import Blog from '@/pages/Blog';
+import BlogArticle from '@/pages/BlogArticle';
 import CurrentAffairs from '@/pages/CurrentAffairs';
+import Downloads from '@/pages/Downloads';
 import NotFound from '@/pages/NotFound';
 
 function App() {
@@ -26,7 +28,9 @@ function App() {
                 <Route path="/" element={<Index />} />
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<BlogArticle />} />
                 <Route path="/current-affairs" element={<CurrentAffairs />} />
+                <Route path="/downloads" element={<Downloads />} />
                 <Route path="/student/*" element={<StudentRoutes />} />
                 <Route path="/mentor/*" element={<MentorRoutes />} />
                 <Route path="/admin/*" element={<AdminRoutes />} />
