@@ -29,6 +29,7 @@ const Blog = () => {
 
   const featuredPost = {
     id: 1,
+    slug: 'complete-guide-ibps-po-2025',
     title: 'Complete Guide to Crack IBPS PO 2025: Strategy, Syllabus & Expert Tips',
     excerpt: 'Master the IBPS PO exam with our comprehensive preparation strategy covering all sections, time management tips, previous year analysis, and expert recommendations from toppers.',
     category: 'Banking Exams',
@@ -43,6 +44,7 @@ const Blog = () => {
   const blogPosts = [
     {
       id: 2,
+      slug: 'ssc-cgl-score-180-60-days',
       title: 'SSC CGL 2025 Tier-1: How to Score 180+ in 60 Days',
       excerpt: 'A day-by-day study plan with topic-wise breakdown, practice resources, and proven techniques from previous year toppers.',
       category: 'SSC Exams',
@@ -55,6 +57,7 @@ const Blog = () => {
     },
     {
       id: 3,
+      slug: 'railway-rrb-ntpc-guide-2025',
       title: 'Railway RRB NTPC Complete Syllabus & Preparation Guide 2025',
       excerpt: 'Everything you need to know about RRB NTPC - exam pattern, syllabus breakdown, important topics, and free resources.',
       category: 'Railway Exams',
@@ -67,6 +70,7 @@ const Blog = () => {
     },
     {
       id: 4,
+      slug: 'upsc-cse-preparation-beginners-2025',
       title: 'UPSC CSE 2025: Complete Preparation Strategy for Beginners',
       excerpt: 'Start your IAS journey with the right approach. Learn about optional subjects, booklist, and effective study techniques.',
       category: 'UPSC',
@@ -79,6 +83,7 @@ const Blog = () => {
     },
     {
       id: 5,
+      slug: 'tnpsc-group-2-preparation-tips',
       title: 'TNPSC Group 2 Exam: Subject-wise Preparation Tips',
       excerpt: 'Detailed guide covering Tamil, English, General Knowledge, and Aptitude sections with recommended books and resources.',
       category: 'TNPSC',
@@ -91,6 +96,7 @@ const Blog = () => {
     },
     {
       id: 6,
+      slug: 'nda-cds-defence-exam-guide-2025',
       title: 'NDA & CDS 2025: Complete Defence Exam Preparation Guide',
       excerpt: 'Physical fitness, written exam strategy, and SSB interview preparation tips for aspiring defence officers.',
       category: 'Defence Exams',
@@ -103,6 +109,7 @@ const Blog = () => {
     },
     {
       id: 7,
+      slug: 'cat-2025-quant-shortcuts',
       title: 'CAT 2025 Preparation: Quantitative Aptitude Shortcuts',
       excerpt: 'Master mathematical shortcuts for percentages, profit-loss, time-speed-distance that will save precious time in CAT.',
       category: 'MBA Entrance',
@@ -115,6 +122,7 @@ const Blog = () => {
     },
     {
       id: 8,
+      slug: 'rbi-sebi-regulatory-exam-guide',
       title: 'RBI Grade B & SEBI Grade A: Complete Regulatory Exam Guide',
       excerpt: 'Detailed syllabus analysis, preparation strategy, and important topics for regulatory body recruitment exams.',
       category: 'Regulatory Exams',
@@ -127,6 +135,7 @@ const Blog = () => {
     },
     {
       id: 9,
+      slug: 'time-management-competitive-exams',
       title: 'Time Management Tips for Competitive Exam Aspirants',
       excerpt: 'Effective study schedule, break patterns, and productivity hacks that helped toppers crack multiple exams.',
       category: 'Study Tips',
@@ -217,65 +226,67 @@ const Blog = () => {
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-8">
             {/* Featured Article */}
-            <motion.article
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="relative rounded-2xl overflow-hidden group cursor-pointer"
-            >
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10" />
-              <img
-                src={featuredPost.image}
-                alt={featuredPost.title}
-                className="w-full h-[400px] md:h-[500px] object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10 z-20">
-                <div className="flex items-center gap-2 mb-4">
-                  <Badge className="bg-primary text-primary-foreground">Featured</Badge>
-                  <Badge variant="secondary">{featuredPost.category}</Badge>
-                </div>
-                <h2 className="text-2xl md:text-4xl font-bold text-white mb-4 leading-tight">
-                  {featuredPost.title}
-                </h2>
-                <p className="text-white/80 mb-6 max-w-2xl line-clamp-2">
-                  {featuredPost.excerpt}
-                </p>
-                <div className="flex items-center gap-4">
-                  <img
-                    src={featuredPost.authorImage}
-                    alt={featuredPost.author}
-                    className="w-10 h-10 rounded-full border-2 border-white/20"
-                  />
-                  <div className="text-white/80 text-sm">
-                    <span className="font-medium text-white">{featuredPost.author}</span>
-                    <div className="flex items-center gap-3">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {featuredPost.date}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {featuredPost.readTime}
-                      </span>
+            <Link to={`/blog/${featuredPost.slug}`}>
+              <motion.article
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="relative rounded-2xl overflow-hidden group cursor-pointer"
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10" />
+                <img
+                  src={featuredPost.image}
+                  alt={featuredPost.title}
+                  className="w-full h-[400px] md:h-[500px] object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10 z-20">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Badge className="bg-primary text-primary-foreground">Featured</Badge>
+                    <Badge variant="secondary">{featuredPost.category}</Badge>
+                  </div>
+                  <h2 className="text-2xl md:text-4xl font-bold text-white mb-4 leading-tight">
+                    {featuredPost.title}
+                  </h2>
+                  <p className="text-white/80 mb-6 max-w-2xl line-clamp-2">
+                    {featuredPost.excerpt}
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={featuredPost.authorImage}
+                      alt={featuredPost.author}
+                      className="w-10 h-10 rounded-full border-2 border-white/20"
+                    />
+                    <div className="text-white/80 text-sm">
+                      <span className="font-medium text-white">{featuredPost.author}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {featuredPost.date}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {featuredPost.readTime}
+                        </span>
+                      </div>
                     </div>
                   </div>
+                  <Button className="mt-6 group/btn">
+                    Read Article
+                    <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+                  </Button>
                 </div>
-                <Button className="mt-6 group/btn">
-                  Read Article
-                  <ArrowRight className="ml-2 h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-                </Button>
-              </div>
-            </motion.article>
+              </motion.article>
+            </Link>
 
             {/* Blog Grid */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredPosts.map((post, index) => (
-                <motion.article
-                  key={post.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="group cursor-pointer"
-                >
+                <Link key={post.id} to={`/blog/${post.slug}`}>
+                  <motion.article
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="group cursor-pointer h-full"
+                  >
                   <Card className="overflow-hidden border-0 bg-card/50 backdrop-blur hover:shadow-xl transition-all duration-300">
                     <div className="relative overflow-hidden">
                       <img
@@ -326,6 +337,7 @@ const Blog = () => {
                     </CardContent>
                   </Card>
                 </motion.article>
+              </Link>
               ))}
             </div>
           </div>
