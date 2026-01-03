@@ -1,4 +1,3 @@
-
 import React from 'react';
 import LandingHeader from '@/components/LandingHeader';
 import Hero from '@/components/Hero';
@@ -10,7 +9,6 @@ import VideoExplainer from '@/components/landing/VideoExplainer';
 import MediaMentions from '@/components/landing/MediaMentions';
 import ComparisonTable from '@/components/landing/ComparisonTable';
 import FAQSection from '@/components/landing/FAQSection';
-import BlogSection from '@/components/landing/BlogSection';
 import ExamCategorySection from '@/components/ExamCategorySection';
 import SocialProofTicker from '@/components/landing/SocialProofTicker';
 import Footer from '@/components/Footer';
@@ -24,7 +22,6 @@ const Index = () => {
         <TrustSignals />
         <ExamCategoryIcons />
         <FeatureSection />
-        <BlogSection />
         <FreeResourcesCTA />
         <VideoExplainer />
         <MediaMentions />
