@@ -40,6 +40,7 @@ const LandingHeader = () => {
               </li>
               <li><Link to="/blog" className="text-sm hover:text-primary transition-colors">Blog</Link></li>
               <li><Link to="/current-affairs" className="text-sm hover:text-primary transition-colors">Current Affairs</Link></li>
+              <li><Link to="/exam-notifications" className="text-sm hover:text-primary transition-colors">Exam Alerts</Link></li>
               <li><Link to="/downloads" className="text-sm hover:text-primary transition-colors">Downloads</Link></li>
               <li><Link to="/pricing" className="text-sm hover:text-primary transition-colors">Pricing</Link></li>
             </ul>
@@ -96,6 +97,7 @@ const LandingHeader = () => {
               </li>
               <li><Link to="/blog" className="block py-2" onClick={() => setIsMenuOpen(false)}>Blog</Link></li>
               <li><Link to="/current-affairs" className="block py-2" onClick={() => setIsMenuOpen(false)}>Current Affairs</Link></li>
+              <li><Link to="/exam-notifications" className="block py-2" onClick={() => setIsMenuOpen(false)}>Exam Alerts</Link></li>
               <li><Link to="/downloads" className="block py-2" onClick={() => setIsMenuOpen(false)}>Downloads</Link></li>
               <li><Link to="/pricing" className="block py-2" onClick={() => setIsMenuOpen(false)}>Pricing</Link></li>
               <li className="pt-2 border-t">
