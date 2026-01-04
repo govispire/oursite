@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ExamCalendarView from '@/components/exam-notifications/ExamCalendarView';
 import { 
   Bell, 
   Calendar, 
@@ -576,11 +577,26 @@ const ExamNotifications = () => {
           </div>
         </section>
 
-        {/* Notifications Grid */}
+        {/* View Toggle & Content */}
         <section className="py-12">
           <div className="container mx-auto px-4">
-            <div className="grid gap-6">
-              {filteredNotifications.map((exam) => (
+            <Tabs defaultValue="list" className="w-full">
+              <div className="flex justify-center mb-8">
+                <TabsList className="bg-muted/50">
+                  <TabsTrigger value="list" className="gap-2">
+                    <FileText className="h-4 w-4" />
+                    List View
+                  </TabsTrigger>
+                  <TabsTrigger value="calendar" className="gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Calendar View
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+
+              <TabsContent value="list">
+                <div className="grid gap-6">
+                  {filteredNotifications.map((exam) => (
                 <Card 
                   key={exam.id} 
                   className="bg-card hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/30"
@@ -681,6 +697,12 @@ const ExamNotifications = () => {
                 </p>
               </div>
             )}
+              </TabsContent>
+
+              <TabsContent value="calendar">
+                <ExamCalendarView notifications={filteredNotifications} />
+              </TabsContent>
+            </Tabs>
           </div>
         </section>
 
