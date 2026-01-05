@@ -444,13 +444,13 @@ const examNotifications: ExamNotification[] = [
 const getStatusBadge = (status: string) => {
   switch (status) {
     case 'upcoming':
-      return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Upcoming</Badge>;
+      return <Badge className="bg-sky-500/20 text-sky-400 border-sky-500/30 gap-1"><Clock className="h-3 w-3" />Upcoming</Badge>;
     case 'ongoing':
-      return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Applications Open</Badge>;
+      return <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 gap-1 animate-pulse"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />Applications Open</Badge>;
     case 'closed':
       return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">Closed</Badge>;
     case 'result-declared':
-      return <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">Result Declared</Badge>;
+      return <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 gap-1"><CheckCircle className="h-3 w-3" />Result Declared</Badge>;
     default:
       return null;
   }
@@ -489,54 +489,78 @@ const ExamNotifications = () => {
       
       <main className="pt-20">
         {/* Hero Section */}
-        <section className="relative py-16 bg-gradient-to-br from-primary/10 via-background to-accent/10">
-          <div className="container mx-auto px-4">
+        <section className="relative py-20 bg-gradient-to-br from-primary/5 via-background to-accent/5 overflow-hidden">
+          {/* Background decoration */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-10 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
+          </div>
+          
+          <div className="container mx-auto px-4 relative">
             <div className="max-w-4xl mx-auto text-center">
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <Bell className="h-8 w-8 text-primary animate-pulse" />
-                <Badge variant="outline" className="text-primary border-primary">
+              <div className="flex items-center justify-center gap-3 mb-6">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-primary/30 blur-xl rounded-full animate-pulse" />
+                  <div className="relative p-3 bg-primary/20 rounded-2xl">
+                    <Bell className="h-8 w-8 text-primary" />
+                  </div>
+                </div>
+                <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 px-4 py-1.5 text-sm gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   Live Updates
                 </Badge>
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-                Exam Notifications & Alerts
+              <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 tracking-tight">
+                Exam <span className="text-primary">Notifications</span> & Alerts
               </h1>
-              <p className="text-lg text-muted-foreground mb-8">
+              <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
                 Stay updated with real-time exam dates, admit cards, results, and important deadlines 
-                for Banking, SSC, Railway, UPSC, TNPSC, Defence, MBA & Regulatory exams.
+                for all major government and competitive exams.
               </p>
               
               {/* Stats Cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <Card className="bg-card/50 backdrop-blur border-border/50">
-                  <CardContent className="p-4 text-center">
-                    <div className="text-3xl font-bold text-primary">{stats.total}</div>
+                <Card className="bg-card/60 backdrop-blur border-border/50 hover:border-primary/30 transition-colors group">
+                  <CardContent className="p-5 text-center">
+                    <div className="flex items-center justify-center mb-2">
+                      <BookOpen className="h-5 w-5 text-primary mr-2 group-hover:scale-110 transition-transform" />
+                    </div>
+                    <div className="text-3xl font-bold text-foreground mb-1">{stats.total}</div>
                     <div className="text-sm text-muted-foreground">Total Exams</div>
                   </CardContent>
                 </Card>
-                <Card className="bg-green-500/10 backdrop-blur border-green-500/30">
-                  <CardContent className="p-4 text-center">
-                    <div className="text-3xl font-bold text-green-400">{stats.ongoing}</div>
+                <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 backdrop-blur border-emerald-500/30 hover:border-emerald-400/50 transition-colors group">
+                  <CardContent className="p-5 text-center">
+                    <div className="flex items-center justify-center mb-2">
+                      <CheckCircle className="h-5 w-5 text-emerald-400 mr-2 group-hover:scale-110 transition-transform" />
+                    </div>
+                    <div className="text-3xl font-bold text-emerald-400 mb-1">{stats.ongoing}</div>
                     <div className="text-sm text-muted-foreground">Applications Open</div>
                   </CardContent>
                 </Card>
-                <Card className="bg-blue-500/10 backdrop-blur border-blue-500/30">
-                  <CardContent className="p-4 text-center">
-                    <div className="text-3xl font-bold text-blue-400">{stats.upcoming}</div>
+                <Card className="bg-gradient-to-br from-sky-500/10 to-sky-600/5 backdrop-blur border-sky-500/30 hover:border-sky-400/50 transition-colors group">
+                  <CardContent className="p-5 text-center">
+                    <div className="flex items-center justify-center mb-2">
+                      <Clock className="h-5 w-5 text-sky-400 mr-2 group-hover:scale-110 transition-transform" />
+                    </div>
+                    <div className="text-3xl font-bold text-sky-400 mb-1">{stats.upcoming}</div>
                     <div className="text-sm text-muted-foreground">Upcoming</div>
                   </CardContent>
                 </Card>
-                <Card className="bg-purple-500/10 backdrop-blur border-purple-500/30">
-                  <CardContent className="p-4 text-center">
-                    <div className="text-3xl font-bold text-purple-400">{stats.results}</div>
+                <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 backdrop-blur border-amber-500/30 hover:border-amber-400/50 transition-colors group">
+                  <CardContent className="p-5 text-center">
+                    <div className="flex items-center justify-center mb-2">
+                      <CheckCircle className="h-5 w-5 text-amber-400 mr-2 group-hover:scale-110 transition-transform" />
+                    </div>
+                    <div className="text-3xl font-bold text-amber-400 mb-1">{stats.results}</div>
                     <div className="text-sm text-muted-foreground">Results Out</div>
                   </CardContent>
                 </Card>
               </div>
 
               {/* Last Update Indicator */}
-              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <div className="inline-flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-4 py-2 rounded-full">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
                 <span>Last updated: {lastUpdate.toLocaleTimeString()}</span>
               </div>
             </div>
@@ -666,13 +690,29 @@ const ExamNotifications = () => {
                       </div>
 
                       {/* Right Section - Actions */}
-                      <div className="flex flex-col gap-2 lg:min-w-[140px]">
-                        <Button className="gap-2" asChild>
-                          <a href={exam.officialLink} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-4 w-4" />
-                            Apply Now
-                          </a>
-                        </Button>
+                      <div className="flex flex-col gap-2 lg:min-w-[160px]">
+                        {exam.status === 'result-declared' ? (
+                          <Button className="gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-amber-500/25" asChild>
+                            <a href={exam.officialLink} target="_blank" rel="noopener noreferrer">
+                              <CheckCircle className="h-4 w-4" />
+                              View Result
+                            </a>
+                          </Button>
+                        ) : exam.status === 'ongoing' ? (
+                          <Button className="gap-2 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white shadow-lg shadow-emerald-500/25" asChild>
+                            <a href={exam.officialLink} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-4 w-4" />
+                              Apply Now
+                            </a>
+                          </Button>
+                        ) : (
+                          <Button className="gap-2" variant="outline" asChild>
+                            <a href={exam.officialLink} target="_blank" rel="noopener noreferrer">
+                              <Bell className="h-4 w-4" />
+                              Set Reminder
+                            </a>
+                          </Button>
+                        )}
                         <Button variant="outline" size="sm" className="gap-2">
                           <Download className="h-4 w-4" />
                           Notification
