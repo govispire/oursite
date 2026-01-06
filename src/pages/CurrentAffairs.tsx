@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Calendar, Clock, ChevronRight, Home, Bell, TrendingUp, Filter, Search, BookOpen, 
   Globe, Landmark, Briefcase, AlertCircle, Grid3X3, List, Image, Layers, 
-  Tag, ArrowRight, Play, CheckCircle, Trophy, Zap, FileText, Hash
+  Tag, ArrowRight, Play, CheckCircle, Trophy, Zap, FileText, Hash,
+  Moon, Sun, Type, Bookmark, BookmarkCheck, X, Mail, Settings, Eye,
+  Minus, Plus, ChevronDown, ChevronUp, Heart, Share2, ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,9 +13,16 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import LandingHeader from '@/components/LandingHeader';
 import Footer from '@/components/Footer';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 type ViewMode = 'grid' | 'list' | 'thumbnail' | 'all-in-one';
 
@@ -23,6 +32,7 @@ interface Article {
   category: string;
   importance: 'high' | 'medium' | 'low';
   excerpt: string;
+  content?: string;
   readTime: string;
   date: string;
   image?: string;
@@ -33,12 +43,64 @@ interface Article {
   quizQuestions?: number;
 }
 
+interface ReadingSettings {
+  isDarkMode: boolean;
+  fontSize: number;
+  lineHeight: number;
+  fontFamily: 'sans' | 'serif' | 'mono';
+}
+
+interface DigestPreferences {
+  enabled: boolean;
+  frequency: 'daily' | 'weekly';
+  categories: string[];
+  email: string;
+}
+
 const CurrentAffairs = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [expandedTopic, setExpandedTopic] = useState<string | null>(null);
+  
+  // Reading Mode State
+  const [readingArticle, setReadingArticle] = useState<Article | null>(null);
+  const [readingSettings, setReadingSettings] = useState<ReadingSettings>({
+    isDarkMode: false,
+    fontSize: 16,
+    lineHeight: 1.8,
+    fontFamily: 'sans'
+  });
+  
+  // Bookmark State
+  const [bookmarkedArticles, setBookmarkedArticles] = useState<string[]>(() => {
+    const saved = localStorage.getItem('bookmarkedArticles');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [showBookmarks, setShowBookmarks] = useState(false);
+  
+  // Daily Digest State
+  const [digestPreferences, setDigestPreferences] = useState<DigestPreferences>(() => {
+    const saved = localStorage.getItem('digestPreferences');
+    return saved ? JSON.parse(saved) : {
+      enabled: false,
+      frequency: 'daily',
+      categories: [],
+      email: ''
+    };
+  });
+  const [showDigestSettings, setShowDigestSettings] = useState(false);
+
+  // Persist bookmarks
+  useEffect(() => {
+    localStorage.setItem('bookmarkedArticles', JSON.stringify(bookmarkedArticles));
+  }, [bookmarkedArticles]);
+
+  // Persist digest preferences
+  useEffect(() => {
+    localStorage.setItem('digestPreferences', JSON.stringify(digestPreferences));
+  }, [digestPreferences]);
 
   const categories = [
     { id: 'All', name: 'All Topics', icon: BookOpen },
@@ -68,6 +130,29 @@ const CurrentAffairs = () => {
       category: 'Banking',
       importance: 'high',
       excerpt: 'Reserve Bank of India announces new policy rates. Key points every banking aspirant must know for IBPS, SBI exams.',
+      content: `The Reserve Bank of India (RBI) in its latest Monetary Policy Committee (MPC) meeting has announced several key decisions that are crucial for banking exam aspirants.
+
+**Key Highlights:**
+
+1. **Repo Rate Decision**: The MPC has decided to maintain the repo rate unchanged at 6.50%, prioritizing price stability while supporting growth.
+
+2. **GDP Growth Projection**: The central bank has revised its GDP growth forecast for FY 2024-25, reflecting the resilient domestic economy.
+
+3. **Inflation Target**: CPI inflation is projected to remain within the target band, with the RBI continuing its vigilant stance on price stability.
+
+4. **Liquidity Management**: The central bank has introduced new measures to manage liquidity conditions in the banking system.
+
+5. **Digital Payment Initiatives**: New guidelines for digital payment security and UPI transaction limits have been announced.
+
+**Important Points for Exams:**
+- Current Repo Rate: 6.50%
+- SDF Rate: 6.25%
+- MSF Rate: 6.75%
+- Bank Rate: 6.75%
+- CRR: 4.50%
+- SLR: 18%
+
+This update is particularly important for IBPS PO, SBI PO, and RBI Grade B examinations.`,
       readTime: '5 min',
       date: 'January 5, 2025',
       image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=250&fit=crop',
@@ -83,6 +168,32 @@ const CurrentAffairs = () => {
       category: 'Economy',
       importance: 'high',
       excerpt: 'Comprehensive breakdown of the budget with focus on questions likely to appear in SSC, UPSC, and banking exams.',
+      content: `The Union Budget 2025-26 presented by the Finance Minister introduces several landmark initiatives and fiscal measures that are expected to feature prominently in competitive examinations.
+
+**Budget Highlights:**
+
+1. **Fiscal Deficit Target**: The government aims to contain fiscal deficit at 5.1% of GDP, continuing the path of fiscal consolidation.
+
+2. **Capital Expenditure**: A significant increase in capex allocation focusing on infrastructure development.
+
+3. **Tax Reforms**: 
+   - New income tax slabs under the new regime
+   - Corporate tax incentives for green manufacturing
+   - Changes in GST structure for specific sectors
+
+4. **Sector-wise Allocations**:
+   - Education: Increased allocation for skill development
+   - Healthcare: National Health Mission expansion
+   - Defence: Modernization of armed forces
+   - Agriculture: PM-KISAN enhancement
+
+**Key Schemes Announced:**
+- New employment generation scheme
+- Green energy transition fund
+- Digital infrastructure initiative
+- Rural development program
+
+This budget analysis is essential for UPSC, SSC CGL, and banking examinations.`,
       readTime: '12 min',
       date: 'January 5, 2025',
       image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=250&fit=crop',
@@ -98,6 +209,16 @@ const CurrentAffairs = () => {
       category: 'Government',
       importance: 'medium',
       excerpt: 'Latest developments in National Education Policy and their implications for state-level competitive exams.',
+      content: `The National Education Policy (NEP) 2020 continues to evolve with new implementation updates that are relevant for state-level competitive examinations.
+
+**Recent Updates:**
+
+1. **Academic Bank of Credits**: Implementation status across universities
+2. **Four-Year Undergraduate Programs**: Rollout in central universities
+3. **Vocational Education Integration**: New guidelines for schools
+4. **Digital Learning Initiatives**: PM eVIDYA expansion
+
+Important for TNPSC, UPPSC, MPPSC, and other state PSC examinations.`,
       readTime: '6 min',
       date: 'January 4, 2025',
       image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=250&fit=crop',
@@ -113,6 +234,17 @@ const CurrentAffairs = () => {
       category: 'National',
       importance: 'medium',
       excerpt: 'Important for NDA, CDS, and UPSC aspirants. New defence projects worth ₹10,000 crores approved.',
+      content: `The Defence Acquisition Council (DAC) has approved several significant projects aimed at modernizing India's armed forces.
+
+**Approved Projects:**
+1. Advanced fighter aircraft indigenous development
+2. Naval vessel construction program
+3. Artillery modernization phase II
+4. Cyber defence infrastructure upgrade
+
+Total value: ₹10,000 crores
+
+Essential reading for NDA, CDS, and UPSC defence-related questions.`,
       readTime: '4 min',
       date: 'January 4, 2025',
       image: 'https://images.unsplash.com/photo-1580752300992-559f8e898998?w=400&h=250&fit=crop',
@@ -127,6 +259,15 @@ const CurrentAffairs = () => {
       category: 'Banking',
       importance: 'high',
       excerpt: 'Must-know for RBI Grade B and SEBI Grade A exam aspirants. Complete analysis of new market regulations.',
+      content: `Securities and Exchange Board of India (SEBI) has introduced comprehensive new regulations for market intermediaries.
+
+**Key Regulations:**
+1. Enhanced disclosure requirements for mutual funds
+2. New framework for Alternative Investment Funds
+3. Updated guidelines for stock brokers
+4. ESG reporting mandates for listed companies
+
+Critical for SEBI Grade A and RBI Grade B examinations.`,
       readTime: '7 min',
       date: 'January 3, 2025',
       image: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=400&h=250&fit=crop',
@@ -142,6 +283,15 @@ const CurrentAffairs = () => {
       category: 'International',
       importance: 'high',
       excerpt: 'Historic trade deal expected to boost exports. Key facts for UPSC and commerce-related exams.',
+      content: `India has signed a landmark Free Trade Agreement (FTA) with the European Union, marking a significant milestone in bilateral trade relations.
+
+**Agreement Highlights:**
+1. Tariff reduction on 90% of goods
+2. Services sector liberalization
+3. Investment protection clauses
+4. Intellectual property framework
+
+Expected to boost bilateral trade to $250 billion by 2030.`,
       readTime: '8 min',
       date: 'January 3, 2025',
       image: 'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=400&h=250&fit=crop',
@@ -157,6 +307,15 @@ const CurrentAffairs = () => {
       category: 'Science',
       importance: 'medium',
       excerpt: "GSAT-24 launch marks milestone in India's space program. Details for competitive exam preparation.",
+      content: `Indian Space Research Organisation (ISRO) has successfully launched GSAT-24, a communication satellite, from Satish Dhawan Space Centre.
+
+**Mission Details:**
+- Launch Vehicle: GSLV Mk III
+- Orbit: Geostationary Transfer Orbit
+- Mission Life: 15 years
+- Coverage: Pan-India
+
+This mission strengthens India's communication infrastructure and demonstrates indigenous space capabilities.`,
       readTime: '4 min',
       date: 'January 2, 2025',
       image: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=400&h=250&fit=crop',
@@ -172,6 +331,15 @@ const CurrentAffairs = () => {
       category: 'National',
       importance: 'medium',
       excerpt: 'Railway Ministry announces connectivity projects worth ₹25,000 crores. Important for RRB exams.',
+      content: `The Railway Ministry has announced a comprehensive connectivity enhancement program for the Northeast region.
+
+**Project Highlights:**
+1. New Vande Bharat routes
+2. Gauge conversion projects
+3. Station modernization program
+4. Safety infrastructure upgrades
+
+Total investment: ₹25,000 crores over 5 years.`,
       readTime: '5 min',
       date: 'January 2, 2025',
       image: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=400&h=250&fit=crop',
@@ -186,6 +354,15 @@ const CurrentAffairs = () => {
       category: 'Government',
       importance: 'medium',
       excerpt: 'Government launches new digital initiatives to boost e-governance and digital literacy across India.',
+      content: `The government has launched Digital India 2.0, the next phase of the flagship digitalization program.
+
+**New Initiatives:**
+1. Universal Digital Identity for services
+2. AI-powered governance platforms
+3. Digital literacy mission expansion
+4. Cybersecurity framework enhancement
+
+Aimed at making India a $1 trillion digital economy by 2030.`,
       readTime: '6 min',
       date: 'January 1, 2025',
       image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=250&fit=crop',
@@ -201,6 +378,14 @@ const CurrentAffairs = () => {
       category: 'Sports',
       importance: 'low',
       excerpt: "Complete analysis of India's performance at Paris Olympics 2024. Important GK for all competitive exams.",
+      content: `India achieved its best-ever Olympic performance at Paris 2024, winning multiple medals across various disciplines.
+
+**Medal Tally:**
+- Gold: Notable achievements in athletics and shooting
+- Silver: Strong performances in wrestling and badminton
+- Bronze: Multiple medals in boxing and hockey
+
+This represents a significant improvement in India's Olympic performance trajectory.`,
       readTime: '7 min',
       date: 'January 1, 2025',
       image: 'https://images.unsplash.com/photo-1569517282132-25d22f4573e6?w=400&h=250&fit=crop',
@@ -218,6 +403,48 @@ const CurrentAffairs = () => {
     { id: 3, title: 'Weekly Mega Quiz', questions: 50, time: '30 min', difficulty: 'Hard', attempted: false },
     { id: 4, title: 'Budget 2025 Special', questions: 20, time: '15 min', difficulty: 'Medium', attempted: false },
   ];
+
+  // Bookmark functions
+  const toggleBookmark = (articleId: string) => {
+    setBookmarkedArticles(prev => {
+      const isBookmarked = prev.includes(articleId);
+      if (isBookmarked) {
+        toast.success('Article removed from bookmarks');
+        return prev.filter(id => id !== articleId);
+      } else {
+        toast.success('Article saved to bookmarks');
+        return [...prev, articleId];
+      }
+    });
+  };
+
+  const isBookmarked = (articleId: string) => bookmarkedArticles.includes(articleId);
+
+  const getBookmarkedArticles = () => allArticles.filter(a => bookmarkedArticles.includes(a.id));
+
+  // Digest functions
+  const toggleDigestCategory = (categoryId: string) => {
+    setDigestPreferences(prev => ({
+      ...prev,
+      categories: prev.categories.includes(categoryId)
+        ? prev.categories.filter(c => c !== categoryId)
+        : [...prev.categories, categoryId]
+    }));
+  };
+
+  const saveDigestPreferences = () => {
+    if (digestPreferences.enabled && !digestPreferences.email) {
+      toast.error('Please enter your email address');
+      return;
+    }
+    if (digestPreferences.enabled && digestPreferences.categories.length === 0) {
+      toast.error('Please select at least one category');
+      return;
+    }
+    localStorage.setItem('digestPreferences', JSON.stringify(digestPreferences));
+    toast.success('Daily digest preferences saved!');
+    setShowDigestSettings(false);
+  };
 
   const getFilteredArticles = () => {
     let filtered = allArticles;
@@ -270,6 +497,327 @@ const CurrentAffairs = () => {
     }
   };
 
+  // Reading Mode Component
+  const ReadingMode = () => {
+    if (!readingArticle) return null;
+
+    const fontFamilyClass = {
+      sans: 'font-sans',
+      serif: 'font-serif',
+      mono: 'font-mono'
+    }[readingSettings.fontFamily];
+
+    return (
+      <Dialog open={!!readingArticle} onOpenChange={() => setReadingArticle(null)}>
+        <DialogContent 
+          className={`max-w-4xl max-h-[90vh] overflow-hidden p-0 ${readingSettings.isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}
+        >
+          {/* Reading Controls */}
+          <div className={`sticky top-0 z-10 p-4 border-b flex items-center justify-between ${readingSettings.isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setReadingSettings(prev => ({ ...prev, isDarkMode: !prev.isDarkMode }))}
+                className={readingSettings.isDarkMode ? 'text-gray-100' : ''}
+              >
+                {readingSettings.isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </Button>
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setReadingSettings(prev => ({ ...prev, fontSize: Math.max(12, prev.fontSize - 2) }))}
+                  className={readingSettings.isDarkMode ? 'text-gray-100' : ''}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <span className={`text-sm min-w-[60px] text-center ${readingSettings.isDarkMode ? 'text-gray-100' : ''}`}>
+                  {readingSettings.fontSize}px
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setReadingSettings(prev => ({ ...prev, fontSize: Math.min(24, prev.fontSize + 2) }))}
+                  className={readingSettings.isDarkMode ? 'text-gray-100' : ''}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-1 border rounded-lg p-1">
+                {(['sans', 'serif', 'mono'] as const).map(font => (
+                  <Button
+                    key={font}
+                    variant={readingSettings.fontFamily === font ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setReadingSettings(prev => ({ ...prev, fontFamily: font }))}
+                    className={`text-xs ${readingSettings.isDarkMode && readingSettings.fontFamily !== font ? 'text-gray-100' : ''}`}
+                  >
+                    {font.charAt(0).toUpperCase() + font.slice(1)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => toggleBookmark(readingArticle.id)}
+                className={readingSettings.isDarkMode ? 'text-gray-100' : ''}
+              >
+                {isBookmarked(readingArticle.id) ? (
+                  <BookmarkCheck className="h-4 w-4 text-primary" />
+                ) : (
+                  <Bookmark className="h-4 w-4" />
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setReadingArticle(null)}
+                className={readingSettings.isDarkMode ? 'text-gray-100' : ''}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Article Content */}
+          <ScrollArea className="h-[calc(90vh-80px)]">
+            <div className="p-8">
+              {readingArticle.image && (
+                <img 
+                  src={readingArticle.image} 
+                  alt={readingArticle.title}
+                  className="w-full h-64 object-cover rounded-lg mb-6"
+                />
+              )}
+              
+              <div className="flex items-center gap-2 mb-4">
+                <Badge variant="outline">{readingArticle.category}</Badge>
+                {getImportanceBadge(readingArticle.importance)}
+              </div>
+
+              <h1 
+                className={`text-3xl font-bold mb-4 ${fontFamilyClass}`}
+                style={{ fontSize: readingSettings.fontSize + 8 }}
+              >
+                {readingArticle.title}
+              </h1>
+
+              <div className={`flex items-center gap-4 mb-6 text-sm ${readingSettings.isDarkMode ? 'text-gray-400' : 'text-muted-foreground'}`}>
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-4 w-4" />
+                  {readingArticle.date}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
+                  {readingArticle.readTime}
+                </span>
+              </div>
+
+              <div 
+                className={`prose max-w-none ${readingSettings.isDarkMode ? 'prose-invert' : ''} ${fontFamilyClass}`}
+                style={{ 
+                  fontSize: readingSettings.fontSize,
+                  lineHeight: readingSettings.lineHeight
+                }}
+              >
+                {readingArticle.content?.split('\n').map((paragraph, idx) => (
+                  <p key={idx} className="mb-4 whitespace-pre-wrap">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-2 mt-8 pt-6 border-t">
+                {readingArticle.tags.map(tag => (
+                  <Badge key={tag} variant="secondary">{tag}</Badge>
+                ))}
+              </div>
+
+              {readingArticle.hasQuiz && (
+                <Card className={`mt-6 ${readingSettings.isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}>
+                  <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Zap className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-semibold">Test Your Knowledge</p>
+                        <p className={`text-sm ${readingSettings.isDarkMode ? 'text-gray-400' : 'text-muted-foreground'}`}>
+                          {readingArticle.quizQuestions} questions available
+                        </p>
+                      </div>
+                    </div>
+                    <Button>Start Quiz</Button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  // Bookmarks Sheet Component
+  const BookmarksSheet = () => (
+    <Sheet open={showBookmarks} onOpenChange={setShowBookmarks}>
+      <SheetContent className="w-full sm:max-w-lg">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
+            <Bookmark className="h-5 w-5" />
+            Saved Articles ({bookmarkedArticles.length})
+          </SheetTitle>
+        </SheetHeader>
+        <ScrollArea className="h-[calc(100vh-100px)] mt-6">
+          {getBookmarkedArticles().length === 0 ? (
+            <div className="text-center py-12">
+              <Bookmark className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">No saved articles yet</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Click the bookmark icon on any article to save it for later
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {getBookmarkedArticles().map(article => (
+                <Card key={article.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex gap-4">
+                      {article.image && (
+                        <img 
+                          src={article.image} 
+                          alt={article.title}
+                          className="w-20 h-20 object-cover rounded-lg flex-shrink-0"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 
+                            className="font-semibold line-clamp-2 cursor-pointer hover:text-primary"
+                            onClick={() => {
+                              setReadingArticle(article);
+                              setShowBookmarks(false);
+                            }}
+                          >
+                            {article.title}
+                          </h4>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleBookmark(article.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                          <Badge variant="outline" className="text-xs">{article.category}</Badge>
+                          <span>{article.readTime}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+      </SheetContent>
+    </Sheet>
+  );
+
+  // Daily Digest Settings Dialog
+  const DigestSettingsDialog = () => (
+    <Dialog open={showDigestSettings} onOpenChange={setShowDigestSettings}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Mail className="h-5 w-5" />
+            Daily Digest Settings
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="font-medium">Enable Daily Digest</Label>
+              <p className="text-sm text-muted-foreground">Get curated news delivered to your inbox</p>
+            </div>
+            <Switch
+              checked={digestPreferences.enabled}
+              onCheckedChange={(checked) => setDigestPreferences(prev => ({ ...prev, enabled: checked }))}
+            />
+          </div>
+
+          {digestPreferences.enabled && (
+            <>
+              <div className="space-y-2">
+                <Label>Email Address</Label>
+                <Input
+                  type="email"
+                  placeholder="your@email.com"
+                  value={digestPreferences.email}
+                  onChange={(e) => setDigestPreferences(prev => ({ ...prev, email: e.target.value }))}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Frequency</Label>
+                <div className="flex gap-2">
+                  <Button
+                    variant={digestPreferences.frequency === 'daily' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setDigestPreferences(prev => ({ ...prev, frequency: 'daily' }))}
+                  >
+                    Daily
+                  </Button>
+                  <Button
+                    variant={digestPreferences.frequency === 'weekly' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setDigestPreferences(prev => ({ ...prev, frequency: 'weekly' }))}
+                  >
+                    Weekly
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label>Select Categories</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {categories.filter(c => c.id !== 'All').map(category => (
+                    <div
+                      key={category.id}
+                      className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition-colors ${
+                        digestPreferences.categories.includes(category.id)
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                      onClick={() => toggleDigestCategory(category.id)}
+                    >
+                      <Checkbox
+                        checked={digestPreferences.categories.includes(category.id)}
+                        onCheckedChange={() => toggleDigestCategory(category.id)}
+                      />
+                      <span className="text-sm">{category.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          <Button className="w-full" onClick={saveDigestPreferences}>
+            Save Preferences
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
   const renderGridView = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {filteredArticles.map((article, idx) => (
@@ -291,7 +839,10 @@ const CurrentAffairs = () => {
                   </Badge>
                 )}
               </div>
-              <h3 className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2">
+              <h3 
+                className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2"
+                onClick={() => setReadingArticle(article)}
+              >
                 {article.title}
               </h3>
               <p className="text-muted-foreground text-sm mb-4 line-clamp-2 flex-1">{article.excerpt}</p>
@@ -312,10 +863,28 @@ const CurrentAffairs = () => {
                   <Clock className="h-4 w-4" />
                   {article.readTime}
                 </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  {article.date.split(',')[0]}
-                </span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={(e) => { e.stopPropagation(); toggleBookmark(article.id); }}
+                  >
+                    {isBookmarked(article.id) ? (
+                      <BookmarkCheck className="h-4 w-4 text-primary" />
+                    ) : (
+                      <Bookmark className="h-4 w-4" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setReadingArticle(article)}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -334,7 +903,7 @@ const CurrentAffairs = () => {
           transition={{ delay: idx * 0.05 }}
         >
           <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group cursor-pointer">
-            <div className="relative h-48 overflow-hidden">
+            <div className="relative h-48 overflow-hidden" onClick={() => setReadingArticle(article)}>
               <img 
                 src={article.image} 
                 alt={article.title}
@@ -357,9 +926,24 @@ const CurrentAffairs = () => {
                   <Badge className="bg-red-500 text-white">Hot</Badge>
                 </div>
               )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute top-3 left-3 h-8 w-8 p-0 bg-white/80 hover:bg-white"
+                onClick={(e) => { e.stopPropagation(); toggleBookmark(article.id); }}
+              >
+                {isBookmarked(article.id) ? (
+                  <BookmarkCheck className="h-4 w-4 text-primary" />
+                ) : (
+                  <Bookmark className="h-4 w-4" />
+                )}
+              </Button>
             </div>
             <CardContent className="p-4">
-              <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2">
+              <h3 
+                className="font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2"
+                onClick={() => setReadingArticle(article)}
+              >
                 {article.title}
               </h3>
               <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{article.excerpt}</p>
@@ -368,7 +952,12 @@ const CurrentAffairs = () => {
                   <Clock className="h-3 w-3" />
                   {article.readTime}
                 </span>
-                <Button variant="link" size="sm" className="p-0 h-auto text-primary">
+                <Button 
+                  variant="link" 
+                  size="sm" 
+                  className="p-0 h-auto text-primary"
+                  onClick={() => setReadingArticle(article)}
+                >
                   Read More <ArrowRight className="h-3 w-3 ml-1" />
                 </Button>
               </div>
@@ -390,7 +979,10 @@ const CurrentAffairs = () => {
         >
           <Card className="hover:shadow-lg transition-all duration-300 group cursor-pointer">
             <CardContent className="p-4 flex gap-4">
-              <div className="hidden sm:block w-32 h-24 rounded-lg overflow-hidden flex-shrink-0">
+              <div 
+                className="hidden sm:block w-32 h-24 rounded-lg overflow-hidden flex-shrink-0"
+                onClick={() => setReadingArticle(article)}
+              >
                 <img 
                   src={article.image} 
                   alt={article.title}
@@ -408,7 +1000,10 @@ const CurrentAffairs = () => {
                     </Badge>
                   )}
                 </div>
-                <h3 className="font-semibold mb-1 group-hover:text-primary transition-colors line-clamp-1">
+                <h3 
+                  className="font-semibold mb-1 group-hover:text-primary transition-colors line-clamp-1"
+                  onClick={() => setReadingArticle(article)}
+                >
                   {article.title}
                 </h3>
                 <p className="text-muted-foreground text-sm mb-2 line-clamp-1">{article.excerpt}</p>
@@ -435,8 +1030,24 @@ const CurrentAffairs = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center">
-                <Button variant="ghost" size="icon" className="text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => { e.stopPropagation(); toggleBookmark(article.id); }}
+                >
+                  {isBookmarked(article.id) ? (
+                    <BookmarkCheck className="h-5 w-5 text-primary" />
+                  ) : (
+                    <Bookmark className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-muted-foreground"
+                  onClick={() => setReadingArticle(article)}
+                >
                   <ArrowRight className="h-5 w-5" />
                 </Button>
               </div>
@@ -512,6 +1123,7 @@ const CurrentAffairs = () => {
                   <div 
                     key={article.id}
                     className="p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer group"
+                    onClick={() => setReadingArticle(article)}
                   >
                     <div className="flex items-start gap-4">
                       <span className="text-2xl font-bold text-primary/30">{idx + 1}</span>
@@ -524,6 +1136,18 @@ const CurrentAffairs = () => {
                               Quiz Available
                             </Badge>
                           )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="ml-auto h-7 w-7 p-0"
+                            onClick={(e) => { e.stopPropagation(); toggleBookmark(article.id); }}
+                          >
+                            {isBookmarked(article.id) ? (
+                              <BookmarkCheck className="h-4 w-4 text-primary" />
+                            ) : (
+                              <Bookmark className="h-4 w-4" />
+                            )}
+                          </Button>
                         </div>
                         <h4 className="font-semibold group-hover:text-primary transition-colors">
                           {article.title}
@@ -541,7 +1165,6 @@ const CurrentAffairs = () => {
                           </div>
                         </div>
                         
-                        {/* Related News Section */}
                         {article.relatedIds.length > 0 && (
                           <div className="mt-3 pt-3 border-t border-border/50">
                             <p className="text-xs text-muted-foreground mb-2">Related News:</p>
@@ -551,6 +1174,7 @@ const CurrentAffairs = () => {
                                   key={related.id} 
                                   variant="outline" 
                                   className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                                  onClick={(e) => { e.stopPropagation(); setReadingArticle(related); }}
                                 >
                                   {related.title.substring(0, 40)}...
                                 </Badge>
@@ -602,7 +1226,7 @@ const CurrentAffairs = () => {
               </p>
             </div>
             
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 flex-wrap">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -612,9 +1236,24 @@ const CurrentAffairs = () => {
                   className="pl-10 w-64 bg-muted/50"
                 />
               </div>
-              <Link to="/pricing">
-                <Button>Subscribe for Daily Updates</Button>
-              </Link>
+              
+              {/* Bookmark Button */}
+              <Button variant="outline" onClick={() => setShowBookmarks(true)} className="gap-2">
+                <Bookmark className="h-4 w-4" />
+                Saved
+                {bookmarkedArticles.length > 0 && (
+                  <Badge variant="secondary" className="ml-1">{bookmarkedArticles.length}</Badge>
+                )}
+              </Button>
+
+              {/* Digest Settings Button */}
+              <Button variant="outline" onClick={() => setShowDigestSettings(true)} className="gap-2">
+                <Mail className="h-4 w-4" />
+                Daily Digest
+                {digestPreferences.enabled && (
+                  <span className="h-2 w-2 bg-green-500 rounded-full" />
+                )}
+              </Button>
             </div>
           </div>
 
@@ -922,6 +1561,15 @@ const CurrentAffairs = () => {
           </div>
         </section>
       </main>
+
+      {/* Reading Mode Dialog */}
+      <ReadingMode />
+      
+      {/* Bookmarks Sheet */}
+      <BookmarksSheet />
+      
+      {/* Digest Settings Dialog */}
+      <DigestSettingsDialog />
       
       <Footer />
     </div>
