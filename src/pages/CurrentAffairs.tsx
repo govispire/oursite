@@ -50,13 +50,6 @@ interface ReadingSettings {
   fontFamily: 'sans' | 'serif' | 'mono';
 }
 
-interface ReadingProgress {
-  articleId: string;
-  progress: number; // 0-100 percentage
-  lastPosition: number; // scroll position
-  lastRead: string; // timestamp
-}
-
 interface DigestPreferences {
   enabled: boolean;
   frequency: 'daily' | 'weekly';
@@ -99,15 +92,6 @@ const CurrentAffairs = () => {
   });
   const [showDigestSettings, setShowDigestSettings] = useState(false);
 
-  // Reading Progress State
-  const [readingProgress, setReadingProgress] = useState<Record<string, ReadingProgress>>(() => {
-    const saved = localStorage.getItem('readingProgress');
-    return saved ? JSON.parse(saved) : {};
-  });
-
-  // All-in-One expanded topics state (multiple topics can be expanded)
-  const [expandedTopics, setExpandedTopics] = useState<string[]>([]);
-
   // Persist bookmarks
   useEffect(() => {
     localStorage.setItem('bookmarkedArticles', JSON.stringify(bookmarkedArticles));
@@ -117,11 +101,6 @@ const CurrentAffairs = () => {
   useEffect(() => {
     localStorage.setItem('digestPreferences', JSON.stringify(digestPreferences));
   }, [digestPreferences]);
-
-  // Persist reading progress
-  useEffect(() => {
-    localStorage.setItem('readingProgress', JSON.stringify(readingProgress));
-  }, [readingProgress]);
 
   const categories = [
     { id: 'All', name: 'All Topics', icon: BookOpen },
@@ -467,50 +446,6 @@ This represents a significant improvement in India's Olympic performance traject
     setShowDigestSettings(false);
   };
 
-  // Reading progress functions
-  const updateReadingProgress = (articleId: string, progress: number, scrollPosition: number) => {
-    setReadingProgress(prev => ({
-      ...prev,
-      [articleId]: {
-        articleId,
-        progress: Math.min(100, Math.max(0, progress)),
-        lastPosition: scrollPosition,
-        lastRead: new Date().toISOString()
-      }
-    }));
-  };
-
-  const getArticleProgress = (articleId: string): number => {
-    return readingProgress[articleId]?.progress || 0;
-  };
-
-  const getArticleLastPosition = (articleId: string): number => {
-    return readingProgress[articleId]?.lastPosition || 0;
-  };
-
-  const resumeReading = (article: Article) => {
-    setReadingArticle(article);
-    // The scroll position will be restored in the ReadingMode component
-  };
-
-  // Toggle topic expansion for All-in-One view
-  const toggleTopicExpansion = (topic: string) => {
-    setExpandedTopics(prev => 
-      prev.includes(topic) 
-        ? prev.filter(t => t !== topic)
-        : [...prev, topic]
-    );
-  };
-
-  const expandAllTopics = () => {
-    const allTopics = Object.keys(getArticlesByTopic());
-    setExpandedTopics(allTopics);
-  };
-
-  const collapseAllTopics = () => {
-    setExpandedTopics([]);
-  };
-
   const getFilteredArticles = () => {
     let filtered = allArticles;
     
@@ -562,11 +497,8 @@ This represents a significant improvement in India's Olympic performance traject
     }
   };
 
-  // Reading Mode Component with Progress Tracking
+  // Reading Mode Component
   const ReadingMode = () => {
-    const scrollRef = React.useRef<HTMLDivElement>(null);
-    const contentRef = React.useRef<HTMLDivElement>(null);
-    
     if (!readingArticle) return null;
 
     const fontFamilyClass = {
@@ -575,41 +507,11 @@ This represents a significant improvement in India's Olympic performance traject
       mono: 'font-mono'
     }[readingSettings.fontFamily];
 
-    const currentProgress = getArticleProgress(readingArticle.id);
-
-    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-      const element = e.currentTarget;
-      const scrollPosition = element.scrollTop;
-      const scrollHeight = element.scrollHeight - element.clientHeight;
-      const progress = scrollHeight > 0 ? (scrollPosition / scrollHeight) * 100 : 0;
-      updateReadingProgress(readingArticle.id, progress, scrollPosition);
-    };
-
-    // Restore scroll position on mount
-    React.useEffect(() => {
-      if (scrollRef.current && readingArticle) {
-        const lastPosition = getArticleLastPosition(readingArticle.id);
-        if (lastPosition > 0) {
-          setTimeout(() => {
-            scrollRef.current?.scrollTo({ top: lastPosition, behavior: 'smooth' });
-          }, 100);
-        }
-      }
-    }, [readingArticle.id]);
-
     return (
       <Dialog open={!!readingArticle} onOpenChange={() => setReadingArticle(null)}>
         <DialogContent 
           className={`max-w-4xl max-h-[90vh] overflow-hidden p-0 ${readingSettings.isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}
         >
-          {/* Reading Progress Bar */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-muted z-20">
-            <div 
-              className="h-full bg-primary transition-all duration-300"
-              style={{ width: `${currentProgress}%` }}
-            />
-          </div>
-          
           {/* Reading Controls */}
           <div className={`sticky top-0 z-10 p-4 border-b flex items-center justify-between ${readingSettings.isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
             <div className="flex items-center gap-4">
@@ -657,11 +559,6 @@ This represents a significant improvement in India's Olympic performance traject
                   </Button>
                 ))}
               </div>
-
-              {/* Progress indicator */}
-              <div className={`text-xs ${readingSettings.isDarkMode ? 'text-gray-400' : 'text-muted-foreground'}`}>
-                {Math.round(currentProgress)}% read
-              </div>
             </div>
 
             <div className="flex items-center gap-2">
@@ -689,12 +586,8 @@ This represents a significant improvement in India's Olympic performance traject
           </div>
 
           {/* Article Content */}
-          <div 
-            ref={scrollRef}
-            className="h-[calc(90vh-80px)] overflow-y-auto"
-            onScroll={handleScroll}
-          >
-            <div className="p-8" ref={contentRef}>
+          <ScrollArea className="h-[calc(90vh-80px)]">
+            <div className="p-8">
               {readingArticle.image && (
                 <img 
                   src={readingArticle.image} 
@@ -765,7 +658,7 @@ This represents a significant improvement in India's Olympic performance traject
                 </Card>
               )}
             </div>
-          </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     );
@@ -927,112 +820,76 @@ This represents a significant improvement in India's Olympic performance traject
 
   const renderGridView = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {filteredArticles.map((article, idx) => {
-        const progress = getArticleProgress(article.id);
-        
-        return (
-          <motion.div
-            key={article.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.05 }}
-          >
-            <Card className="h-full hover:shadow-xl transition-all duration-300 group cursor-pointer overflow-hidden relative">
-              {/* Progress indicator */}
-              {progress > 0 && (
-                <div className="absolute top-0 left-0 right-0 h-1 bg-muted">
-                  <div 
-                    className="h-full bg-primary transition-all"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-              )}
-              <CardContent className="p-5 flex flex-col h-full">
-                <div className="flex items-center gap-2 mb-3 flex-wrap">
-                  <Badge variant="outline">{article.category}</Badge>
-                  {getImportanceBadge(article.importance)}
-                  {progress > 0 && progress < 100 && (
-                    <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">
-                      <Eye className="h-3 w-3 mr-1" />
-                      {Math.round(progress)}%
-                    </Badge>
-                  )}
-                  {progress >= 100 && (
-                    <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
-                      <CheckCircle className="h-3 w-3 mr-1" />
-                      Read
-                    </Badge>
-                  )}
-                  {article.hasQuiz && (
-                    <Badge className="bg-primary/10 text-primary border-primary/20 ml-auto">
-                      <Zap className="h-3 w-3 mr-1" />
-                      Quiz
-                    </Badge>
-                  )}
-                </div>
-                <h3 
-                  className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2"
-                  onClick={() => setReadingArticle(article)}
-                >
-                  {article.title}
-                </h3>
-                <p className="text-muted-foreground text-sm mb-4 line-clamp-2 flex-1">{article.excerpt}</p>
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {article.tags.slice(0, 3).map(tag => (
-                    <Badge 
-                      key={tag} 
-                      variant="secondary" 
-                      className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground"
-                      onClick={(e) => { e.stopPropagation(); setSelectedTag(tag); }}
-                    >
-                      {tag}
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between text-sm text-muted-foreground pt-3 border-t">
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    {article.readTime}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0"
-                      onClick={(e) => { e.stopPropagation(); toggleBookmark(article.id); }}
-                    >
-                      {isBookmarked(article.id) ? (
-                        <BookmarkCheck className="h-4 w-4 text-primary" />
-                      ) : (
-                        <Bookmark className="h-4 w-4" />
-                      )}
-                    </Button>
-                    {progress > 0 && progress < 100 ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-xs"
-                        onClick={() => resumeReading(article)}
-                      >
-                        Resume
-                      </Button>
+      {filteredArticles.map((article, idx) => (
+        <motion.div
+          key={article.id}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: idx * 0.05 }}
+        >
+          <Card className="h-full hover:shadow-xl transition-all duration-300 group cursor-pointer overflow-hidden">
+            <CardContent className="p-5 flex flex-col h-full">
+              <div className="flex items-center gap-2 mb-3">
+                <Badge variant="outline">{article.category}</Badge>
+                {getImportanceBadge(article.importance)}
+                {article.hasQuiz && (
+                  <Badge className="bg-primary/10 text-primary border-primary/20 ml-auto">
+                    <Zap className="h-3 w-3 mr-1" />
+                    Quiz
+                  </Badge>
+                )}
+              </div>
+              <h3 
+                className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2"
+                onClick={() => setReadingArticle(article)}
+              >
+                {article.title}
+              </h3>
+              <p className="text-muted-foreground text-sm mb-4 line-clamp-2 flex-1">{article.excerpt}</p>
+              <div className="flex flex-wrap gap-1 mb-3">
+                {article.tags.slice(0, 3).map(tag => (
+                  <Badge 
+                    key={tag} 
+                    variant="secondary" 
+                    className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                    onClick={(e) => { e.stopPropagation(); setSelectedTag(tag); }}
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex items-center justify-between text-sm text-muted-foreground pt-3 border-t">
+                <span className="flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
+                  {article.readTime}
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={(e) => { e.stopPropagation(); toggleBookmark(article.id); }}
+                  >
+                    {isBookmarked(article.id) ? (
+                      <BookmarkCheck className="h-4 w-4 text-primary" />
                     ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => setReadingArticle(article)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                      <Bookmark className="h-4 w-4" />
                     )}
-                  </div>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setReadingArticle(article)}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        );
-      })}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      ))}
     </div>
   );
 
@@ -1206,264 +1063,133 @@ This represents a significant improvement in India's Olympic performance traject
     
     return (
       <div className="space-y-6">
-        {/* Control Panel */}
         <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Layers className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold">All News - Topic Wise View</h2>
-                  <p className="text-muted-foreground text-sm">Click a topic to read all articles inline</p>
-                </div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Layers className="h-6 w-6 text-primary" />
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={expandAllTopics}>
-                  <ChevronDown className="h-4 w-4 mr-1" />
-                  Expand All
-                </Button>
-                <Button variant="outline" size="sm" onClick={collapseAllTopics}>
-                  <ChevronUp className="h-4 w-4 mr-1" />
-                  Collapse All
-                </Button>
+              <div>
+                <h2 className="text-xl font-bold">All News - Topic Wise View</h2>
+                <p className="text-muted-foreground text-sm">Complete daily digest organized by topics</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              {Object.keys(groupedArticles).map(topic => (
+              {topics.map(topic => (
                 <Button
                   key={topic}
-                  variant={expandedTopics.includes(topic) ? "default" : "outline"}
+                  variant={expandedTopic === topic ? "default" : "outline"}
                   size="sm"
-                  onClick={() => toggleTopicExpansion(topic)}
+                  onClick={() => setExpandedTopic(expandedTopic === topic ? null : topic)}
                 >
                   {topic}
-                  <Badge variant="secondary" className="ml-2">
-                    {groupedArticles[topic].length}
-                  </Badge>
+                  {groupedArticles[topic] && (
+                    <Badge variant="secondary" className="ml-2">
+                      {groupedArticles[topic].length}
+                    </Badge>
+                  )}
                 </Button>
               ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Topic Sections with Full Article Content */}
-        {Object.entries(groupedArticles).map(([topic, articles]) => {
-          const isExpanded = expandedTopics.includes(topic);
-          
-          return (
-            <Card key={topic} className="border-l-4 border-l-primary overflow-hidden">
-              <CardHeader 
-                className="pb-3 cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => toggleTopicExpansion(topic)}
-              >
+        {Object.entries(groupedArticles).map(([topic, articles]) => (
+          <motion.div
+            key={topic}
+            initial={false}
+            animate={{ 
+              height: expandedTopic === null || expandedTopic === topic ? 'auto' : 0,
+              opacity: expandedTopic === null || expandedTopic === topic ? 1 : 0
+            }}
+            className="overflow-hidden"
+          >
+            <Card className="border-l-4 border-l-primary">
+              <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
                     <Hash className="h-5 w-5 text-primary" />
                     {topic}
                     <Badge variant="secondary">{articles.length} articles</Badge>
                   </CardTitle>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={(e) => e.stopPropagation()}>
-                      <FileText className="h-4 w-4 mr-2" />
-                      Download PDF
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </Button>
-                  </div>
+                  <Button variant="outline" size="sm">
+                    <FileText className="h-4 w-4 mr-2" />
+                    Download PDF
+                  </Button>
                 </div>
               </CardHeader>
-              
-              <AnimatePresence>
-                {isExpanded && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
+              <CardContent className="space-y-3">
+                {articles.map((article, idx) => (
+                  <div 
+                    key={article.id}
+                    className="p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer group"
+                    onClick={() => setReadingArticle(article)}
                   >
-                    <CardContent className="pt-0">
-                      <ScrollArea className="max-h-[80vh]">
-                        <div className="space-y-8">
-                          {articles.map((article, idx) => {
-                            const articleProgress = getArticleProgress(article.id);
-                            
-                            return (
-                              <div key={article.id} className="relative">
-                                {/* Article Divider */}
-                                {idx > 0 && (
-                                  <div className="absolute -top-4 left-0 right-0 flex items-center gap-4">
-                                    <div className="flex-1 h-px bg-border" />
-                                    <span className="text-xs text-muted-foreground bg-background px-2">Article {idx + 1}</span>
-                                    <div className="flex-1 h-px bg-border" />
-                                  </div>
-                                )}
-                                
-                                <div className="bg-muted/30 rounded-lg p-6">
-                                  {/* Article Header */}
-                                  <div className="flex items-start justify-between mb-4">
-                                    <div className="flex items-center gap-3">
-                                      <span className="text-3xl font-bold text-primary/30">{idx + 1}</span>
-                                      <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                          {getImportanceBadge(article.importance)}
-                                          <Badge variant="outline">{article.category}</Badge>
-                                          {article.hasQuiz && (
-                                            <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
-                                              <Zap className="h-3 w-3 mr-1" />
-                                              Quiz Available
-                                            </Badge>
-                                          )}
-                                          {articleProgress > 0 && (
-                                            <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">
-                                              <Eye className="h-3 w-3 mr-1" />
-                                              {Math.round(articleProgress)}% read
-                                            </Badge>
-                                          )}
-                                        </div>
-                                        <h3 className="text-xl font-bold">{article.title}</h3>
-                                      </div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => toggleBookmark(article.id)}
-                                      >
-                                        {isBookmarked(article.id) ? (
-                                          <BookmarkCheck className="h-4 w-4 text-primary" />
-                                        ) : (
-                                          <Bookmark className="h-4 w-4" />
-                                        )}
-                                      </Button>
-                                      {articleProgress > 0 && articleProgress < 100 && (
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={() => resumeReading(article)}
-                                        >
-                                          Resume
-                                        </Button>
-                                      )}
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setReadingArticle(article)}
-                                      >
-                                        <ExternalLink className="h-4 w-4 mr-1" />
-                                        Full View
-                                      </Button>
-                                    </div>
-                                  </div>
-
-                                  {/* Article Meta */}
-                                  <div className="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
-                                    <span className="flex items-center gap-1">
-                                      <Calendar className="h-4 w-4" />
-                                      {article.date}
-                                    </span>
-                                    <span className="flex items-center gap-1">
-                                      <Clock className="h-4 w-4" />
-                                      {article.readTime}
-                                    </span>
-                                  </div>
-
-                                  {/* Reading Progress Bar */}
-                                  {articleProgress > 0 && (
-                                    <div className="mb-4">
-                                      <div className="h-1 bg-muted rounded-full overflow-hidden">
-                                        <div 
-                                          className="h-full bg-primary transition-all"
-                                          style={{ width: `${articleProgress}%` }}
-                                        />
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {/* Article Image */}
-                                  {article.image && (
-                                    <img 
-                                      src={article.image} 
-                                      alt={article.title}
-                                      className="w-full h-48 object-cover rounded-lg mb-4"
-                                    />
-                                  )}
-
-                                  {/* Full Article Content */}
-                                  <div className="prose max-w-none text-foreground">
-                                    {article.content?.split('\n').map((paragraph, pIdx) => (
-                                      <p key={pIdx} className="mb-3 whitespace-pre-wrap leading-relaxed">
-                                        {paragraph}
-                                      </p>
-                                    ))}
-                                  </div>
-
-                                  {/* Article Tags */}
-                                  <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
-                                    {article.tags.map(tag => (
-                                      <Badge 
-                                        key={tag} 
-                                        variant="secondary" 
-                                        className="cursor-pointer"
-                                        onClick={() => setSelectedTag(tag)}
-                                      >
-                                        {tag}
-                                      </Badge>
-                                    ))}
-                                  </div>
-
-                                  {/* Related Articles */}
-                                  {article.relatedIds.length > 0 && (
-                                    <div className="mt-4 pt-4 border-t">
-                                      <p className="text-sm font-medium mb-2">Related News:</p>
-                                      <div className="flex flex-wrap gap-2">
-                                        {getRelatedArticles(article).map(related => (
-                                          <Badge 
-                                            key={related.id} 
-                                            variant="outline" 
-                                            className="cursor-pointer hover:bg-primary hover:text-primary-foreground"
-                                            onClick={() => setReadingArticle(related)}
-                                          >
-                                            {related.title.substring(0, 50)}...
-                                          </Badge>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {/* Quiz CTA */}
-                                  {article.hasQuiz && (
-                                    <div className="mt-4 p-4 bg-primary/5 rounded-lg flex items-center justify-between">
-                                      <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-primary/10 rounded-lg">
-                                          <Trophy className="h-5 w-5 text-primary" />
-                                        </div>
-                                        <div>
-                                          <p className="font-medium">Test Your Knowledge</p>
-                                          <p className="text-sm text-muted-foreground">{article.quizQuestions} questions on this topic</p>
-                                        </div>
-                                      </div>
-                                      <Button size="sm">
-                                        <Play className="h-4 w-4 mr-1" />
-                                        Start Quiz
-                                      </Button>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
+                    <div className="flex items-start gap-4">
+                      <span className="text-2xl font-bold text-primary/30">{idx + 1}</span>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          {getImportanceBadge(article.importance)}
+                          {article.hasQuiz && (
+                            <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Quiz Available
+                            </Badge>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="ml-auto h-7 w-7 p-0"
+                            onClick={(e) => { e.stopPropagation(); toggleBookmark(article.id); }}
+                          >
+                            {isBookmarked(article.id) ? (
+                              <BookmarkCheck className="h-4 w-4 text-primary" />
+                            ) : (
+                              <Bookmark className="h-4 w-4" />
+                            )}
+                          </Button>
                         </div>
-                      </ScrollArea>
-                    </CardContent>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                        <h4 className="font-semibold group-hover:text-primary transition-colors">
+                          {article.title}
+                        </h4>
+                        <p className="text-muted-foreground text-sm mt-1">{article.excerpt}</p>
+                        <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {article.readTime}
+                          </span>
+                          <div className="flex gap-1">
+                            {article.tags.map(tag => (
+                              <span key={tag} className="text-primary">{tag}</span>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        {article.relatedIds.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-border/50">
+                            <p className="text-xs text-muted-foreground mb-2">Related News:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {getRelatedArticles(article).map(related => (
+                                <Badge 
+                                  key={related.id} 
+                                  variant="outline" 
+                                  className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                                  onClick={(e) => { e.stopPropagation(); setReadingArticle(related); }}
+                                >
+                                  {related.title.substring(0, 40)}...
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
             </Card>
-          );
-        })}
+          </motion.div>
+        ))}
       </div>
     );
   };
