@@ -6,7 +6,8 @@ import {
   Tag, ArrowRight, Play, CheckCircle, Trophy, Zap, FileText, Hash,
   Moon, Sun, Type, Bookmark, BookmarkCheck, X, Mail, Settings, Eye,
   Minus, Plus, ChevronDown, ChevronUp, Heart, Share2, ExternalLink, Link2,
-  Facebook, Twitter, Linkedin, Copy, MessageCircle
+  Facebook, Twitter, Linkedin, Copy, MessageCircle, Volume2, VolumeX, Check,
+  Pause, Square
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -109,6 +110,15 @@ const CurrentAffairs = () => {
   // Share Dialog State
   const [shareArticle, setShareArticle] = useState<Article | null>(null);
 
+  // Topic View Dialog State (for viewing all articles in a topic)
+  const [topicViewArticles, setTopicViewArticles] = useState<Article[] | null>(null);
+  const [topicViewName, setTopicViewName] = useState<string>('');
+
+  // Audio Narration State
+  const [isNarrating, setIsNarrating] = useState(false);
+  const [narrationArticleId, setNarrationArticleId] = useState<string | null>(null);
+  const speechSynthesisRef = React.useRef<SpeechSynthesisUtterance | null>(null);
+
   // Persist bookmarks
   useEffect(() => {
     localStorage.setItem('bookmarkedArticles', JSON.stringify(bookmarkedArticles));
@@ -173,6 +183,74 @@ const CurrentAffairs = () => {
     if (shareUrls[platform]) {
       window.open(shareUrls[platform], '_blank', 'width=600,height=400');
     }
+  };
+
+  // Mark as Read function
+  const markAsRead = (articleId: string) => {
+    setReadingProgressMap(prev => ({
+      ...prev,
+      [articleId]: {
+        articleId,
+        progress: 100,
+        scrollPosition: 0,
+        lastRead: new Date().toISOString()
+      }
+    }));
+    toast.success('Article marked as read');
+  };
+
+  // Audio Narration functions
+  const startNarration = (article: Article) => {
+    if (!('speechSynthesis' in window)) {
+      toast.error('Audio narration is not supported in your browser');
+      return;
+    }
+
+    // Stop any existing narration
+    stopNarration();
+
+    const textToRead = `${article.title}. ${article.excerpt}. ${article.content || ''}`;
+    const utterance = new SpeechSynthesisUtterance(textToRead);
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+
+    utterance.onend = () => {
+      setIsNarrating(false);
+      setNarrationArticleId(null);
+    };
+
+    utterance.onerror = () => {
+      setIsNarrating(false);
+      setNarrationArticleId(null);
+      toast.error('Narration stopped due to an error');
+    };
+
+    speechSynthesisRef.current = utterance;
+    window.speechSynthesis.speak(utterance);
+    setIsNarrating(true);
+    setNarrationArticleId(article.id);
+    toast.success('Starting audio narration');
+  };
+
+  const stopNarration = () => {
+    window.speechSynthesis.cancel();
+    setIsNarrating(false);
+    setNarrationArticleId(null);
+  };
+
+  const toggleNarration = (article: Article) => {
+    if (isNarrating && narrationArticleId === article.id) {
+      stopNarration();
+    } else {
+      startNarration(article);
+    }
+  };
+
+  // Open Topic View with all articles
+  const openTopicView = (topic: string, articles: Article[]) => {
+    setTopicViewName(topic);
+    setTopicViewArticles(articles);
   };
 
   const categories = [
@@ -674,6 +752,29 @@ This represents a significant improvement in India's Olympic performance traject
             </div>
 
             <div className="flex items-center gap-2">
+              {/* Audio Narration Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => toggleNarration(readingArticle)}
+                className={`${readingSettings.isDarkMode ? 'text-gray-100' : ''} ${isNarrating && narrationArticleId === readingArticle.id ? 'text-primary' : ''}`}
+              >
+                {isNarrating && narrationArticleId === readingArticle.id ? (
+                  <VolumeX className="h-4 w-4" />
+                ) : (
+                  <Volume2 className="h-4 w-4" />
+                )}
+              </Button>
+              {/* Mark as Read Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { markAsRead(readingArticle.id); }}
+                className={`${readingSettings.isDarkMode ? 'text-gray-100' : ''} ${getReadingProgress(readingArticle.id) >= 100 ? 'text-green-500' : ''}`}
+                title="Mark as Read"
+              >
+                <Check className="h-4 w-4" />
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
@@ -697,7 +798,7 @@ This represents a significant improvement in India's Olympic performance traject
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setReadingArticle(null)}
+                onClick={() => { stopNarration(); setReadingArticle(null); }}
                 className={readingSettings.isDarkMode ? 'text-gray-100' : ''}
               >
                 <X className="h-4 w-4" />
@@ -855,6 +956,153 @@ This represents a significant improvement in India's Olympic performance traject
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  // Topic View Dialog - Shows all articles in a topic in one page view
+  const TopicViewDialog = () => {
+    if (!topicViewArticles || topicViewArticles.length === 0) return null;
+
+    return (
+      <Dialog open={!!topicViewArticles} onOpenChange={() => setTopicViewArticles(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
+          <DialogHeader className="p-6 border-b bg-gradient-to-r from-primary/5 to-primary/10">
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Hash className="h-6 w-6 text-primary" />
+              {topicViewName}
+              <Badge variant="secondary" className="ml-2">{topicViewArticles.length} articles</Badge>
+            </DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="h-[calc(90vh-120px)]">
+            <div className="p-6 space-y-8">
+              {topicViewArticles.map((article, idx) => {
+                const progress = getReadingProgress(article.id);
+                const isCurrentlyNarrating = isNarrating && narrationArticleId === article.id;
+                return (
+                  <div 
+                    key={article.id}
+                    className="pb-8 border-b last:border-0 last:pb-0"
+                  >
+                    <div className="flex items-start gap-4">
+                      <span className="text-3xl font-bold text-primary/30 flex-shrink-0">{idx + 1}</span>
+                      <div className="flex-1">
+                        {/* Article Header */}
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          {getImportanceBadge(article.importance)}
+                          <Badge variant="outline">{article.category}</Badge>
+                          {article.hasQuiz && (
+                            <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Quiz Available
+                            </Badge>
+                          )}
+                          {progress >= 100 && (
+                            <Badge className="bg-primary/10 text-primary border-primary/20">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Read
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Title */}
+                        <h3 className="text-xl font-semibold mb-2">{article.title}</h3>
+
+                        {/* Meta info */}
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            {article.date}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            {article.readTime}
+                          </span>
+                        </div>
+
+                        {/* Image */}
+                        {article.image && (
+                          <img 
+                            src={article.image} 
+                            alt={article.title}
+                            className="w-full h-48 object-cover rounded-lg mb-4"
+                          />
+                        )}
+
+                        {/* Content */}
+                        <div className="prose max-w-none text-sm">
+                          {article.content?.split('\n').map((paragraph, pIdx) => (
+                            <p key={pIdx} className="mb-3 whitespace-pre-wrap text-muted-foreground">
+                              {paragraph}
+                            </p>
+                          ))}
+                        </div>
+
+                        {/* Tags */}
+                        <div className="flex flex-wrap gap-1 mt-4">
+                          {article.tags.map(tag => (
+                            <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
+                          ))}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-2 mt-4 pt-4 border-t">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => toggleNarration(article)}
+                            className={isCurrentlyNarrating ? 'text-primary border-primary' : ''}
+                          >
+                            {isCurrentlyNarrating ? (
+                              <>
+                                <VolumeX className="h-4 w-4 mr-2" />
+                                Stop Audio
+                              </>
+                            ) : (
+                              <>
+                                <Volume2 className="h-4 w-4 mr-2" />
+                                Listen
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => markAsRead(article.id)}
+                            className={progress >= 100 ? 'text-green-500 border-green-500' : ''}
+                          >
+                            <Check className="h-4 w-4 mr-2" />
+                            {progress >= 100 ? 'Read' : 'Mark as Read'}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => toggleBookmark(article.id)}
+                          >
+                            {isBookmarked(article.id) ? (
+                              <BookmarkCheck className="h-4 w-4 mr-2 text-primary" />
+                            ) : (
+                              <Bookmark className="h-4 w-4 mr-2" />
+                            )}
+                            {isBookmarked(article.id) ? 'Saved' : 'Save'}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShareArticle(article)}
+                          >
+                            <Share2 className="h-4 w-4 mr-2" />
+                            Share
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     );
@@ -1086,6 +1334,28 @@ This represents a significant improvement in India's Olympic performance traject
                       variant="ghost"
                       size="sm"
                       className="h-8 w-8 p-0"
+                      onClick={(e) => { e.stopPropagation(); toggleNarration(article); }}
+                      title="Listen"
+                    >
+                      {isNarrating && narrationArticleId === article.id ? (
+                        <VolumeX className="h-4 w-4 text-primary" />
+                      ) : (
+                        <Volume2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={(e) => { e.stopPropagation(); markAsRead(article.id); }}
+                      title="Mark as Read"
+                    >
+                      <Check className={`h-4 w-4 ${progress >= 100 ? 'text-green-500' : ''}`} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
                       onClick={(e) => { e.stopPropagation(); setShareArticle(article); }}
                     >
                       <Share2 className="h-4 w-4" />
@@ -1298,7 +1568,7 @@ This represents a significant improvement in India's Olympic performance traject
               </div>
               <div>
                 <h2 className="text-xl font-bold">All News - Topic Wise View</h2>
-                <p className="text-muted-foreground text-sm">Complete daily digest organized by topics</p>
+                <p className="text-muted-foreground text-sm">Click on a topic to view all articles in one page</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -1307,7 +1577,13 @@ This represents a significant improvement in India's Olympic performance traject
                   key={topic}
                   variant={expandedTopic === topic ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setExpandedTopic(expandedTopic === topic ? null : topic)}
+                  onClick={() => {
+                    if (groupedArticles[topic] && groupedArticles[topic].length > 0) {
+                      openTopicView(topic, groupedArticles[topic]);
+                    } else {
+                      toast.info(`No articles found for ${topic}`);
+                    }
+                  }}
                 >
                   {topic}
                   {groupedArticles[topic] && (
@@ -1321,30 +1597,32 @@ This represents a significant improvement in India's Olympic performance traject
           </CardContent>
         </Card>
 
-        {Object.entries(groupedArticles)
-          .filter(([topic]) => expandedTopic === null || expandedTopic === topic)
-          .map(([topic, articles]) => (
-          <motion.div
-            key={topic}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-          >
-            <Card className="border-l-4 border-l-primary">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Hash className="h-5 w-5 text-primary" />
-                    {topic}
-                    <Badge variant="secondary">{articles.length} articles</Badge>
-                  </CardTitle>
+        {Object.entries(groupedArticles).map(([topic, articles]) => (
+          <Card key={topic} className="border-l-4 border-l-primary">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <CardTitle className="flex items-center gap-2">
+                  <Hash className="h-5 w-5 text-primary" />
+                  {topic}
+                  <Badge variant="secondary">{articles.length} articles</Badge>
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    onClick={() => openTopicView(topic, articles)}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Read All ({articles.length})
+                  </Button>
                   <Button variant="outline" size="sm">
                     <FileText className="h-4 w-4 mr-2" />
                     Download PDF
                   </Button>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
                 {articles.map((article, idx) => {
                   const progress = getReadingProgress(article.id);
                   return (
@@ -1451,7 +1729,6 @@ This represents a significant improvement in India's Olympic performance traject
                 })}
               </CardContent>
             </Card>
-          </motion.div>
         ))}
       </div>
     );
@@ -1830,6 +2107,9 @@ This represents a significant improvement in India's Olympic performance traject
       
       {/* Share Dialog */}
       <ShareDialog />
+
+      {/* Topic View Dialog */}
+      <TopicViewDialog />
       
       {/* Bookmarks Sheet */}
       <BookmarksSheet />
