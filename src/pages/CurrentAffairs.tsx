@@ -5,7 +5,8 @@ import {
   Globe, Landmark, Briefcase, AlertCircle, Grid3X3, List, Image, Layers, 
   Tag, ArrowRight, Play, CheckCircle, Trophy, Zap, FileText, Hash,
   Moon, Sun, Type, Bookmark, BookmarkCheck, X, Mail, Settings, Eye,
-  Minus, Plus, ChevronDown, ChevronUp, Heart, Share2, ExternalLink
+  Minus, Plus, ChevronDown, ChevronUp, Heart, Share2, ExternalLink, Link2,
+  Facebook, Twitter, Linkedin, Copy, MessageCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -57,6 +58,13 @@ interface DigestPreferences {
   email: string;
 }
 
+interface ReadingProgress {
+  articleId: string;
+  progress: number; // 0-100 percentage
+  scrollPosition: number;
+  lastRead: string;
+}
+
 const CurrentAffairs = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -92,6 +100,15 @@ const CurrentAffairs = () => {
   });
   const [showDigestSettings, setShowDigestSettings] = useState(false);
 
+  // Reading Progress State
+  const [readingProgressMap, setReadingProgressMap] = useState<Record<string, ReadingProgress>>(() => {
+    const saved = localStorage.getItem('readingProgressMap');
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  // Share Dialog State
+  const [shareArticle, setShareArticle] = useState<Article | null>(null);
+
   // Persist bookmarks
   useEffect(() => {
     localStorage.setItem('bookmarkedArticles', JSON.stringify(bookmarkedArticles));
@@ -101,6 +118,62 @@ const CurrentAffairs = () => {
   useEffect(() => {
     localStorage.setItem('digestPreferences', JSON.stringify(digestPreferences));
   }, [digestPreferences]);
+
+  // Persist reading progress
+  useEffect(() => {
+    localStorage.setItem('readingProgressMap', JSON.stringify(readingProgressMap));
+  }, [readingProgressMap]);
+
+  // Reading progress functions
+  const getReadingProgress = (articleId: string): number => {
+    return readingProgressMap[articleId]?.progress || 0;
+  };
+
+  const updateReadingProgress = (articleId: string, progress: number, scrollPosition: number) => {
+    setReadingProgressMap(prev => ({
+      ...prev,
+      [articleId]: {
+        articleId,
+        progress: Math.min(100, Math.max(0, progress)),
+        scrollPosition,
+        lastRead: new Date().toISOString()
+      }
+    }));
+  };
+
+  const getResumePosition = (articleId: string): number => {
+    return readingProgressMap[articleId]?.scrollPosition || 0;
+  };
+
+  // Share functions
+  const getShareUrl = (article: Article) => {
+    return `${window.location.origin}/current-affairs/${article.id}`;
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success('Link copied to clipboard!');
+    } catch (err) {
+      toast.error('Failed to copy link');
+    }
+  };
+
+  const shareToSocial = (platform: string, article: Article) => {
+    const url = getShareUrl(article);
+    const text = encodeURIComponent(article.title);
+    
+    const shareUrls: Record<string, string> = {
+      twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${text}`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+      whatsapp: `https://wa.me/?text=${text}%20${encodeURIComponent(url)}`
+    };
+    
+    if (shareUrls[platform]) {
+      window.open(shareUrls[platform], '_blank', 'width=600,height=400');
+    }
+  };
 
   const categories = [
     { id: 'All', name: 'All Topics', icon: BookOpen },
@@ -497,7 +570,7 @@ This represents a significant improvement in India's Olympic performance traject
     }
   };
 
-  // Reading Mode Component
+  // Reading Mode Component with Progress Tracking
   const ReadingMode = () => {
     if (!readingArticle) return null;
 
@@ -507,11 +580,45 @@ This represents a significant improvement in India's Olympic performance traject
       mono: 'font-mono'
     }[readingSettings.fontFamily];
 
+    const currentProgress = getReadingProgress(readingArticle.id);
+    const scrollAreaRef = React.useRef<HTMLDivElement>(null);
+
+    // Handle scroll for progress tracking
+    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+      const target = e.currentTarget;
+      const scrollTop = target.scrollTop;
+      const scrollHeight = target.scrollHeight - target.clientHeight;
+      const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+      updateReadingProgress(readingArticle.id, progress, scrollTop);
+    };
+
+    // Resume from last position on mount
+    React.useEffect(() => {
+      if (scrollAreaRef.current && readingArticle) {
+        const savedPosition = getResumePosition(readingArticle.id);
+        if (savedPosition > 0) {
+          setTimeout(() => {
+            if (scrollAreaRef.current) {
+              scrollAreaRef.current.scrollTop = savedPosition;
+            }
+          }, 100);
+        }
+      }
+    }, [readingArticle?.id]);
+
     return (
       <Dialog open={!!readingArticle} onOpenChange={() => setReadingArticle(null)}>
         <DialogContent 
           className={`max-w-4xl max-h-[90vh] overflow-hidden p-0 ${readingSettings.isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}
         >
+          {/* Reading Progress Bar */}
+          <div className={`h-1 ${readingSettings.isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+            <div 
+              className="h-full bg-primary transition-all duration-300"
+              style={{ width: `${currentProgress}%` }}
+            />
+          </div>
+
           {/* Reading Controls */}
           <div className={`sticky top-0 z-10 p-4 border-b flex items-center justify-between ${readingSettings.isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
             <div className="flex items-center gap-4">
@@ -559,9 +666,22 @@ This represents a significant improvement in India's Olympic performance traject
                   </Button>
                 ))}
               </div>
+
+              {/* Progress indicator */}
+              <span className={`text-xs ${readingSettings.isDarkMode ? 'text-gray-400' : 'text-muted-foreground'}`}>
+                {Math.round(currentProgress)}% read
+              </span>
             </div>
 
             <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShareArticle(readingArticle)}
+                className={readingSettings.isDarkMode ? 'text-gray-100' : ''}
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"
@@ -586,7 +706,11 @@ This represents a significant improvement in India's Olympic performance traject
           </div>
 
           {/* Article Content */}
-          <ScrollArea className="h-[calc(90vh-80px)]">
+          <div 
+            ref={scrollAreaRef}
+            className="h-[calc(90vh-100px)] overflow-y-auto"
+            onScroll={handleScroll}
+          >
             <div className="p-8">
               {readingArticle.image && (
                 <img 
@@ -658,7 +782,79 @@ This represents a significant improvement in India's Olympic performance traject
                 </Card>
               )}
             </div>
-          </ScrollArea>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
+  // Share Dialog Component
+  const ShareDialog = () => {
+    if (!shareArticle) return null;
+
+    return (
+      <Dialog open={!!shareArticle} onOpenChange={() => setShareArticle(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Share2 className="h-5 w-5" />
+              Share Article
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground line-clamp-2">{shareArticle.title}</p>
+            
+            {/* Social Share Buttons */}
+            <div className="grid grid-cols-4 gap-3">
+              <Button
+                variant="outline"
+                className="flex flex-col items-center gap-2 h-auto py-4 hover:bg-blue-50 hover:border-blue-500"
+                onClick={() => shareToSocial('twitter', shareArticle)}
+              >
+                <Twitter className="h-5 w-5 text-blue-400" />
+                <span className="text-xs">Twitter</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="flex flex-col items-center gap-2 h-auto py-4 hover:bg-blue-50 hover:border-blue-700"
+                onClick={() => shareToSocial('facebook', shareArticle)}
+              >
+                <Facebook className="h-5 w-5 text-blue-600" />
+                <span className="text-xs">Facebook</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="flex flex-col items-center gap-2 h-auto py-4 hover:bg-blue-50 hover:border-blue-600"
+                onClick={() => shareToSocial('linkedin', shareArticle)}
+              >
+                <Linkedin className="h-5 w-5 text-blue-700" />
+                <span className="text-xs">LinkedIn</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="flex flex-col items-center gap-2 h-auto py-4 hover:bg-green-50 hover:border-green-500"
+                onClick={() => shareToSocial('whatsapp', shareArticle)}
+              >
+                <MessageCircle className="h-5 w-5 text-green-500" />
+                <span className="text-xs">WhatsApp</span>
+              </Button>
+            </div>
+
+            {/* Copy Link */}
+            <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+              <Link2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <span className="text-sm truncate flex-1">{getShareUrl(shareArticle)}</span>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={() => copyToClipboard(getShareUrl(shareArticle))}
+                className="flex-shrink-0"
+              >
+                <Copy className="h-4 w-4 mr-1" />
+                Copy
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     );
@@ -820,76 +1016,107 @@ This represents a significant improvement in India's Olympic performance traject
 
   const renderGridView = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {filteredArticles.map((article, idx) => (
-        <motion.div
-          key={article.id}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: idx * 0.05 }}
-        >
-          <Card className="h-full hover:shadow-xl transition-all duration-300 group cursor-pointer overflow-hidden">
-            <CardContent className="p-5 flex flex-col h-full">
-              <div className="flex items-center gap-2 mb-3">
-                <Badge variant="outline">{article.category}</Badge>
-                {getImportanceBadge(article.importance)}
-                {article.hasQuiz && (
-                  <Badge className="bg-primary/10 text-primary border-primary/20 ml-auto">
-                    <Zap className="h-3 w-3 mr-1" />
-                    Quiz
-                  </Badge>
-                )}
-              </div>
-              <h3 
-                className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2"
-                onClick={() => setReadingArticle(article)}
-              >
-                {article.title}
-              </h3>
-              <p className="text-muted-foreground text-sm mb-4 line-clamp-2 flex-1">{article.excerpt}</p>
-              <div className="flex flex-wrap gap-1 mb-3">
-                {article.tags.slice(0, 3).map(tag => (
-                  <Badge 
-                    key={tag} 
-                    variant="secondary" 
-                    className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground"
-                    onClick={(e) => { e.stopPropagation(); setSelectedTag(tag); }}
-                  >
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-              <div className="flex items-center justify-between text-sm text-muted-foreground pt-3 border-t">
-                <span className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  {article.readTime}
-                </span>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={(e) => { e.stopPropagation(); toggleBookmark(article.id); }}
-                  >
-                    {isBookmarked(article.id) ? (
-                      <BookmarkCheck className="h-4 w-4 text-primary" />
-                    ) : (
-                      <Bookmark className="h-4 w-4" />
-                    )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => setReadingArticle(article)}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
+      {filteredArticles.map((article, idx) => {
+        const progress = getReadingProgress(article.id);
+        return (
+          <motion.div
+            key={article.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.05 }}
+          >
+            <Card className="h-full hover:shadow-xl transition-all duration-300 group cursor-pointer overflow-hidden relative">
+              {/* Reading Progress Bar */}
+              {progress > 0 && (
+                <div className="absolute top-0 left-0 right-0 h-1 bg-muted">
+                  <div 
+                    className="h-full bg-primary transition-all"
+                    style={{ width: `${progress}%` }}
+                  />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      ))}
+              )}
+              <CardContent className="p-5 flex flex-col h-full">
+                <div className="flex items-center gap-2 mb-3 flex-wrap">
+                  <Badge variant="outline">{article.category}</Badge>
+                  {getImportanceBadge(article.importance)}
+                  {progress >= 100 && (
+                    <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Read
+                    </Badge>
+                  )}
+                  {article.hasQuiz && (
+                    <Badge className="bg-primary/10 text-primary border-primary/20 ml-auto">
+                      <Zap className="h-3 w-3 mr-1" />
+                      Quiz
+                    </Badge>
+                  )}
+                </div>
+                <h3 
+                  className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2"
+                  onClick={() => setReadingArticle(article)}
+                >
+                  {article.title}
+                </h3>
+                <p className="text-muted-foreground text-sm mb-4 line-clamp-2 flex-1">{article.excerpt}</p>
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {article.tags.slice(0, 3).map(tag => (
+                    <Badge 
+                      key={tag} 
+                      variant="secondary" 
+                      className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                      onClick={(e) => { e.stopPropagation(); setSelectedTag(tag); }}
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between text-sm text-muted-foreground pt-3 border-t">
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-4 w-4" />
+                      {article.readTime}
+                    </span>
+                    {progress > 0 && progress < 100 && (
+                      <span className="text-xs text-primary">{Math.round(progress)}% read</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={(e) => { e.stopPropagation(); setShareArticle(article); }}
+                    >
+                      <Share2 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={(e) => { e.stopPropagation(); toggleBookmark(article.id); }}
+                    >
+                      {isBookmarked(article.id) ? (
+                        <BookmarkCheck className="h-4 w-4 text-primary" />
+                      ) : (
+                        <Bookmark className="h-4 w-4" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => setReadingArticle(article)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        );
+      })}
     </div>
   );
 
@@ -1094,15 +1321,14 @@ This represents a significant improvement in India's Olympic performance traject
           </CardContent>
         </Card>
 
-        {Object.entries(groupedArticles).map(([topic, articles]) => (
+        {Object.entries(groupedArticles)
+          .filter(([topic]) => expandedTopic === null || expandedTopic === topic)
+          .map(([topic, articles]) => (
           <motion.div
             key={topic}
-            initial={false}
-            animate={{ 
-              height: expandedTopic === null || expandedTopic === topic ? 'auto' : 0,
-              opacity: expandedTopic === null || expandedTopic === topic ? 1 : 0
-            }}
-            className="overflow-hidden"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
           >
             <Card className="border-l-4 border-l-primary">
               <CardHeader className="pb-3">
@@ -1119,73 +1345,110 @@ This represents a significant improvement in India's Olympic performance traject
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                {articles.map((article, idx) => (
-                  <div 
-                    key={article.id}
-                    className="p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer group"
-                    onClick={() => setReadingArticle(article)}
-                  >
-                    <div className="flex items-start gap-4">
-                      <span className="text-2xl font-bold text-primary/30">{idx + 1}</span>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          {getImportanceBadge(article.importance)}
-                          {article.hasQuiz && (
-                            <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Quiz Available
-                            </Badge>
+                {articles.map((article, idx) => {
+                  const progress = getReadingProgress(article.id);
+                  return (
+                    <div 
+                      key={article.id}
+                      className="p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer group relative overflow-hidden"
+                      onClick={() => setReadingArticle(article)}
+                    >
+                      {/* Reading Progress Indicator */}
+                      {progress > 0 && (
+                        <div 
+                          className="absolute left-0 top-0 h-full bg-primary/10 transition-all"
+                          style={{ width: `${progress}%` }}
+                        />
+                      )}
+                      <div className="flex items-start gap-4 relative z-10">
+                        <div className="flex flex-col items-center">
+                          <span className="text-2xl font-bold text-primary/30">{idx + 1}</span>
+                          {progress > 0 && (
+                            <span className="text-xs text-primary mt-1">{Math.round(progress)}%</span>
                           )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="ml-auto h-7 w-7 p-0"
-                            onClick={(e) => { e.stopPropagation(); toggleBookmark(article.id); }}
-                          >
-                            {isBookmarked(article.id) ? (
-                              <BookmarkCheck className="h-4 w-4 text-primary" />
-                            ) : (
-                              <Bookmark className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            {getImportanceBadge(article.importance)}
+                            {article.hasQuiz && (
+                              <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Quiz Available
+                              </Badge>
                             )}
-                          </Button>
-                        </div>
-                        <h4 className="font-semibold group-hover:text-primary transition-colors">
-                          {article.title}
-                        </h4>
-                        <p className="text-muted-foreground text-sm mt-1">{article.excerpt}</p>
-                        <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {article.readTime}
-                          </span>
-                          <div className="flex gap-1">
-                            {article.tags.map(tag => (
-                              <span key={tag} className="text-primary">{tag}</span>
-                            ))}
+                            {progress >= 100 && (
+                              <Badge className="bg-primary/10 text-primary border-primary/20">
+                                <CheckCircle className="h-3 w-3 mr-1" />
+                                Read
+                              </Badge>
+                            )}
+                            {progress > 0 && progress < 100 && (
+                              <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
+                                <Clock className="h-3 w-3 mr-1" />
+                                Continue Reading
+                              </Badge>
+                            )}
+                            <div className="ml-auto flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0"
+                                onClick={(e) => { e.stopPropagation(); setShareArticle(article); }}
+                              >
+                                <Share2 className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0"
+                                onClick={(e) => { e.stopPropagation(); toggleBookmark(article.id); }}
+                              >
+                                {isBookmarked(article.id) ? (
+                                  <BookmarkCheck className="h-4 w-4 text-primary" />
+                                ) : (
+                                  <Bookmark className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                        
-                        {article.relatedIds.length > 0 && (
-                          <div className="mt-3 pt-3 border-t border-border/50">
-                            <p className="text-xs text-muted-foreground mb-2">Related News:</p>
-                            <div className="flex flex-wrap gap-2">
-                              {getRelatedArticles(article).map(related => (
-                                <Badge 
-                                  key={related.id} 
-                                  variant="outline" 
-                                  className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground"
-                                  onClick={(e) => { e.stopPropagation(); setReadingArticle(related); }}
-                                >
-                                  {related.title.substring(0, 40)}...
-                                </Badge>
+                          <h4 className="font-semibold group-hover:text-primary transition-colors">
+                            {article.title}
+                          </h4>
+                          <p className="text-muted-foreground text-sm mt-1">{article.excerpt}</p>
+                          <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {article.readTime}
+                            </span>
+                            <div className="flex gap-1">
+                              {article.tags.map(tag => (
+                                <span key={tag} className="text-primary">{tag}</span>
                               ))}
                             </div>
                           </div>
-                        )}
+                          
+                          {article.relatedIds.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-border/50">
+                              <p className="text-xs text-muted-foreground mb-2">Related News:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {getRelatedArticles(article).map(related => (
+                                  <Badge 
+                                    key={related.id} 
+                                    variant="outline" 
+                                    className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                                    onClick={(e) => { e.stopPropagation(); setReadingArticle(related); }}
+                                  >
+                                    {related.title.substring(0, 40)}...
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </CardContent>
             </Card>
           </motion.div>
@@ -1564,6 +1827,9 @@ This represents a significant improvement in India's Olympic performance traject
 
       {/* Reading Mode Dialog */}
       <ReadingMode />
+      
+      {/* Share Dialog */}
+      <ShareDialog />
       
       {/* Bookmarks Sheet */}
       <BookmarksSheet />
