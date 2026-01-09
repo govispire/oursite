@@ -648,6 +648,33 @@ This represents a significant improvement in India's Olympic performance traject
     }
   };
 
+  // Reading Mode refs and effects (moved outside nested component)
+  const readingScrollRef = React.useRef<HTMLDivElement>(null);
+
+  // Resume reading position when article changes
+  useEffect(() => {
+    if (readingScrollRef.current && readingArticle) {
+      const savedPosition = getResumePosition(readingArticle.id);
+      if (savedPosition > 0) {
+        setTimeout(() => {
+          if (readingScrollRef.current) {
+            readingScrollRef.current.scrollTop = savedPosition;
+          }
+        }, 100);
+      }
+    }
+  }, [readingArticle?.id]);
+
+  // Handle scroll for progress tracking
+  const handleReadingScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (!readingArticle) return;
+    const target = e.currentTarget;
+    const scrollTop = target.scrollTop;
+    const scrollHeight = target.scrollHeight - target.clientHeight;
+    const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+    updateReadingProgress(readingArticle.id, progress, scrollTop);
+  };
+
   // Reading Mode Component with Progress Tracking
   const ReadingMode = () => {
     if (!readingArticle) return null;
@@ -659,30 +686,6 @@ This represents a significant improvement in India's Olympic performance traject
     }[readingSettings.fontFamily];
 
     const currentProgress = getReadingProgress(readingArticle.id);
-    const scrollAreaRef = React.useRef<HTMLDivElement>(null);
-
-    // Handle scroll for progress tracking
-    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-      const target = e.currentTarget;
-      const scrollTop = target.scrollTop;
-      const scrollHeight = target.scrollHeight - target.clientHeight;
-      const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
-      updateReadingProgress(readingArticle.id, progress, scrollTop);
-    };
-
-    // Resume from last position on mount
-    React.useEffect(() => {
-      if (scrollAreaRef.current && readingArticle) {
-        const savedPosition = getResumePosition(readingArticle.id);
-        if (savedPosition > 0) {
-          setTimeout(() => {
-            if (scrollAreaRef.current) {
-              scrollAreaRef.current.scrollTop = savedPosition;
-            }
-          }, 100);
-        }
-      }
-    }, [readingArticle?.id]);
 
     return (
       <Dialog open={!!readingArticle} onOpenChange={() => { stopNarration(); setReadingArticle(null); }}>
@@ -808,9 +811,9 @@ This represents a significant improvement in India's Olympic performance traject
 
           {/* Article Content - Scrollable */}
           <div 
-            ref={scrollAreaRef}
+            ref={readingScrollRef}
             className="flex-1 overflow-y-auto"
-            onScroll={handleScroll}
+            onScroll={handleReadingScroll}
           >
             <div className="p-8">
               {readingArticle.image && (
