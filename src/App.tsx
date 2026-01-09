@@ -14,6 +14,7 @@ import Pricing from '@/pages/Pricing';
 import Blog from '@/pages/Blog';
 import BlogArticle from '@/pages/BlogArticle';
 import CurrentAffairs from '@/pages/CurrentAffairs';
+import CurrentAffairsReader from '@/pages/CurrentAffairsReader';
 import Downloads from '@/pages/Downloads';
 import ExamNotifications from '@/pages/ExamNotifications';
 import NotFound from '@/pages/NotFound';
@@ -31,6 +32,7 @@ function App() {
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<BlogArticle />} />
                 <Route path="/current-affairs" element={<CurrentAffairs />} />
+                <Route path="/current-affairs/:id" element={<CurrentAffairsReader />} />
                 <Route path="/downloads" element={<Downloads />} />
                 <Route path="/exam-notifications" element={<ExamNotifications />} />
                 <Route path="/student/*" element={<StudentRoutes />} />

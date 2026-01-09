@@ -1,6 +1,6 @@
 import * as React from 'react';
 const { useState, useEffect } = React;
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Calendar, Clock, ChevronRight, Home, Bell, TrendingUp, Filter, Search, BookOpen, 
   Globe, Landmark, Briefcase, AlertCircle, Grid3X3, List, Image, Layers, 
@@ -26,48 +26,18 @@ import LandingHeader from '@/components/LandingHeader';
 import Footer from '@/components/Footer';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { ShareDialog } from '@/components/current-affairs/ShareDialog';
+import { TopicViewDialog } from '@/components/current-affairs/TopicViewDialog';
+import { ContinueReadingSection } from '@/components/current-affairs/ContinueReadingSection';
+import { allArticles } from '@/components/current-affairs/articlesData';
+import { Article, ReadingSettings, DigestPreferences, ReadingProgress } from '@/components/current-affairs/types';
+import { useReadingProgress } from '@/hooks/useReadingProgress';
+import { useAudioNarration } from '@/hooks/useAudioNarration';
 
 type ViewMode = 'grid' | 'list' | 'thumbnail' | 'all-in-one';
 
-interface Article {
-  id: string;
-  title: string;
-  category: string;
-  importance: 'high' | 'medium' | 'low';
-  excerpt: string;
-  content?: string;
-  readTime: string;
-  date: string;
-  image?: string;
-  tags: string[];
-  topic: string;
-  relatedIds: string[];
-  hasQuiz: boolean;
-  quizQuestions?: number;
-}
-
-interface ReadingSettings {
-  isDarkMode: boolean;
-  fontSize: number;
-  lineHeight: number;
-  fontFamily: 'sans' | 'serif' | 'mono';
-}
-
-interface DigestPreferences {
-  enabled: boolean;
-  frequency: 'daily' | 'weekly';
-  categories: string[];
-  email: string;
-}
-
-interface ReadingProgress {
-  articleId: string;
-  progress: number; // 0-100 percentage
-  scrollPosition: number;
-  lastRead: string;
-}
-
 const CurrentAffairs = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
