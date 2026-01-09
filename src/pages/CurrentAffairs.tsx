@@ -685,9 +685,9 @@ This represents a significant improvement in India's Olympic performance traject
     }, [readingArticle?.id]);
 
     return (
-      <Dialog open={!!readingArticle} onOpenChange={() => setReadingArticle(null)}>
+      <Dialog open={!!readingArticle} onOpenChange={() => { stopNarration(); setReadingArticle(null); }}>
         <DialogContent 
-          className={`max-w-4xl max-h-[90vh] overflow-hidden p-0 ${readingSettings.isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}
+          className={`max-w-4xl h-[90vh] flex flex-col p-0 ${readingSettings.isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}
         >
           {/* Reading Progress Bar */}
           <div className={`h-1 ${readingSettings.isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
@@ -806,10 +806,10 @@ This represents a significant improvement in India's Olympic performance traject
             </div>
           </div>
 
-          {/* Article Content */}
+          {/* Article Content - Scrollable */}
           <div 
             ref={scrollAreaRef}
-            className="h-[calc(90vh-100px)] overflow-y-auto"
+            className="flex-1 overflow-y-auto"
             onScroll={handleScroll}
           >
             <div className="p-8">
@@ -966,16 +966,16 @@ This represents a significant improvement in India's Olympic performance traject
     if (!topicViewArticles || topicViewArticles.length === 0) return null;
 
     return (
-      <Dialog open={!!topicViewArticles} onOpenChange={() => setTopicViewArticles(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
-          <DialogHeader className="p-6 border-b bg-gradient-to-r from-primary/5 to-primary/10">
+      <Dialog open={!!topicViewArticles} onOpenChange={() => { stopNarration(); setTopicViewArticles(null); }}>
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
+          <DialogHeader className="p-6 border-b bg-gradient-to-r from-primary/5 to-primary/10 flex-shrink-0">
             <DialogTitle className="flex items-center gap-2 text-xl">
               <Hash className="h-6 w-6 text-primary" />
               {topicViewName}
               <Badge variant="secondary" className="ml-2">{topicViewArticles.length} articles</Badge>
             </DialogTitle>
           </DialogHeader>
-          <ScrollArea className="h-[calc(90vh-120px)]">
+          <div className="flex-1 overflow-y-auto">
             <div className="p-6 space-y-8">
               {topicViewArticles.map((article, idx) => {
                 const progress = getReadingProgress(article.id);
@@ -1102,7 +1102,7 @@ This represents a significant improvement in India's Olympic performance traject
                 );
               })}
             </div>
-          </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
     );
