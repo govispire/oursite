@@ -5,10 +5,8 @@ import {
   Calendar, Clock, ChevronRight, Home, Bell, TrendingUp, Filter, Search, BookOpen, 
   Globe, Landmark, Briefcase, AlertCircle, Grid3X3, List, Image, Layers, 
   Tag, ArrowRight, Play, CheckCircle, Trophy, Zap, FileText, Hash,
-  Moon, Sun, Type, Bookmark, BookmarkCheck, X, Mail, Settings, Eye,
-  Minus, Plus, ChevronDown, ChevronUp, Heart, Share2, ExternalLink, Link2,
-  Facebook, Twitter, Linkedin, Copy, MessageCircle, Volume2, VolumeX, Check,
-  Pause, Square
+  Bookmark, BookmarkCheck, X, Mail, Eye,
+  ChevronDown, ChevronUp, Share2, Volume2, VolumeX, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,9 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import LandingHeader from '@/components/LandingHeader';
@@ -29,10 +26,9 @@ import { toast } from 'sonner';
 import { ShareDialog } from '@/components/current-affairs/ShareDialog';
 import { TopicViewDialog } from '@/components/current-affairs/TopicViewDialog';
 import { ContinueReadingSection } from '@/components/current-affairs/ContinueReadingSection';
-import { allArticles } from '@/components/current-affairs/articlesData';
+import { allArticles, getArticleById } from '@/components/current-affairs/articlesData';
 import { Article, ReadingSettings, DigestPreferences, ReadingProgress } from '@/components/current-affairs/types';
 import { useReadingProgress } from '@/hooks/useReadingProgress';
-import { useAudioNarration } from '@/hooks/useAudioNarration';
 
 type ViewMode = 'grid' | 'list' | 'thumbnail' | 'all-in-one';
 
@@ -43,15 +39,6 @@ const CurrentAffairs = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [expandedTopic, setExpandedTopic] = useState<string | null>(null);
-  
-  // Reading Mode State
-  const [readingArticle, setReadingArticle] = useState<Article | null>(null);
-  const [readingSettings, setReadingSettings] = useState<ReadingSettings>({
-    isDarkMode: false,
-    fontSize: 16,
-    lineHeight: 1.8,
-    fontFamily: 'sans'
-  });
   
   // Bookmark State
   const [bookmarkedArticles, setBookmarkedArticles] = useState<string[]>(() => {
@@ -72,16 +59,13 @@ const CurrentAffairs = () => {
   });
   const [showDigestSettings, setShowDigestSettings] = useState(false);
 
-  // Reading Progress State
-  const [readingProgressMap, setReadingProgressMap] = useState<Record<string, ReadingProgress>>(() => {
-    const saved = localStorage.getItem('readingProgressMap');
-    return saved ? JSON.parse(saved) : {};
-  });
+  // Use the reading progress hook
+  const { getReadingProgress, markAsRead } = useReadingProgress();
 
   // Share Dialog State
   const [shareArticle, setShareArticle] = useState<Article | null>(null);
 
-  // Topic View Dialog State (for viewing all articles in a topic)
+  // Topic View Dialog State
   const [topicViewArticles, setTopicViewArticles] = useState<Article[] | null>(null);
   const [topicViewName, setTopicViewName] = useState<string>('');
 
@@ -100,76 +84,6 @@ const CurrentAffairs = () => {
     localStorage.setItem('digestPreferences', JSON.stringify(digestPreferences));
   }, [digestPreferences]);
 
-  // Persist reading progress
-  useEffect(() => {
-    localStorage.setItem('readingProgressMap', JSON.stringify(readingProgressMap));
-  }, [readingProgressMap]);
-
-  // Reading progress functions
-  const getReadingProgress = (articleId: string): number => {
-    return readingProgressMap[articleId]?.progress || 0;
-  };
-
-  const updateReadingProgress = (articleId: string, progress: number, scrollPosition: number) => {
-    setReadingProgressMap(prev => ({
-      ...prev,
-      [articleId]: {
-        articleId,
-        progress: Math.min(100, Math.max(0, progress)),
-        scrollPosition,
-        lastRead: new Date().toISOString()
-      }
-    }));
-  };
-
-  const getResumePosition = (articleId: string): number => {
-    return readingProgressMap[articleId]?.scrollPosition || 0;
-  };
-
-  // Share functions
-  const getShareUrl = (article: Article) => {
-    return `${window.location.origin}/current-affairs/${article.id}`;
-  };
-
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success('Link copied to clipboard!');
-    } catch (err) {
-      toast.error('Failed to copy link');
-    }
-  };
-
-  const shareToSocial = (platform: string, article: Article) => {
-    const url = getShareUrl(article);
-    const text = encodeURIComponent(article.title);
-    
-    const shareUrls: Record<string, string> = {
-      twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${text}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
-      whatsapp: `https://wa.me/?text=${text}%20${encodeURIComponent(url)}`
-    };
-    
-    if (shareUrls[platform]) {
-      window.open(shareUrls[platform], '_blank', 'width=600,height=400');
-    }
-  };
-
-  // Mark as Read function
-  const markAsRead = (articleId: string) => {
-    setReadingProgressMap(prev => ({
-      ...prev,
-      [articleId]: {
-        articleId,
-        progress: 100,
-        scrollPosition: 0,
-        lastRead: new Date().toISOString()
-      }
-    }));
-    toast.success('Article marked as read');
-  };
-
   // Audio Narration functions
   const startNarration = (article: Article) => {
     if (!('speechSynthesis' in window)) {
@@ -177,7 +91,6 @@ const CurrentAffairs = () => {
       return;
     }
 
-    // Stop any existing narration
     stopNarration();
 
     const textToRead = `${article.title}. ${article.excerpt}. ${article.content || ''}`;
@@ -243,280 +156,6 @@ const CurrentAffairs = () => {
   const popularTags = [
     '#RBI', '#Budget2025', '#UPSC', '#Banking', '#SSC', '#Railways', '#Defence', 
     '#Economy', '#CurrentAffairs', '#GK', '#India', '#International'
-  ];
-
-  const allArticles: Article[] = [
-    {
-      id: '1',
-      title: 'RBI Monetary Policy: Key Highlights for Banking Exams',
-      category: 'Banking',
-      importance: 'high',
-      excerpt: 'Reserve Bank of India announces new policy rates. Key points every banking aspirant must know for IBPS, SBI exams.',
-      content: `The Reserve Bank of India (RBI) in its latest Monetary Policy Committee (MPC) meeting has announced several key decisions that are crucial for banking exam aspirants.
-
-**Key Highlights:**
-
-1. **Repo Rate Decision**: The MPC has decided to maintain the repo rate unchanged at 6.50%, prioritizing price stability while supporting growth.
-
-2. **GDP Growth Projection**: The central bank has revised its GDP growth forecast for FY 2024-25, reflecting the resilient domestic economy.
-
-3. **Inflation Target**: CPI inflation is projected to remain within the target band, with the RBI continuing its vigilant stance on price stability.
-
-4. **Liquidity Management**: The central bank has introduced new measures to manage liquidity conditions in the banking system.
-
-5. **Digital Payment Initiatives**: New guidelines for digital payment security and UPI transaction limits have been announced.
-
-**Important Points for Exams:**
-- Current Repo Rate: 6.50%
-- SDF Rate: 6.25%
-- MSF Rate: 6.75%
-- Bank Rate: 6.75%
-- CRR: 4.50%
-- SLR: 18%
-
-This update is particularly important for IBPS PO, SBI PO, and RBI Grade B examinations.`,
-      readTime: '5 min',
-      date: 'January 5, 2025',
-      image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=250&fit=crop',
-      tags: ['#RBI', '#Banking', '#MonetaryPolicy'],
-      topic: 'RBI Policy',
-      relatedIds: ['5', '8'],
-      hasQuiz: true,
-      quizQuestions: 10,
-    },
-    {
-      id: '2',
-      title: 'Union Budget 2025-26: Complete Analysis for Competitive Exams',
-      category: 'Economy',
-      importance: 'high',
-      excerpt: 'Comprehensive breakdown of the budget with focus on questions likely to appear in SSC, UPSC, and banking exams.',
-      content: `The Union Budget 2025-26 presented by the Finance Minister introduces several landmark initiatives and fiscal measures that are expected to feature prominently in competitive examinations.
-
-**Budget Highlights:**
-
-1. **Fiscal Deficit Target**: The government aims to contain fiscal deficit at 5.1% of GDP, continuing the path of fiscal consolidation.
-
-2. **Capital Expenditure**: A significant increase in capex allocation focusing on infrastructure development.
-
-3. **Tax Reforms**: 
-   - New income tax slabs under the new regime
-   - Corporate tax incentives for green manufacturing
-   - Changes in GST structure for specific sectors
-
-4. **Sector-wise Allocations**:
-   - Education: Increased allocation for skill development
-   - Healthcare: National Health Mission expansion
-   - Defence: Modernization of armed forces
-   - Agriculture: PM-KISAN enhancement
-
-**Key Schemes Announced:**
-- New employment generation scheme
-- Green energy transition fund
-- Digital infrastructure initiative
-- Rural development program
-
-This budget analysis is essential for UPSC, SSC CGL, and banking examinations.`,
-      readTime: '12 min',
-      date: 'January 5, 2025',
-      image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&h=250&fit=crop',
-      tags: ['#Budget2025', '#Economy', '#UPSC'],
-      topic: 'Budget 2025',
-      relatedIds: ['3', '6'],
-      hasQuiz: true,
-      quizQuestions: 15,
-    },
-    {
-      id: '3',
-      title: 'New Education Policy Updates for State Exams',
-      category: 'Government',
-      importance: 'medium',
-      excerpt: 'Latest developments in National Education Policy and their implications for state-level competitive exams.',
-      content: `The National Education Policy (NEP) 2020 continues to evolve with new implementation updates that are relevant for state-level competitive examinations.
-
-**Recent Updates:**
-
-1. **Academic Bank of Credits**: Implementation status across universities
-2. **Four-Year Undergraduate Programs**: Rollout in central universities
-3. **Vocational Education Integration**: New guidelines for schools
-4. **Digital Learning Initiatives**: PM eVIDYA expansion
-
-Important for TNPSC, UPPSC, MPPSC, and other state PSC examinations.`,
-      readTime: '6 min',
-      date: 'January 4, 2025',
-      image: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400&h=250&fit=crop',
-      tags: ['#Education', '#NEP', '#Government'],
-      topic: 'Education',
-      relatedIds: ['2'],
-      hasQuiz: true,
-      quizQuestions: 8,
-    },
-    {
-      id: '4',
-      title: 'Defence Acquisition Council Approves New Projects',
-      category: 'National',
-      importance: 'medium',
-      excerpt: 'Important for NDA, CDS, and UPSC aspirants. New defence projects worth ₹10,000 crores approved.',
-      content: `The Defence Acquisition Council (DAC) has approved several significant projects aimed at modernizing India's armed forces.
-
-**Approved Projects:**
-1. Advanced fighter aircraft indigenous development
-2. Naval vessel construction program
-3. Artillery modernization phase II
-4. Cyber defence infrastructure upgrade
-
-Total value: ₹10,000 crores
-
-Essential reading for NDA, CDS, and UPSC defence-related questions.`,
-      readTime: '4 min',
-      date: 'January 4, 2025',
-      image: 'https://images.unsplash.com/photo-1580752300992-559f8e898998?w=400&h=250&fit=crop',
-      tags: ['#Defence', '#DAC', '#Military'],
-      topic: 'Defence',
-      relatedIds: ['7'],
-      hasQuiz: false,
-    },
-    {
-      id: '5',
-      title: 'SEBI Introduces New Regulations for Market Intermediaries',
-      category: 'Banking',
-      importance: 'high',
-      excerpt: 'Must-know for RBI Grade B and SEBI Grade A exam aspirants. Complete analysis of new market regulations.',
-      content: `Securities and Exchange Board of India (SEBI) has introduced comprehensive new regulations for market intermediaries.
-
-**Key Regulations:**
-1. Enhanced disclosure requirements for mutual funds
-2. New framework for Alternative Investment Funds
-3. Updated guidelines for stock brokers
-4. ESG reporting mandates for listed companies
-
-Critical for SEBI Grade A and RBI Grade B examinations.`,
-      readTime: '7 min',
-      date: 'January 3, 2025',
-      image: 'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=400&h=250&fit=crop',
-      tags: ['#SEBI', '#Banking', '#Markets'],
-      topic: 'RBI Policy',
-      relatedIds: ['1', '8'],
-      hasQuiz: true,
-      quizQuestions: 12,
-    },
-    {
-      id: '6',
-      title: 'India Signs Historic Trade Agreement with EU Nations',
-      category: 'International',
-      importance: 'high',
-      excerpt: 'Historic trade deal expected to boost exports. Key facts for UPSC and commerce-related exams.',
-      content: `India has signed a landmark Free Trade Agreement (FTA) with the European Union, marking a significant milestone in bilateral trade relations.
-
-**Agreement Highlights:**
-1. Tariff reduction on 90% of goods
-2. Services sector liberalization
-3. Investment protection clauses
-4. Intellectual property framework
-
-Expected to boost bilateral trade to $250 billion by 2030.`,
-      readTime: '8 min',
-      date: 'January 3, 2025',
-      image: 'https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=400&h=250&fit=crop',
-      tags: ['#Trade', '#EU', '#International'],
-      topic: 'International Relations',
-      relatedIds: ['2'],
-      hasQuiz: true,
-      quizQuestions: 10,
-    },
-    {
-      id: '7',
-      title: 'ISRO Successfully Launches Communication Satellite',
-      category: 'Science',
-      importance: 'medium',
-      excerpt: "GSAT-24 launch marks milestone in India's space program. Details for competitive exam preparation.",
-      content: `Indian Space Research Organisation (ISRO) has successfully launched GSAT-24, a communication satellite, from Satish Dhawan Space Centre.
-
-**Mission Details:**
-- Launch Vehicle: GSLV Mk III
-- Orbit: Geostationary Transfer Orbit
-- Mission Life: 15 years
-- Coverage: Pan-India
-
-This mission strengthens India's communication infrastructure and demonstrates indigenous space capabilities.`,
-      readTime: '4 min',
-      date: 'January 2, 2025',
-      image: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=400&h=250&fit=crop',
-      tags: ['#ISRO', '#Space', '#Science'],
-      topic: 'Space & ISRO',
-      relatedIds: ['4'],
-      hasQuiz: true,
-      quizQuestions: 8,
-    },
-    {
-      id: '8',
-      title: 'New Railway Projects Announced for Northeast',
-      category: 'National',
-      importance: 'medium',
-      excerpt: 'Railway Ministry announces connectivity projects worth ₹25,000 crores. Important for RRB exams.',
-      content: `The Railway Ministry has announced a comprehensive connectivity enhancement program for the Northeast region.
-
-**Project Highlights:**
-1. New Vande Bharat routes
-2. Gauge conversion projects
-3. Station modernization program
-4. Safety infrastructure upgrades
-
-Total investment: ₹25,000 crores over 5 years.`,
-      readTime: '5 min',
-      date: 'January 2, 2025',
-      image: 'https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=400&h=250&fit=crop',
-      tags: ['#Railways', '#Infrastructure', '#Northeast'],
-      topic: 'Infrastructure',
-      relatedIds: ['1'],
-      hasQuiz: false,
-    },
-    {
-      id: '9',
-      title: 'Digital India 2.0: New Initiatives Launched',
-      category: 'Government',
-      importance: 'medium',
-      excerpt: 'Government launches new digital initiatives to boost e-governance and digital literacy across India.',
-      content: `The government has launched Digital India 2.0, the next phase of the flagship digitalization program.
-
-**New Initiatives:**
-1. Universal Digital Identity for services
-2. AI-powered governance platforms
-3. Digital literacy mission expansion
-4. Cybersecurity framework enhancement
-
-Aimed at making India a $1 trillion digital economy by 2030.`,
-      readTime: '6 min',
-      date: 'January 1, 2025',
-      image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=250&fit=crop',
-      tags: ['#DigitalIndia', '#Government', '#Technology'],
-      topic: 'Digital India',
-      relatedIds: ['3'],
-      hasQuiz: true,
-      quizQuestions: 10,
-    },
-    {
-      id: '10',
-      title: 'Paris Olympics 2024: India Medal Winners Analysis',
-      category: 'Sports',
-      importance: 'low',
-      excerpt: "Complete analysis of India's performance at Paris Olympics 2024. Important GK for all competitive exams.",
-      content: `India achieved its best-ever Olympic performance at Paris 2024, winning multiple medals across various disciplines.
-
-**Medal Tally:**
-- Gold: Notable achievements in athletics and shooting
-- Silver: Strong performances in wrestling and badminton
-- Bronze: Multiple medals in boxing and hockey
-
-This represents a significant improvement in India's Olympic performance trajectory.`,
-      readTime: '7 min',
-      date: 'January 1, 2025',
-      image: 'https://images.unsplash.com/photo-1569517282132-25d22f4573e6?w=400&h=250&fit=crop',
-      tags: ['#Olympics', '#Sports', '#India'],
-      topic: 'Sports',
-      relatedIds: [],
-      hasQuiz: true,
-      quizQuestions: 15,
-    },
   ];
 
   const quickQuizzes = [
@@ -619,467 +258,15 @@ This represents a significant improvement in India's Olympic performance traject
     }
   };
 
-  // Reading Mode refs and effects (moved outside nested component)
-  const readingScrollRef = React.useRef<HTMLDivElement>(null);
-
-  // Resume reading position when article changes
-  useEffect(() => {
-    if (readingScrollRef.current && readingArticle) {
-      const savedPosition = getResumePosition(readingArticle.id);
-      if (savedPosition > 0) {
-        setTimeout(() => {
-          if (readingScrollRef.current) {
-            readingScrollRef.current.scrollTop = savedPosition;
-          }
-        }, 100);
-      }
-    }
-  }, [readingArticle?.id]);
-
-  // Handle scroll for progress tracking
-  const handleReadingScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    if (!readingArticle) return;
-    const target = e.currentTarget;
-    const scrollTop = target.scrollTop;
-    const scrollHeight = target.scrollHeight - target.clientHeight;
-    const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
-    updateReadingProgress(readingArticle.id, progress, scrollTop);
+  // Navigate to article reader
+  const openArticle = (article: Article) => {
+    navigate(`/current-affairs/${article.id}`);
   };
 
-  // Reading Mode Component with Progress Tracking
-  const ReadingMode = () => {
-    if (!readingArticle) return null;
-
-    const fontFamilyClass = {
-      sans: 'font-sans',
-      serif: 'font-serif',
-      mono: 'font-mono'
-    }[readingSettings.fontFamily];
-
-    const currentProgress = getReadingProgress(readingArticle.id);
-
-    return (
-      <Dialog open={!!readingArticle} onOpenChange={() => { stopNarration(); setReadingArticle(null); }}>
-        <DialogContent 
-          className={`max-w-4xl h-[90vh] flex flex-col p-0 ${readingSettings.isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}
-        >
-          {/* Reading Progress Bar */}
-          <div className={`h-1 ${readingSettings.isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
-            <div 
-              className="h-full bg-primary transition-all duration-300"
-              style={{ width: `${currentProgress}%` }}
-            />
-          </div>
-
-          {/* Reading Controls */}
-          <div className={`sticky top-0 z-10 p-4 border-b flex items-center justify-between ${readingSettings.isDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200'}`}>
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setReadingSettings(prev => ({ ...prev, isDarkMode: !prev.isDarkMode }))}
-                className={readingSettings.isDarkMode ? 'text-gray-100' : ''}
-              >
-                {readingSettings.isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </Button>
-              
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setReadingSettings(prev => ({ ...prev, fontSize: Math.max(12, prev.fontSize - 2) }))}
-                  className={readingSettings.isDarkMode ? 'text-gray-100' : ''}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <span className={`text-sm min-w-[60px] text-center ${readingSettings.isDarkMode ? 'text-gray-100' : ''}`}>
-                  {readingSettings.fontSize}px
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setReadingSettings(prev => ({ ...prev, fontSize: Math.min(24, prev.fontSize + 2) }))}
-                  className={readingSettings.isDarkMode ? 'text-gray-100' : ''}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <div className="flex items-center gap-1 border rounded-lg p-1">
-                {(['sans', 'serif', 'mono'] as const).map(font => (
-                  <Button
-                    key={font}
-                    variant={readingSettings.fontFamily === font ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setReadingSettings(prev => ({ ...prev, fontFamily: font }))}
-                    className={`text-xs ${readingSettings.isDarkMode && readingSettings.fontFamily !== font ? 'text-gray-100' : ''}`}
-                  >
-                    {font.charAt(0).toUpperCase() + font.slice(1)}
-                  </Button>
-                ))}
-              </div>
-
-              {/* Progress indicator */}
-              <span className={`text-xs ${readingSettings.isDarkMode ? 'text-gray-400' : 'text-muted-foreground'}`}>
-                {Math.round(currentProgress)}% read
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              {/* Audio Narration Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => toggleNarration(readingArticle)}
-                className={`${readingSettings.isDarkMode ? 'text-gray-100' : ''} ${isNarrating && narrationArticleId === readingArticle.id ? 'text-primary' : ''}`}
-              >
-                {isNarrating && narrationArticleId === readingArticle.id ? (
-                  <VolumeX className="h-4 w-4" />
-                ) : (
-                  <Volume2 className="h-4 w-4" />
-                )}
-              </Button>
-              {/* Mark as Read Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => { markAsRead(readingArticle.id); }}
-                className={`${readingSettings.isDarkMode ? 'text-gray-100' : ''} ${getReadingProgress(readingArticle.id) >= 100 ? 'text-green-500' : ''}`}
-                title="Mark as Read"
-              >
-                <Check className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShareArticle(readingArticle)}
-                className={readingSettings.isDarkMode ? 'text-gray-100' : ''}
-              >
-                <Share2 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => toggleBookmark(readingArticle.id)}
-                className={readingSettings.isDarkMode ? 'text-gray-100' : ''}
-              >
-                {isBookmarked(readingArticle.id) ? (
-                  <BookmarkCheck className="h-4 w-4 text-primary" />
-                ) : (
-                  <Bookmark className="h-4 w-4" />
-                )}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => { stopNarration(); setReadingArticle(null); }}
-                className={readingSettings.isDarkMode ? 'text-gray-100' : ''}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {/* Article Content - Scrollable */}
-          <div 
-            ref={readingScrollRef}
-            className="flex-1 overflow-y-auto"
-            onScroll={handleReadingScroll}
-          >
-            <div className="p-8">
-              {readingArticle.image && (
-                <img 
-                  src={readingArticle.image} 
-                  alt={readingArticle.title}
-                  className="w-full h-64 object-cover rounded-lg mb-6"
-                />
-              )}
-              
-              <div className="flex items-center gap-2 mb-4">
-                <Badge variant="outline">{readingArticle.category}</Badge>
-                {getImportanceBadge(readingArticle.importance)}
-              </div>
-
-              <h1 
-                className={`text-3xl font-bold mb-4 ${fontFamilyClass}`}
-                style={{ fontSize: readingSettings.fontSize + 8 }}
-              >
-                {readingArticle.title}
-              </h1>
-
-              <div className={`flex items-center gap-4 mb-6 text-sm ${readingSettings.isDarkMode ? 'text-gray-400' : 'text-muted-foreground'}`}>
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  {readingArticle.date}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  {readingArticle.readTime}
-                </span>
-              </div>
-
-              <div 
-                className={`prose max-w-none ${readingSettings.isDarkMode ? 'prose-invert' : ''} ${fontFamilyClass}`}
-                style={{ 
-                  fontSize: readingSettings.fontSize,
-                  lineHeight: readingSettings.lineHeight
-                }}
-              >
-                {readingArticle.content?.split('\n').map((paragraph, idx) => (
-                  <p key={idx} className="mb-4 whitespace-pre-wrap">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-
-              <div className="flex flex-wrap gap-2 mt-8 pt-6 border-t">
-                {readingArticle.tags.map(tag => (
-                  <Badge key={tag} variant="secondary">{tag}</Badge>
-                ))}
-              </div>
-
-              {readingArticle.hasQuiz && (
-                <Card className={`mt-6 ${readingSettings.isDarkMode ? 'bg-gray-800 border-gray-700' : ''}`}>
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <Zap className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <p className="font-semibold">Test Your Knowledge</p>
-                        <p className={`text-sm ${readingSettings.isDarkMode ? 'text-gray-400' : 'text-muted-foreground'}`}>
-                          {readingArticle.quizQuestions} questions available
-                        </p>
-                      </div>
-                    </div>
-                    <Button>Start Quiz</Button>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  // Share Dialog Component
-  const ShareDialog = () => {
-    if (!shareArticle) return null;
-
-    return (
-      <Dialog open={!!shareArticle} onOpenChange={() => setShareArticle(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Share2 className="h-5 w-5" />
-              Share Article
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <p className="text-sm text-muted-foreground line-clamp-2">{shareArticle.title}</p>
-            
-            {/* Social Share Buttons */}
-            <div className="grid grid-cols-4 gap-3">
-              <Button
-                variant="outline"
-                className="flex flex-col items-center gap-2 h-auto py-4 hover:bg-blue-50 hover:border-blue-500"
-                onClick={() => shareToSocial('twitter', shareArticle)}
-              >
-                <Twitter className="h-5 w-5 text-blue-400" />
-                <span className="text-xs">Twitter</span>
-              </Button>
-              <Button
-                variant="outline"
-                className="flex flex-col items-center gap-2 h-auto py-4 hover:bg-blue-50 hover:border-blue-700"
-                onClick={() => shareToSocial('facebook', shareArticle)}
-              >
-                <Facebook className="h-5 w-5 text-blue-600" />
-                <span className="text-xs">Facebook</span>
-              </Button>
-              <Button
-                variant="outline"
-                className="flex flex-col items-center gap-2 h-auto py-4 hover:bg-blue-50 hover:border-blue-600"
-                onClick={() => shareToSocial('linkedin', shareArticle)}
-              >
-                <Linkedin className="h-5 w-5 text-blue-700" />
-                <span className="text-xs">LinkedIn</span>
-              </Button>
-              <Button
-                variant="outline"
-                className="flex flex-col items-center gap-2 h-auto py-4 hover:bg-green-50 hover:border-green-500"
-                onClick={() => shareToSocial('whatsapp', shareArticle)}
-              >
-                <MessageCircle className="h-5 w-5 text-green-500" />
-                <span className="text-xs">WhatsApp</span>
-              </Button>
-            </div>
-
-            {/* Copy Link */}
-            <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-              <Link2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <span className="text-sm truncate flex-1">{getShareUrl(shareArticle)}</span>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => copyToClipboard(getShareUrl(shareArticle))}
-                className="flex-shrink-0"
-              >
-                <Copy className="h-4 w-4 mr-1" />
-                Copy
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  };
-
-  // Topic View Dialog - Shows all articles in a topic in one page view
-  const TopicViewDialog = () => {
-    if (!topicViewArticles || topicViewArticles.length === 0) return null;
-
-    return (
-      <Dialog open={!!topicViewArticles} onOpenChange={() => { stopNarration(); setTopicViewArticles(null); }}>
-        <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
-          <DialogHeader className="p-6 border-b bg-gradient-to-r from-primary/5 to-primary/10 flex-shrink-0">
-            <DialogTitle className="flex items-center gap-2 text-xl">
-              <Hash className="h-6 w-6 text-primary" />
-              {topicViewName}
-              <Badge variant="secondary" className="ml-2">{topicViewArticles.length} articles</Badge>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 overflow-y-auto">
-            <div className="p-6 space-y-8">
-              {topicViewArticles.map((article, idx) => {
-                const progress = getReadingProgress(article.id);
-                const isCurrentlyNarrating = isNarrating && narrationArticleId === article.id;
-                return (
-                  <div 
-                    key={article.id}
-                    className="pb-8 border-b last:border-0 last:pb-0"
-                  >
-                    <div className="flex items-start gap-4">
-                      <span className="text-3xl font-bold text-primary/30 flex-shrink-0">{idx + 1}</span>
-                      <div className="flex-1">
-                        {/* Article Header */}
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
-                          {getImportanceBadge(article.importance)}
-                          <Badge variant="outline">{article.category}</Badge>
-                          {article.hasQuiz && (
-                            <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Quiz Available
-                            </Badge>
-                          )}
-                          {progress >= 100 && (
-                            <Badge className="bg-primary/10 text-primary border-primary/20">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Read
-                            </Badge>
-                          )}
-                        </div>
-
-                        {/* Title */}
-                        <h3 className="text-xl font-semibold mb-2">{article.title}</h3>
-
-                        {/* Meta info */}
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="h-4 w-4" />
-                            {article.date}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-4 w-4" />
-                            {article.readTime}
-                          </span>
-                        </div>
-
-                        {/* Image */}
-                        {article.image && (
-                          <img 
-                            src={article.image} 
-                            alt={article.title}
-                            className="w-full h-48 object-cover rounded-lg mb-4"
-                          />
-                        )}
-
-                        {/* Content */}
-                        <div className="prose max-w-none text-sm">
-                          {article.content?.split('\n').map((paragraph, pIdx) => (
-                            <p key={pIdx} className="mb-3 whitespace-pre-wrap text-muted-foreground">
-                              {paragraph}
-                            </p>
-                          ))}
-                        </div>
-
-                        {/* Tags */}
-                        <div className="flex flex-wrap gap-1 mt-4">
-                          {article.tags.map(tag => (
-                            <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
-                          ))}
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex items-center gap-2 mt-4 pt-4 border-t">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toggleNarration(article)}
-                            className={isCurrentlyNarrating ? 'text-primary border-primary' : ''}
-                          >
-                            {isCurrentlyNarrating ? (
-                              <>
-                                <VolumeX className="h-4 w-4 mr-2" />
-                                Stop Audio
-                              </>
-                            ) : (
-                              <>
-                                <Volume2 className="h-4 w-4 mr-2" />
-                                Listen
-                              </>
-                            )}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => markAsRead(article.id)}
-                            className={progress >= 100 ? 'text-green-500 border-green-500' : ''}
-                          >
-                            <Check className="h-4 w-4 mr-2" />
-                            {progress >= 100 ? 'Read' : 'Mark as Read'}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toggleBookmark(article.id)}
-                          >
-                            {isBookmarked(article.id) ? (
-                              <BookmarkCheck className="h-4 w-4 mr-2 text-primary" />
-                            ) : (
-                              <Bookmark className="h-4 w-4 mr-2" />
-                            )}
-                            {isBookmarked(article.id) ? 'Saved' : 'Save'}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setShareArticle(article)}
-                          >
-                            <Share2 className="h-4 w-4 mr-2" />
-                            Share
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
+  // Handle mark as read with toast
+  const handleMarkAsRead = (articleId: string) => {
+    markAsRead(articleId);
+    toast.success('Article marked as read');
   };
 
   // Bookmarks Sheet Component
@@ -1119,7 +306,7 @@ This represents a significant improvement in India's Olympic performance traject
                           <h4 
                             className="font-semibold line-clamp-2 cursor-pointer hover:text-primary"
                             onClick={() => {
-                              setReadingArticle(article);
+                              openArticle(article);
                               setShowBookmarks(false);
                             }}
                           >
@@ -1248,7 +435,6 @@ This represents a significant improvement in India's Olympic performance traject
             transition={{ delay: idx * 0.05 }}
           >
             <Card className="h-full hover:shadow-xl transition-all duration-300 group cursor-pointer overflow-hidden relative">
-              {/* Reading Progress Bar */}
               {progress > 0 && (
                 <div className="absolute top-0 left-0 right-0 h-1 bg-muted">
                   <div 
@@ -1276,7 +462,7 @@ This represents a significant improvement in India's Olympic performance traject
                 </div>
                 <h3 
                   className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2"
-                  onClick={() => setReadingArticle(article)}
+                  onClick={() => openArticle(article)}
                 >
                   {article.title}
                 </h3>
@@ -1321,7 +507,7 @@ This represents a significant improvement in India's Olympic performance traject
                       variant="ghost"
                       size="sm"
                       className="h-8 w-8 p-0"
-                      onClick={(e) => { e.stopPropagation(); markAsRead(article.id); }}
+                      onClick={(e) => { e.stopPropagation(); handleMarkAsRead(article.id); }}
                       title="Mark as Read"
                     >
                       <Check className={`h-4 w-4 ${progress >= 100 ? 'text-green-500' : ''}`} />
@@ -1350,7 +536,7 @@ This represents a significant improvement in India's Olympic performance traject
                       variant="ghost"
                       size="sm"
                       className="h-8 w-8 p-0"
-                      onClick={() => setReadingArticle(article)}
+                      onClick={() => openArticle(article)}
                     >
                       <Eye className="h-4 w-4" />
                     </Button>
@@ -1374,7 +560,7 @@ This represents a significant improvement in India's Olympic performance traject
           transition={{ delay: idx * 0.05 }}
         >
           <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group cursor-pointer">
-            <div className="relative h-48 overflow-hidden" onClick={() => setReadingArticle(article)}>
+            <div className="relative h-48 overflow-hidden" onClick={() => openArticle(article)}>
               <img 
                 src={article.image} 
                 alt={article.title}
@@ -1413,7 +599,7 @@ This represents a significant improvement in India's Olympic performance traject
             <CardContent className="p-4">
               <h3 
                 className="font-semibold mb-2 group-hover:text-primary transition-colors line-clamp-2"
-                onClick={() => setReadingArticle(article)}
+                onClick={() => openArticle(article)}
               >
                 {article.title}
               </h3>
@@ -1427,7 +613,7 @@ This represents a significant improvement in India's Olympic performance traject
                   variant="link" 
                   size="sm" 
                   className="p-0 h-auto text-primary"
-                  onClick={() => setReadingArticle(article)}
+                  onClick={() => openArticle(article)}
                 >
                   Read More <ArrowRight className="h-3 w-3 ml-1" />
                 </Button>
@@ -1452,7 +638,7 @@ This represents a significant improvement in India's Olympic performance traject
             <CardContent className="p-4 flex gap-4">
               <div 
                 className="hidden sm:block w-32 h-24 rounded-lg overflow-hidden flex-shrink-0"
-                onClick={() => setReadingArticle(article)}
+                onClick={() => openArticle(article)}
               >
                 <img 
                   src={article.image} 
@@ -1473,7 +659,7 @@ This represents a significant improvement in India's Olympic performance traject
                 </div>
                 <h3 
                   className="font-semibold mb-1 group-hover:text-primary transition-colors line-clamp-1"
-                  onClick={() => setReadingArticle(article)}
+                  onClick={() => openArticle(article)}
                 >
                   {article.title}
                 </h3>
@@ -1517,7 +703,7 @@ This represents a significant improvement in India's Olympic performance traject
                   variant="ghost" 
                   size="icon" 
                   className="text-muted-foreground"
-                  onClick={() => setReadingArticle(article)}
+                  onClick={() => openArticle(article)}
                 >
                   <ArrowRight className="h-5 w-5" />
                 </Button>
@@ -1603,9 +789,8 @@ This represents a significant improvement in India's Olympic performance traject
                     <div 
                       key={article.id}
                       className="p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors cursor-pointer group relative overflow-hidden"
-                      onClick={() => setReadingArticle(article)}
+                      onClick={() => openArticle(article)}
                     >
-                      {/* Reading Progress Indicator */}
                       {progress > 0 && (
                         <div 
                           className="absolute left-0 top-0 h-full bg-primary/10 transition-all"
@@ -1688,7 +873,7 @@ This represents a significant improvement in India's Olympic performance traject
                                     key={related.id} 
                                     variant="outline" 
                                     className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground"
-                                    onClick={(e) => { e.stopPropagation(); setReadingArticle(related); }}
+                                    onClick={(e) => { e.stopPropagation(); openArticle(related); }}
                                   >
                                     {related.title.substring(0, 40)}...
                                   </Badge>
@@ -1707,6 +892,12 @@ This represents a significant improvement in India's Olympic performance traject
       </div>
     );
   };
+
+  const weeklyDigests = [
+    { id: 1, title: 'Week 1 - January 2025 Digest', articles: 45, exams: ['UPSC', 'SSC', 'Banking'] },
+    { id: 2, title: 'December 2024 Monthly Digest', articles: 180, exams: ['All Exams'] },
+    { id: 3, title: 'Year End 2024 Special', articles: 500, exams: ['UPSC', 'State PSC'] },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
@@ -1751,7 +942,6 @@ This represents a significant improvement in India's Olympic performance traject
                 />
               </div>
               
-              {/* Bookmark Button */}
               <Button variant="outline" onClick={() => setShowBookmarks(true)} className="gap-2">
                 <Bookmark className="h-4 w-4" />
                 Saved
@@ -1760,7 +950,6 @@ This represents a significant improvement in India's Olympic performance traject
                 )}
               </Button>
 
-              {/* Digest Settings Button */}
               <Button variant="outline" onClick={() => setShowDigestSettings(true)} className="gap-2">
                 <Mail className="h-4 w-4" />
                 Daily Digest
@@ -1793,6 +982,9 @@ This represents a significant improvement in India's Olympic performance traject
             ))}
           </div>
         </header>
+
+        {/* Continue Reading Section */}
+        <ContinueReadingSection />
 
         {/* View Mode Selector & Category Filters */}
         <div className="flex flex-col gap-4 mb-6">
@@ -2001,11 +1193,13 @@ This represents a significant improvement in India's Olympic performance traject
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-sm line-clamp-2">{article.title}</h4>
-                        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                          <Badge variant="secondary">{article.quizQuestions} Questions</Badge>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="secondary" className="text-xs">
+                            {article.quizQuestions} Questions
+                          </Badge>
                         </div>
                       </div>
-                      <Button size="sm" variant="ghost">
+                      <Button size="sm" variant="outline">
                         <Play className="h-4 w-4" />
                       </Button>
                     </CardContent>
@@ -2015,47 +1209,45 @@ This represents a significant improvement in India's Olympic performance traject
             </div>
           </TabsContent>
 
-          <TabsContent value="digests" className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                title: 'Weekly Banking & Finance Digest',
-                period: 'Dec 30, 2024 - Jan 5, 2025',
-                topics: 18,
-                exams: ['IBPS PO', 'SBI PO', 'RBI Grade B'],
-              },
-              {
-                title: 'Weekly Economy & Current Affairs',
-                period: 'Dec 30, 2024 - Jan 5, 2025',
-                topics: 25,
-                exams: ['UPSC', 'SSC CGL', 'State PCS'],
-              },
-              {
-                title: 'Weekly Science & Technology Updates',
-                period: 'Dec 30, 2024 - Jan 5, 2025',
-                topics: 12,
-                exams: ['UPSC', 'SSC', 'Railway'],
-              },
-            ].map((digest, idx) => (
-              <Card key={idx} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="text-lg">{digest.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">{digest.period}</p>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary">{digest.topics} Topics</Badge>
+          <TabsContent value="digests" className="space-y-6">
+            <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <FileText className="h-6 w-6 text-primary" />
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {digest.exams.map((exam) => (
-                      <Badge key={exam} variant="outline" className="text-xs">
-                        {exam}
-                      </Badge>
-                    ))}
+                  <div>
+                    <h2 className="text-xl font-bold">Weekly & Monthly Digests</h2>
+                    <p className="text-muted-foreground text-sm">Download comprehensive PDF summaries for quick revision</p>
                   </div>
-                  <Button className="w-full">
-                    <FileText className="h-4 w-4 mr-2" />
-                    Download PDF
-                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {weeklyDigests.map((digest) => (
+              <Card key={digest.id} className="hover:shadow-md transition-all">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between flex-wrap gap-4">
+                    <div>
+                      <h3 className="font-semibold text-lg">{digest.title}</h3>
+                      <p className="text-muted-foreground text-sm mt-1">
+                        {digest.articles} articles compiled
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex gap-1">
+                        {digest.exams.map(exam => (
+                          <Badge key={exam} variant="outline" className="text-xs">
+                            {exam}
+                          </Badge>
+                        ))}
+                      </div>
+                      <Button className="w-full">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Download PDF
+                      </Button>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -2076,14 +1268,19 @@ This represents a significant improvement in India's Olympic performance traject
         </section>
       </main>
 
-      {/* Reading Mode Dialog */}
-      <ReadingMode />
-      
       {/* Share Dialog */}
-      <ShareDialog />
+      <ShareDialog 
+        article={shareArticle} 
+        onClose={() => setShareArticle(null)} 
+      />
 
       {/* Topic View Dialog */}
-      <TopicViewDialog />
+      <TopicViewDialog 
+        articles={topicViewArticles}
+        topicName={topicViewName}
+        onClose={() => setTopicViewArticles(null)}
+        onArticleClick={openArticle}
+      />
       
       {/* Bookmarks Sheet */}
       <BookmarksSheet />
