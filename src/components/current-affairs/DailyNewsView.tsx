@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, BookOpen, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, BookOpen, ChevronRight, Download } from 'lucide-react';
 import { allArticles } from './articlesData';
 import { useReadingProgress } from '@/hooks/useReadingProgress';
+import { generateDailyNewsPDF } from '@/utils/pdfGenerator';
 
 const DailyNewsView = () => {
   const navigate = useNavigate();
@@ -28,6 +29,12 @@ const DailyNewsView = () => {
 
   const handleViewDay = (date: string) => {
     navigate(`/current-affairs/date/${encodeURIComponent(date)}`);
+  };
+
+  const handleDownloadPDF = (date: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const dateArticles = articlesByDate[date];
+    generateDailyNewsPDF(dateArticles, date);
   };
 
   // Get unique topics for a date
@@ -79,6 +86,14 @@ const DailyNewsView = () => {
                     All Read
                   </Badge>
                 )}
+                <Button 
+                  variant="secondary" 
+                  size="icon" 
+                  className="absolute top-2 left-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => handleDownloadPDF(date, e)}
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
               </div>
 
               <CardContent className="p-4">
