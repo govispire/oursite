@@ -9,6 +9,8 @@ import StudentTests from '@/pages/student/StudentTests';
 import ExamDetail from '@/pages/student/ExamDetail';
 import ExamInterface from '@/pages/student/ExamInterface';
 import CurrentAffairs from '@/pages/student/CurrentAffairs';
+import TopicArticlesPage from '@/pages/student/TopicArticlesPage';
+import DailyNewsPage from '@/pages/student/DailyNewsPage';
 import SpeedDrills from '@/pages/student/SpeedDrills';
 import PerformanceAnalytics from '@/pages/student/PerformanceAnalytics';
 import ExamNotifications from '@/pages/student/ExamNotifications';
@@ -53,6 +55,8 @@ const StudentRoutes = () => {
           <Route path="/mentorship" element={<MentorshipDashboard />} />
           <Route path="/mentorship/dashboard" element={<MentorshipDashboard />} />
           <Route path="/current-affairs" element={<CurrentAffairs />} />
+          <Route path="/current-affairs/topic/:topic" element={<TopicArticlesPage />} />
+          <Route path="/current-affairs/date/:date" element={<DailyNewsPage />} />
           <Route path="/daily-quizzes" element={<DailyQuizzes />} />
           <Route path="/speed-drills" element={<SpeedDrills />} />
           <Route path="/performance" element={<PerformanceAnalytics />} />

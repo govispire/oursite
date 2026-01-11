@@ -15,6 +15,8 @@ import Blog from '@/pages/Blog';
 import BlogArticle from '@/pages/BlogArticle';
 import CurrentAffairs from '@/pages/CurrentAffairs';
 import CurrentAffairsReader from '@/pages/CurrentAffairsReader';
+import TopicArticlesPage from '@/pages/student/TopicArticlesPage';
+import DailyNewsPage from '@/pages/student/DailyNewsPage';
 import Downloads from '@/pages/Downloads';
 import ExamNotifications from '@/pages/ExamNotifications';
 import NotFound from '@/pages/NotFound';
@@ -33,6 +35,8 @@ function App() {
                 <Route path="/blog/:slug" element={<BlogArticle />} />
                 <Route path="/current-affairs" element={<CurrentAffairs />} />
                 <Route path="/current-affairs/:id" element={<CurrentAffairsReader />} />
+                <Route path="/current-affairs/topic/:topic" element={<TopicArticlesPage />} />
+                <Route path="/current-affairs/date/:date" element={<DailyNewsPage />} />
                 <Route path="/downloads" element={<Downloads />} />
                 <Route path="/exam-notifications" element={<ExamNotifications />} />
                 <Route path="/student/*" element={<StudentRoutes />} />
