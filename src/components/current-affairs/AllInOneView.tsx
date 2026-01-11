@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Eye, Download, Share2, Bookmark, Clock, CheckCircle2 } from 'lucide-react';
 import { allArticles } from './articlesData';
 import { useReadingProgress } from '@/hooks/useReadingProgress';
+import { generateTopicPDF } from '@/utils/pdfGenerator';
 
 const AllInOneView = () => {
   const navigate = useNavigate();
@@ -26,6 +27,11 @@ const AllInOneView = () => {
     navigate(`/current-affairs/topic/${encodeURIComponent(topic)}`);
   };
 
+  const handleDownloadPDF = (topic: string) => {
+    const topicArticles = articlesByTopic[topic];
+    generateTopicPDF(topicArticles, topic);
+  };
+
   return (
     <div className="space-y-6">
       {topics.map(topic => {
@@ -35,7 +41,7 @@ const AllInOneView = () => {
         return (
           <Card key={topic} className="border-l-4 border-l-primary">
             <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-3">
                 <div className="flex items-center gap-3">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <span className="text-primary">#</span> {topic}
@@ -56,7 +62,12 @@ const AllInOneView = () => {
                     <Eye className="h-4 w-4" />
                     Read All ({articles.length})
                   </Button>
-                  <Button variant="outline" size="sm" className="gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="gap-2"
+                    onClick={() => handleDownloadPDF(topic)}
+                  >
                     <Download className="h-4 w-4" />
                     Download PDF
                   </Button>
@@ -72,15 +83,16 @@ const AllInOneView = () => {
                   return (
                     <div 
                       key={article.id}
-                      className={`flex items-start gap-4 p-3 rounded-lg border ${
+                      className={`flex items-start gap-4 p-3 rounded-lg border cursor-pointer hover:bg-muted/50 transition-colors ${
                         isRead ? 'bg-green-50/50 border-green-200 dark:bg-green-950/20 dark:border-green-900' : 'bg-muted/30'
                       }`}
+                      onClick={() => navigate(`/current-affairs/topic/${encodeURIComponent(topic)}`)}
                     >
                       <span className="text-2xl font-bold text-primary/60 min-w-[24px]">
                         {index + 1}
                       </span>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <Badge 
                             variant={article.importance === 'high' ? 'destructive' : 'secondary'}
                             className="text-xs"
@@ -100,10 +112,7 @@ const AllInOneView = () => {
                             </Badge>
                           )}
                         </div>
-                        <h4 
-                          className="font-medium text-foreground hover:text-primary cursor-pointer line-clamp-1"
-                          onClick={() => navigate(`/current-affairs/${article.id}`)}
-                        >
+                        <h4 className="font-medium text-foreground hover:text-primary line-clamp-1">
                           {article.title}
                         </h4>
                         <p className="text-sm text-muted-foreground line-clamp-1 mt-1">
@@ -126,13 +135,16 @@ const AllInOneView = () => {
                             {allArticles
                               .filter(a => article.relatedIds.includes(a.id))
                               .slice(0, 2)
-                              .map((related, i) => (
+                              .map((related) => (
                                 <Button
                                   key={related.id}
                                   variant="ghost"
                                   size="sm"
                                   className="h-6 px-2 text-xs"
-                                  onClick={() => navigate(`/current-affairs/${related.id}`)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(`/current-affairs/${related.id}`);
+                                  }}
                                 >
                                   {related.title.slice(0, 30)}...
                                 </Button>
@@ -140,7 +152,7 @@ const AllInOneView = () => {
                           </div>
                         )}
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <Share2 className="h-4 w-4" />
                         </Button>
