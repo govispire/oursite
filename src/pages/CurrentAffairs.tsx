@@ -5,7 +5,7 @@ import {
   Calendar, Clock, ChevronRight, Home, Bell, TrendingUp, Filter, Search, BookOpen, 
   Globe, Landmark, Briefcase, AlertCircle, Grid3X3, List, Image, Layers, 
   Tag, ArrowRight, Play, CheckCircle, Trophy, Zap, FileText, Hash,
-  Bookmark, BookmarkCheck, X, Mail, Eye,
+  Bookmark, BookmarkCheck, X, Mail, Eye, CalendarDays,
   ChevronDown, ChevronUp, Share2, Volume2, VolumeX, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,9 @@ import { toast } from 'sonner';
 import { ShareDialog } from '@/components/current-affairs/ShareDialog';
 import { TopicViewDialog } from '@/components/current-affairs/TopicViewDialog';
 import { ContinueReadingSection } from '@/components/current-affairs/ContinueReadingSection';
+import DailyNewsView from '@/components/current-affairs/DailyNewsView';
+import AllInOneView from '@/components/current-affairs/AllInOneView';
+import ArticleQuiz from '@/components/current-affairs/ArticleQuiz';
 import { allArticles, getArticleById } from '@/components/current-affairs/articlesData';
 import { Article, ReadingSettings, DigestPreferences, ReadingProgress } from '@/components/current-affairs/types';
 import { useReadingProgress } from '@/hooks/useReadingProgress';
@@ -39,6 +42,7 @@ const CurrentAffairs = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [expandedTopic, setExpandedTopic] = useState<string | null>(null);
+  const [activeMainTab, setActiveMainTab] = useState('news');
   
   // Bookmark State
   const [bookmarkedArticles, setBookmarkedArticles] = useState<string[]>(() => {
@@ -68,6 +72,9 @@ const CurrentAffairs = () => {
   // Topic View Dialog State
   const [topicViewArticles, setTopicViewArticles] = useState<Article[] | null>(null);
   const [topicViewName, setTopicViewName] = useState<string>('');
+
+  // Quiz State
+  const [quizArticle, setQuizArticle] = useState<Article | null>(null);
 
   // Audio Narration State
   const [isNarrating, setIsNarrating] = useState(false);
@@ -1078,11 +1085,19 @@ const CurrentAffairs = () => {
         </div>
 
         {/* Main Content Tabs */}
-        <Tabs defaultValue="news" className="space-y-8">
+        <Tabs value={activeMainTab} onValueChange={setActiveMainTab} className="space-y-8">
           <TabsList className="bg-muted/50 p-1">
             <TabsTrigger value="news" className="gap-2">
               <BookOpen className="h-4 w-4" />
               News & Updates
+            </TabsTrigger>
+            <TabsTrigger value="daily-news" className="gap-2">
+              <CalendarDays className="h-4 w-4" />
+              Daily News
+            </TabsTrigger>
+            <TabsTrigger value="all-in-one" className="gap-2">
+              <Layers className="h-4 w-4" />
+              All in One
             </TabsTrigger>
             <TabsTrigger value="quizzes" className="gap-2">
               <Zap className="h-4 w-4" />
@@ -1101,6 +1116,42 @@ const CurrentAffairs = () => {
               {viewMode === 'list' && renderListView()}
               {viewMode === 'all-in-one' && renderAllInOneView()}
             </AnimatePresence>
+          </TabsContent>
+
+          {/* Daily News Tab */}
+          <TabsContent value="daily-news" className="space-y-6">
+            <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <CalendarDays className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">Daily News Archive</h2>
+                    <p className="text-muted-foreground text-sm">Browse news by date - click any day to read all articles</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <DailyNewsView />
+          </TabsContent>
+
+          {/* All in One Tab */}
+          <TabsContent value="all-in-one" className="space-y-6">
+            <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <Layers className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold">Topic Wise View</h2>
+                    <p className="text-muted-foreground text-sm">All articles organized by topic - click Read All to view all articles in one page</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <AllInOneView />
           </TabsContent>
 
           <TabsContent value="quizzes" className="space-y-6">
@@ -1182,25 +1233,39 @@ const CurrentAffairs = () => {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {allArticles.filter(a => a.hasQuiz).map(article => (
-                  <Card key={article.id} className="hover:shadow-md transition-all cursor-pointer">
+                  <Card 
+                    key={article.id} 
+                    className="hover:shadow-md transition-all cursor-pointer"
+                    onClick={() => setQuizArticle(article)}
+                  >
                     <CardContent className="p-4 flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                        <img 
-                          src={article.image} 
-                          alt={article.title}
-                          className="w-full h-full object-cover"
-                        />
+                      <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+                        {article.image ? (
+                          <img 
+                            src={article.image} 
+                            alt={article.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Zap className="h-6 w-6 text-primary/40" />
+                          </div>
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-sm line-clamp-2">{article.title}</h4>
                         <div className="flex items-center gap-2 mt-1">
                           <Badge variant="secondary" className="text-xs">
-                            {article.quizQuestions} Questions
+                            {article.quizQuestions || 5} Questions
+                          </Badge>
+                          <Badge variant="outline" className="text-xs text-green-600 border-green-600">
+                            Quiz
                           </Badge>
                         </div>
                       </div>
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" className="gap-1">
                         <Play className="h-4 w-4" />
+                        Start
                       </Button>
                     </CardContent>
                   </Card>
@@ -1287,6 +1352,24 @@ const CurrentAffairs = () => {
       
       {/* Digest Settings Dialog */}
       <DigestSettingsDialog />
+
+      {/* Quiz Dialog */}
+      <Dialog open={!!quizArticle} onOpenChange={(open) => !open && setQuizArticle(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-primary" />
+              Article Quiz
+            </DialogTitle>
+          </DialogHeader>
+          {quizArticle && (
+            <ArticleQuiz 
+              article={quizArticle} 
+              onClose={() => setQuizArticle(null)} 
+            />
+          )}
+        </DialogContent>
+      </Dialog>
       
       <Footer />
     </div>
