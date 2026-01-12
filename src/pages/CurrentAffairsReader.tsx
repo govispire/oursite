@@ -9,12 +9,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import LandingHeader from '@/components/LandingHeader';
 import Footer from '@/components/Footer';
 import { toast } from 'sonner';
 import { allArticles, getArticleById, getRelatedArticles } from '@/components/current-affairs/articlesData';
 import { Article, ReadingSettings } from '@/components/current-affairs/types';
 import { ShareDialog } from '@/components/current-affairs/ShareDialog';
+import ArticleQuiz from '@/components/current-affairs/ArticleQuiz';
 import { useReadingProgress } from '@/hooks/useReadingProgress';
 import { useAudioNarration } from '@/hooks/useAudioNarration';
 
@@ -26,6 +28,7 @@ const CurrentAffairsReader = () => {
   const relatedArticles = article ? getRelatedArticles(article) : [];
   
   const [shareArticle, setShareArticle] = useState<Article | null>(null);
+  const [showQuiz, setShowQuiz] = useState(false);
   const [readingSettings, setReadingSettings] = useState<ReadingSettings>({
     isDarkMode: false,
     fontSize: 18,
@@ -361,11 +364,11 @@ const CurrentAffairsReader = () => {
                 <div>
                   <p className="font-semibold text-lg">Test Your Knowledge</p>
                   <p className={`text-sm ${readingSettings.isDarkMode ? 'text-gray-400' : 'text-muted-foreground'}`}>
-                    {article.quizQuestions} questions available for this article
+                    {article.quizQuestions || 5} questions available for this article
                   </p>
                 </div>
               </div>
-              <Button size="lg">Start Quiz</Button>
+              <Button size="lg" onClick={() => setShowQuiz(true)}>Start Quiz</Button>
             </CardContent>
           </Card>
         )}
@@ -410,6 +413,22 @@ const CurrentAffairsReader = () => {
       
       {/* Share Dialog */}
       <ShareDialog article={shareArticle} onClose={() => setShareArticle(null)} />
+
+      {/* Quiz Dialog */}
+      <Dialog open={showQuiz} onOpenChange={setShowQuiz}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-primary" />
+              Article Quiz
+            </DialogTitle>
+          </DialogHeader>
+          <ArticleQuiz 
+            article={article} 
+            onClose={() => setShowQuiz(false)} 
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
