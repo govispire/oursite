@@ -28,6 +28,7 @@ import SubjectDetail from '@/pages/student/SubjectDetail';
 import InstructorDetail from '@/pages/student/InstructorDetail';
 import DailyQuizzes from '@/pages/student/DailyQuizzes';
 import Rewards from '@/pages/student/Rewards';
+import SyllabusPage from '@/pages/student/SyllabusPage';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import NotFound from '@/pages/NotFound';
 
@@ -42,6 +43,7 @@ const StudentRoutes = () => {
         {/* Regular dashboard routes */}
         <Route element={<DashboardLayout role="student" basePath="/student" />}>
           <Route path="/dashboard" element={<StudentDashboard />} />
+          <Route path="/syllabus" element={<SyllabusPage />} />
           <Route path="/profile" element={<StudentProfile />} />
           <Route path="/calendar" element={<StudentCalendar />} />
           <Route path="/courses" element={<StudentCourses />} />

@@ -190,6 +190,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role, basePath, collapsed }) => {
       case 'student':
         return [
           { icon: <LayoutDashboard size={18} />, label: 'Dashboard', to: `${basePath}/dashboard` },
+          { icon: <BookOpen size={18} />, label: 'Know Your Syllabus', to: `${basePath}/syllabus` },
           { icon: <CalendarDays size={18} />, label: 'Calendar', to: `${basePath}/calendar` },
           { icon: <UserCheck size={18} />, label: 'Mentorship', to: `${basePath}/mentorship/dashboard` },
           { icon: <BookOpen size={18} />, label: 'Courses', to: `${basePath}/courses` },
