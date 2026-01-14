@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,13 +8,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
 import { useExamCategoryContext } from '@/contexts/ExamCategoryContext';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import {
   BookOpen, Search, ChevronRight, ChevronDown, Play, FileText, ClipboardCheck,
   Download, Star, Clock, Users, CheckCircle, Video, File, Target, Award,
-  GraduationCap, Lightbulb, TrendingUp, Lock
+  GraduationCap, Lightbulb, TrendingUp, Lock, Pause, Volume2, VolumeX, 
+  Maximize, SkipBack, SkipForward, Settings, X, ThumbsUp, Share2, Bookmark,
+  MessageSquare, List, ChevronLeft
 } from 'lucide-react';
 
 interface VideoResource {
@@ -75,6 +78,163 @@ const SyllabusPage = () => {
     activeTab: 'videos' | 'pdfs' | 'tests';
   }>({ isOpen: false, topic: null, activeTab: 'videos' });
   const [completedVideos, setCompletedVideos] = useState<string[]>([]);
+  
+  // Video player state
+  const [videoPlayer, setVideoPlayer] = useState<{
+    isOpen: boolean;
+    video: VideoResource | null;
+    topic: Topic | null;
+    allVideos: VideoResource[];
+  }>({ isOpen: false, video: null, topic: null, allVideos: [] });
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [showPlaylist, setShowPlaylist] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  
+  // Sample video URLs (using free sample videos)
+  const sampleVideoUrls = [
+    'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+    'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+  ];
+  
+  const getVideoUrl = (videoId: string) => {
+    const index = parseInt(videoId.replace(/\D/g, '')) % sampleVideoUrls.length;
+    return sampleVideoUrls[index];
+  };
+  
+  const openVideoPlayer = (video: VideoResource, topic: Topic) => {
+    setVideoPlayer({
+      isOpen: true,
+      video,
+      topic,
+      allVideos: topic.videos
+    });
+    setIsPlaying(false);
+    setCurrentTime(0);
+  };
+  
+  const closeVideoPlayer = () => {
+    setVideoPlayer({ isOpen: false, video: null, topic: null, allVideos: [] });
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setShowSpeedMenu(false);
+  };
+  
+  const playNextVideo = () => {
+    if (!videoPlayer.video || !videoPlayer.allVideos.length) return;
+    const currentIndex = videoPlayer.allVideos.findIndex(v => v.id === videoPlayer.video?.id);
+    const nextIndex = (currentIndex + 1) % videoPlayer.allVideos.length;
+    setVideoPlayer(prev => ({ ...prev, video: prev.allVideos[nextIndex] }));
+    setCurrentTime(0);
+    setIsPlaying(true);
+  };
+  
+  const playPrevVideo = () => {
+    if (!videoPlayer.video || !videoPlayer.allVideos.length) return;
+    const currentIndex = videoPlayer.allVideos.findIndex(v => v.id === videoPlayer.video?.id);
+    const prevIndex = currentIndex === 0 ? videoPlayer.allVideos.length - 1 : currentIndex - 1;
+    setVideoPlayer(prev => ({ ...prev, video: prev.allVideos[prevIndex] }));
+    setCurrentTime(0);
+    setIsPlaying(true);
+  };
+  
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+  
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      setCurrentTime(videoRef.current.currentTime);
+    }
+  };
+  
+  const handleLoadedMetadata = () => {
+    if (videoRef.current) {
+      setDuration(videoRef.current.duration);
+    }
+  };
+  
+  const handleSeek = (value: number[]) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = value[0];
+      setCurrentTime(value[0]);
+    }
+  };
+  
+  const handleVolumeChange = (value: number[]) => {
+    const newVolume = value[0];
+    setVolume(newVolume);
+    if (videoRef.current) {
+      videoRef.current.volume = newVolume;
+    }
+    setIsMuted(newVolume === 0);
+  };
+  
+  const toggleMute = () => {
+    if (videoRef.current) {
+      if (isMuted) {
+        videoRef.current.volume = volume || 1;
+        setIsMuted(false);
+      } else {
+        videoRef.current.volume = 0;
+        setIsMuted(true);
+      }
+    }
+  };
+  
+  const changePlaybackSpeed = (speed: number) => {
+    setPlaybackSpeed(speed);
+    if (videoRef.current) {
+      videoRef.current.playbackRate = speed;
+    }
+    setShowSpeedMenu(false);
+  };
+  
+  const toggleFullscreen = () => {
+    if (videoRef.current) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        videoRef.current.requestFullscreen();
+      }
+    }
+  };
+  
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+  
+  const skip = (seconds: number) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = Math.max(0, Math.min(videoRef.current.currentTime + seconds, duration));
+    }
+  };
+  
+  useEffect(() => {
+    if (videoRef.current && videoPlayer.video) {
+      videoRef.current.load();
+      if (isPlaying) {
+        videoRef.current.play();
+      }
+    }
+  }, [videoPlayer.video]);
 
   // Generate mock syllabus data based on selected categories
   const generateSyllabusData = (): Subject[] => {
@@ -582,10 +742,15 @@ const SyllabusPage = () => {
             <ScrollArea className="h-[50vh] mt-4">
               <TabsContent value="videos" className="space-y-3 m-0">
                 {resourceDialog.topic?.videos.map((video) => (
-                  <Card key={video.id} className="p-4">
+                  <Card 
+                    key={video.id} 
+                    className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => resourceDialog.topic && openVideoPlayer(video, resourceDialog.topic)}
+                  >
                     <div className="flex items-start gap-4">
-                      <div className="w-24 h-16 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Play className="h-6 w-6 text-muted-foreground" />
+                      <div className="w-24 h-16 bg-gradient-to-br from-primary/20 to-primary/5 rounded-lg flex items-center justify-center flex-shrink-0 relative group">
+                        <Play className="h-6 w-6 text-primary group-hover:scale-110 transition-transform" />
+                        <div className="absolute inset-0 bg-primary/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium truncate">{video.title}</h4>
@@ -605,13 +770,21 @@ const SyllabusPage = () => {
                           </span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                         <Checkbox 
                           checked={completedVideos.includes(video.id) || video.isCompleted}
                           onCheckedChange={() => handleVideoComplete(video.id)}
                         />
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          className="gap-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            resourceDialog.topic && openVideoPlayer(video, resourceDialog.topic);
+                          }}
+                        >
                           <Play className="h-4 w-4" />
+                          Watch
                         </Button>
                       </div>
                     </div>
@@ -683,6 +856,256 @@ const SyllabusPage = () => {
               </TabsContent>
             </ScrollArea>
           </Tabs>
+        </DialogContent>
+      </Dialog>
+
+      {/* Video Player Dialog */}
+      <Dialog open={videoPlayer.isOpen} onOpenChange={(open) => !open && closeVideoPlayer()}>
+        <DialogContent className="max-w-6xl max-h-[95vh] p-0 overflow-hidden">
+          <div className="flex flex-col lg:flex-row h-[85vh]">
+            {/* Main Video Section */}
+            <div className="flex-1 flex flex-col bg-black">
+              {/* Video Container */}
+              <div className="relative flex-1 flex items-center justify-center bg-black">
+                <video
+                  ref={videoRef}
+                  src={videoPlayer.video ? getVideoUrl(videoPlayer.video.id) : ''}
+                  className="w-full h-full object-contain"
+                  onTimeUpdate={handleTimeUpdate}
+                  onLoadedMetadata={handleLoadedMetadata}
+                  onEnded={() => {
+                    handleVideoComplete(videoPlayer.video?.id || '');
+                    playNextVideo();
+                  }}
+                  onClick={togglePlay}
+                />
+                
+                {/* Play/Pause Overlay */}
+                {!isPlaying && (
+                  <div 
+                    className="absolute inset-0 flex items-center justify-center bg-black/30 cursor-pointer"
+                    onClick={togglePlay}
+                  >
+                    <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center shadow-lg hover:scale-105 transition-transform">
+                      <Play className="h-10 w-10 text-primary ml-1" />
+                    </div>
+                  </div>
+                )}
+
+                {/* Video Controls */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+                  {/* Progress Bar */}
+                  <div className="mb-3">
+                    <Slider
+                      value={[currentTime]}
+                      max={duration || 100}
+                      step={0.1}
+                      onValueChange={handleSeek}
+                      className="cursor-pointer"
+                    />
+                    <div className="flex justify-between text-xs text-white/70 mt-1">
+                      <span>{formatTime(currentTime)}</span>
+                      <span>{formatTime(duration)}</span>
+                    </div>
+                  </div>
+
+                  {/* Control Buttons */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-white hover:bg-white/20"
+                        onClick={() => skip(-10)}
+                      >
+                        <SkipBack className="h-5 w-5" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-white hover:bg-white/20 h-12 w-12"
+                        onClick={togglePlay}
+                      >
+                        {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6 ml-0.5" />}
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-white hover:bg-white/20"
+                        onClick={() => skip(10)}
+                      >
+                        <SkipForward className="h-5 w-5" />
+                      </Button>
+
+                      {/* Volume */}
+                      <div className="flex items-center gap-2 ml-2">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="text-white hover:bg-white/20"
+                          onClick={toggleMute}
+                        >
+                          {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                        </Button>
+                        <Slider
+                          value={[isMuted ? 0 : volume]}
+                          max={1}
+                          step={0.1}
+                          onValueChange={handleVolumeChange}
+                          className="w-20"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {/* Playback Speed */}
+                      <div className="relative">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="text-white hover:bg-white/20 text-xs"
+                          onClick={() => setShowSpeedMenu(!showSpeedMenu)}
+                        >
+                          {playbackSpeed}x
+                        </Button>
+                        {showSpeedMenu && (
+                          <div className="absolute bottom-full mb-2 right-0 bg-background rounded-lg shadow-lg border p-1 min-w-[80px]">
+                            {[0.5, 0.75, 1, 1.25, 1.5, 2].map((speed) => (
+                              <button
+                                key={speed}
+                                className={`w-full px-3 py-1.5 text-sm text-left rounded hover:bg-muted ${playbackSpeed === speed ? 'bg-muted font-medium' : ''}`}
+                                onClick={() => changePlaybackSpeed(speed)}
+                              >
+                                {speed}x
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-white hover:bg-white/20 lg:hidden"
+                        onClick={() => setShowPlaylist(!showPlaylist)}
+                      >
+                        <List className="h-5 w-5" />
+                      </Button>
+
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-white hover:bg-white/20"
+                        onClick={toggleFullscreen}
+                      >
+                        <Maximize className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Video Info */}
+              <div className="bg-background p-4 border-t">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h2 className="text-lg font-semibold line-clamp-2">{videoPlayer.video?.title}</h2>
+                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                      <span>{videoPlayer.video?.views} views</span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1">
+                        <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                        {videoPlayer.video?.rating}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className={isBookmarked ? 'text-amber-500' : ''}
+                      onClick={() => {
+                        setIsBookmarked(!isBookmarked);
+                        toast.success(isBookmarked ? 'Removed from bookmarks' : 'Added to bookmarks');
+                      }}
+                    >
+                      <Bookmark className={`h-4 w-4 mr-1 ${isBookmarked ? 'fill-current' : ''}`} />
+                      Save
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Share2 className="h-4 w-4 mr-1" />
+                      Share
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Instructor */}
+                <div className="flex items-center gap-3 mt-4 p-3 bg-muted/50 rounded-lg">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <GraduationCap className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-medium">{videoPlayer.video?.instructor}</p>
+                    <p className="text-sm text-muted-foreground">Instructor</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Playlist Sidebar */}
+            <div className={`w-full lg:w-80 border-l bg-background flex flex-col ${showPlaylist ? 'block' : 'hidden lg:block'}`}>
+              <div className="p-4 border-b flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold">Playlist</h3>
+                  <p className="text-sm text-muted-foreground">{videoPlayer.topic?.name}</p>
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="lg:hidden"
+                  onClick={() => setShowPlaylist(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <ScrollArea className="flex-1">
+                <div className="p-2">
+                  {videoPlayer.allVideos.map((video, index) => (
+                    <div
+                      key={video.id}
+                      className={`flex items-start gap-3 p-2 rounded-lg cursor-pointer transition-colors ${
+                        videoPlayer.video?.id === video.id 
+                          ? 'bg-primary/10 border border-primary/20' 
+                          : 'hover:bg-muted'
+                      }`}
+                      onClick={() => setVideoPlayer(prev => ({ ...prev, video }))}
+                    >
+                      <div className="text-xs text-muted-foreground w-5 pt-0.5">
+                        {videoPlayer.video?.id === video.id ? (
+                          <Play className="h-4 w-4 text-primary" />
+                        ) : (
+                          index + 1
+                        )}
+                      </div>
+                      <div className="w-20 h-12 bg-muted rounded flex items-center justify-center flex-shrink-0 relative">
+                        <Play className="h-4 w-4 text-muted-foreground" />
+                        {(completedVideos.includes(video.id) || video.isCompleted) && (
+                          <div className="absolute inset-0 bg-emerald-500/20 rounded flex items-center justify-center">
+                            <CheckCircle className="h-5 w-5 text-emerald-500" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium line-clamp-2">{video.title}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{video.instructor}</p>
+                        <p className="text-xs text-muted-foreground">{video.duration}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
