@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Link } from 'react-router-dom';
-import { Star, Users, Clock, Play, BookOpen, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Star, Users, Clock, Play, BookOpen, TrendingUp, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DemoVideoPreview } from './DemoVideoPreview';
 
 interface MinimalistCourseCardProps {
   course: {
@@ -32,33 +33,49 @@ export const MinimalistCourseCard: React.FC<MinimalistCourseCardProps> = ({
   course, 
   variant = 'default' 
 }) => {
+  const [showDemo, setShowDemo] = useState(false);
+  const navigate = useNavigate();
   const hasProgress = course.progress && course.progress > 0;
   const discount = course.originalPrice 
     ? Math.round(((course.originalPrice - course.price) / course.originalPrice) * 100) 
     : 0;
 
+  const handleEnroll = () => {
+    setShowDemo(false);
+    navigate(`/student/courses/${course.id}`);
+  };
+
   if (variant === 'compact') {
     return (
-      <Link to={`/student/courses/${course.id}`}>
+      <>
         <Card className="group p-3 hover:shadow-md transition-all duration-200 hover:border-primary/30">
           <div className="flex gap-3">
-            <div className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+            <div 
+              className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer"
+              onClick={() => setShowDemo(true)}
+            >
               <img 
                 src={course.thumbnail} 
                 alt={course.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
-              {hasProgress && (
+              {hasProgress ? (
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                   <div className="text-white text-xs font-bold">{course.progress}%</div>
+                </div>
+              ) : (
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Eye className="h-5 w-5 text-white" />
                 </div>
               )}
             </div>
             
             <div className="flex-1 min-w-0">
-              <h4 className="font-medium text-sm line-clamp-2 text-foreground group-hover:text-primary transition-colors">
-                {course.title}
-              </h4>
+              <Link to={`/student/courses/${course.id}`}>
+                <h4 className="font-medium text-sm line-clamp-2 text-foreground group-hover:text-primary transition-colors">
+                  {course.title}
+                </h4>
+              </Link>
               <p className="text-xs text-muted-foreground mt-1">{course.instructor}</p>
               <div className="flex items-center gap-2 mt-2">
                 <div className="flex items-center text-yellow-500">
@@ -67,6 +84,15 @@ export const MinimalistCourseCard: React.FC<MinimalistCourseCardProps> = ({
                 </div>
                 <span className="text-xs text-muted-foreground">•</span>
                 <span className="text-xs text-muted-foreground">{course.duration}</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-[10px] h-5 px-2 ml-auto text-primary"
+                  onClick={() => setShowDemo(true)}
+                >
+                  <Eye className="h-3 w-3 mr-1" />
+                  Preview
+                </Button>
               </div>
             </div>
             
@@ -80,15 +106,25 @@ export const MinimalistCourseCard: React.FC<MinimalistCourseCardProps> = ({
             </div>
           </div>
         </Card>
-      </Link>
+
+        <DemoVideoPreview 
+          isOpen={showDemo}
+          onClose={() => setShowDemo(false)}
+          course={course}
+          onEnroll={handleEnroll}
+        />
+      </>
     );
   }
 
   return (
-    <Link to={`/student/courses/${course.id}`}>
+    <>
       <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 h-full flex flex-col">
         {/* Thumbnail */}
-        <div className="relative aspect-video overflow-hidden bg-muted">
+        <div 
+          className="relative aspect-video overflow-hidden bg-muted cursor-pointer"
+          onClick={() => setShowDemo(true)}
+        >
           <img 
             src={course.thumbnail} 
             alt={course.title}
@@ -125,11 +161,16 @@ export const MinimalistCourseCard: React.FC<MinimalistCourseCardProps> = ({
             </div>
           )}
           
-          {/* Play button overlay */}
+          {/* Play/Preview button overlay */}
           {!hasProgress && (
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-              <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-lg">
-                <Play className="h-5 w-5 text-primary fill-primary ml-0.5" />
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
+                  <Play className="h-6 w-6 text-primary fill-primary ml-0.5" />
+                </div>
+                <span className="text-white text-xs font-medium bg-black/50 px-2 py-1 rounded">
+                  Free Preview
+                </span>
               </div>
             </div>
           )}
@@ -137,9 +178,11 @@ export const MinimalistCourseCard: React.FC<MinimalistCourseCardProps> = ({
         
         {/* Content */}
         <div className="p-4 flex-1 flex flex-col">
-          <h3 className="font-semibold text-sm line-clamp-2 text-foreground group-hover:text-primary transition-colors">
-            {course.title}
-          </h3>
+          <Link to={`/student/courses/${course.id}`}>
+            <h3 className="font-semibold text-sm line-clamp-2 text-foreground group-hover:text-primary transition-colors">
+              {course.title}
+            </h3>
+          </Link>
           
           <p className="text-xs text-muted-foreground mt-1.5">By {course.instructor}</p>
           
@@ -192,26 +235,47 @@ export const MinimalistCourseCard: React.FC<MinimalistCourseCardProps> = ({
               </div>
             </div>
             
-            <Button 
-              size="sm" 
-              className={cn(
-                "text-xs",
-                hasProgress ? "bg-primary/10 text-primary hover:bg-primary/20" : ""
-              )}
-              variant={hasProgress ? "outline" : "default"}
-            >
-              {hasProgress ? (
-                <>
-                  <Play className="h-3 w-3 mr-1" />
-                  Continue
-                </>
-              ) : (
-                'Start Now'
-              )}
-            </Button>
+            <div className="flex gap-1.5">
+              <Button 
+                size="sm" 
+                variant="outline"
+                className="text-xs px-2"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowDemo(true);
+                }}
+              >
+                <Eye className="h-3 w-3" />
+              </Button>
+              <Button 
+                size="sm" 
+                className={cn(
+                  "text-xs",
+                  hasProgress ? "bg-primary/10 text-primary hover:bg-primary/20" : ""
+                )}
+                variant={hasProgress ? "outline" : "default"}
+                onClick={() => navigate(`/student/courses/${course.id}`)}
+              >
+                {hasProgress ? (
+                  <>
+                    <Play className="h-3 w-3 mr-1" />
+                    Continue
+                  </>
+                ) : (
+                  'Start Now'
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </Card>
-    </Link>
+
+      <DemoVideoPreview 
+        isOpen={showDemo}
+        onClose={() => setShowDemo(false)}
+        course={course}
+        onEnroll={handleEnroll}
+      />
+    </>
   );
 };
