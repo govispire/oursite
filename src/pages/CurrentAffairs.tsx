@@ -33,13 +33,10 @@ import { allArticles, getArticleById } from '@/components/current-affairs/articl
 import { Article, ReadingSettings, DigestPreferences, ReadingProgress } from '@/components/current-affairs/types';
 import { useReadingProgress } from '@/hooks/useReadingProgress';
 
-type ViewMode = 'grid' | 'list' | 'thumbnail' | 'all-in-one';
-
 const CurrentAffairs = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [expandedTopic, setExpandedTopic] = useState<string | null>(null);
   const [activeMainTab, setActiveMainTab] = useState('news');
@@ -967,115 +964,48 @@ const CurrentAffairs = () => {
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-            {[
-              { label: 'Daily Updates', value: '10+', icon: Calendar },
-              { label: 'Topics Covered', value: '500+', icon: BookOpen },
-              { label: 'Exam Categories', value: '8', icon: TrendingUp },
-              { label: 'Quizzes Available', value: '50+', icon: Zap },
-            ].map((stat, i) => (
-              <Card key={i} className="border-0 bg-gradient-to-br from-muted/50 to-muted/30">
-                <CardContent className="p-4 flex items-center gap-4">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <stat.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{stat.value}</p>
-                    <p className="text-sm text-muted-foreground">{stat.label}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
         </header>
 
         {/* Continue Reading Section */}
         <ContinueReadingSection />
 
-        {/* View Mode Selector & Category Filters */}
-        <div className="flex flex-col gap-4 mb-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-                className="gap-2"
-              >
-                <Grid3X3 className="h-4 w-4" />
-                Grid
-              </Button>
-              <Button
-                variant={viewMode === 'thumbnail' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('thumbnail')}
-                className="gap-2"
-              >
-                <Image className="h-4 w-4" />
-                Thumbnails
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className="gap-2"
-              >
-                <List className="h-4 w-4" />
-                List
-              </Button>
-              <Button
-                variant={viewMode === 'all-in-one' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('all-in-one')}
-                className="gap-2"
-              >
-                <Layers className="h-4 w-4" />
-                All-in-One
-              </Button>
-            </div>
+        {/* Category Filters - Minimalist */}
+        <div className="flex flex-col gap-3 mb-4">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <ScrollArea className="w-full">
+              <div className="flex gap-2">
+                {categories.map((cat) => (
+                  <Button
+                    key={cat.id}
+                    variant={selectedCategory === cat.id ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className="gap-1.5 whitespace-nowrap text-xs"
+                  >
+                    <cat.icon className="h-3.5 w-3.5" />
+                    {cat.name}
+                  </Button>
+                ))}
+              </div>
+              <ScrollBar orientation="horizontal" />
+            </ScrollArea>
 
             {selectedTag && (
-              <Badge variant="secondary" className="gap-2">
-                Filtered by: {selectedTag}
-                <button 
-                  onClick={() => setSelectedTag(null)}
-                  className="ml-1 hover:text-destructive"
-                >
-                  ✕
-                </button>
+              <Badge variant="secondary" className="gap-1 text-xs">
+                {selectedTag}
+                <button onClick={() => setSelectedTag(null)} className="ml-1 hover:text-destructive">✕</button>
               </Badge>
             )}
           </div>
 
-          {/* Category Filters */}
-          <ScrollArea className="w-full">
-            <div className="flex gap-2 pb-2">
-              {categories.map((cat) => (
-                <Button
-                  key={cat.id}
-                  variant={selectedCategory === cat.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className="gap-2 whitespace-nowrap"
-                >
-                  <cat.icon className="h-4 w-4" />
-                  {cat.name}
-                </Button>
-              ))}
-            </div>
-            <ScrollBar orientation="horizontal" />
-          </ScrollArea>
-
-          {/* Popular Tags */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <Tag className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground mr-2">Popular:</span>
-            {popularTags.slice(0, 8).map(tag => (
+          {/* Popular Tags - Compact */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Tag className="h-3.5 w-3.5 text-muted-foreground" />
+            {popularTags.slice(0, 6).map(tag => (
               <Badge 
                 key={tag}
                 variant={selectedTag === tag ? "default" : "outline"}
-                className="cursor-pointer text-xs"
+                className="cursor-pointer text-xs py-0.5"
                 onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
               >
                 {tag}
@@ -1109,12 +1039,9 @@ const CurrentAffairs = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="news" className="space-y-6">
+          <TabsContent value="news" className="space-y-4">
             <AnimatePresence mode="wait">
-              {viewMode === 'grid' && renderGridView()}
-              {viewMode === 'thumbnail' && renderThumbnailView()}
-              {viewMode === 'list' && renderListView()}
-              {viewMode === 'all-in-one' && renderAllInOneView()}
+              {renderThumbnailView()}
             </AnimatePresence>
           </TabsContent>
 
