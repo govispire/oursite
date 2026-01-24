@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, BookOpen, ChevronRight, Download, Eye, Share2, Bookmark, CheckCircle2 } from 'lucide-react';
+import { Calendar, Clock, BookOpen, ChevronRight, Download } from 'lucide-react';
 import { allArticles } from './articlesData';
 import { useReadingProgress } from '@/hooks/useReadingProgress';
 import { generateDailyNewsPDF } from '@/utils/pdfGenerator';
@@ -27,8 +27,8 @@ const DailyNewsView = () => {
     return new Date(b).getTime() - new Date(a).getTime();
   });
 
-  const handleViewArticle = (articleId: string) => {
-    navigate(`/current-affairs/${articleId}`);
+  const handleViewDay = (date: string) => {
+    navigate(`/current-affairs/date/${encodeURIComponent(date)}`);
   };
 
   const handleDownloadPDF = (date: string, e: React.MouseEvent) => {
@@ -37,142 +37,130 @@ const DailyNewsView = () => {
     generateDailyNewsPDF(dateArticles, date);
   };
 
+  // Get unique topics for a date
+  const getTopicsForDate = (date: string) => {
+    const topics = new Set(articlesByDate[date].map(a => a.topic));
+    return Array.from(topics);
+  };
+
   return (
-    <div className="space-y-8">
-      {dates.map(date => {
-        const articles = articlesByDate[date];
-        
-        return (
-          <div key={date} className="space-y-4">
-            {/* Date Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Calendar className="h-5 w-5 text-primary" />
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {dates.map(date => {
+          const articles = articlesByDate[date];
+          const topics = getTopicsForDate(date);
+          const readCount = articles.filter(a => getReadingProgress(a.id) >= 100).length;
+          const highPriorityCount = articles.filter(a => a.importance === 'high').length;
+          
+          // Get a preview image from the first article with an image
+          const previewImage = articles.find(a => a.image)?.image;
+          
+          return (
+            <Card 
+              key={date} 
+              className="overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
+              onClick={() => handleViewDay(date)}
+            >
+              {/* Thumbnail Header */}
+              <div className="relative h-32 bg-gradient-to-br from-primary/20 to-primary/5">
+                {previewImage ? (
+                  <img 
+                    src={previewImage} 
+                    alt={date}
+                    className="w-full h-full object-cover opacity-60"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Calendar className="h-12 w-12 text-primary/40" />
+                  </div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+                <div className="absolute bottom-3 left-3 right-3">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    <span className="font-semibold text-foreground">{date}</span>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-foreground">{date}</h2>
-                  <p className="text-sm text-muted-foreground">{articles.length} articles</p>
-                </div>
+                {readCount === articles.length && (
+                  <Badge className="absolute top-2 right-2 bg-green-500">
+                    All Read
+                  </Badge>
+                )}
+                <Button 
+                  variant="secondary" 
+                  size="icon" 
+                  className="absolute top-2 left-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => handleDownloadPDF(date, e)}
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="gap-2"
-                onClick={(e) => handleDownloadPDF(date, e)}
-              >
-                <Download className="h-4 w-4" />
-                Download PDF
-              </Button>
-            </div>
 
-            {/* Articles Grid - Thumbnails View */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {articles.map((article) => {
-                const progress = getReadingProgress(article.id);
-                const isRead = progress >= 100;
-                
-                return (
-                  <Card 
-                    key={article.id} 
-                    className={`overflow-hidden hover:shadow-lg transition-all cursor-pointer group ${
-                      isRead ? 'ring-2 ring-green-500/20' : ''
-                    }`}
-                    onClick={() => handleViewArticle(article.id)}
-                  >
-                    {/* Thumbnail Image */}
-                    <div className="relative h-44 overflow-hidden">
-                      <img 
-                        src={article.image} 
-                        alt={article.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                      
-                      {/* Badges on Image */}
-                      <div className="absolute top-3 left-3 flex items-center gap-2">
-                        <Badge 
-                          variant={article.importance === 'high' ? 'destructive' : 'secondary'}
-                          className="text-xs"
-                        >
-                          {article.importance === 'high' ? 'High Priority' : article.category}
-                        </Badge>
-                      </div>
-                      
-                      {isRead && (
-                        <Badge className="absolute top-3 right-3 bg-green-500 gap-1">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Read
-                        </Badge>
-                      )}
+              <CardContent className="p-4">
+                {/* Stats */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <BookOpen className="h-4 w-4" />
+                    <span>{articles.length} articles</span>
+                  </div>
+                  {readCount > 0 && (
+                    <Badge variant="outline" className="text-green-600 border-green-600">
+                      {readCount}/{articles.length} read
+                    </Badge>
+                  )}
+                </div>
 
-                      {article.hasQuiz && (
-                        <Badge 
-                          variant="outline" 
-                          className="absolute bottom-3 left-3 bg-background/80 backdrop-blur-sm text-xs"
-                        >
-                          Quiz: {article.quizQuestions} Qs
-                        </Badge>
-                      )}
-                    </div>
+                {/* Topics Preview */}
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {topics.slice(0, 3).map(topic => (
+                    <Badge key={topic} variant="secondary" className="text-xs">
+                      {topic}
+                    </Badge>
+                  ))}
+                  {topics.length > 3 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{topics.length - 3} more
+                    </Badge>
+                  )}
+                </div>
 
-                    <CardContent className="p-4">
-                      {/* Title */}
-                      <h3 className="font-semibold text-foreground mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                        {article.title}
-                      </h3>
+                {/* Priority Indicator */}
+                {highPriorityCount > 0 && (
+                  <div className="flex items-center gap-1 mb-3">
+                    <Badge variant="destructive" className="text-xs">
+                      {highPriorityCount} High Priority
+                    </Badge>
+                  </div>
+                )}
 
-                      {/* Excerpt */}
-                      <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                        {article.excerpt}
-                      </p>
+                {/* Articles Preview */}
+                <div className="space-y-1 mb-3">
+                  {articles.slice(0, 2).map(article => (
+                    <p key={article.id} className="text-xs text-muted-foreground truncate">
+                      • {article.title}
+                    </p>
+                  ))}
+                  {articles.length > 2 && (
+                    <p className="text-xs text-primary">
+                      +{articles.length - 2} more articles
+                    </p>
+                  )}
+                </div>
 
-                      {/* Meta Info */}
-                      <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
-                        <div className="flex items-center gap-3">
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {article.readTime}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <BookOpen className="h-3 w-3" />
-                            {article.topic}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Tags */}
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {article.tags.slice(0, 3).map((tag, i) => (
-                          <span key={i} className="text-xs text-primary font-medium">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex items-center justify-between pt-3 border-t">
-                        <Button variant="ghost" size="sm" className="gap-1 text-xs h-8 px-2">
-                          <Eye className="h-3 w-3" />
-                          Read
-                        </Button>
-                        <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <Share2 className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <Bookmark className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
+                {/* View Button */}
+                <Button 
+                  className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
+                  variant="outline"
+                  size="sm"
+                >
+                  View All News
+                  <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
       {dates.length === 0 && (
         <Card>
