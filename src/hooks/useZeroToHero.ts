@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from './useLocalStorage';
 
-export type GoalDuration = 5 | 10 | 30;
+export type GoalDuration = 5 | 10 | 15;
 export type JourneyStep = 'welcome' | 'goal-selection' | 'subject-selection' | 'active-journey' | 'journey-complete';
 
 export interface WeakArea {
