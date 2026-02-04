@@ -177,61 +177,6 @@ const StudentDashboard = () => {
             </Card>
           </div>
 
-          {/* Current Affairs Section */}
-          <Card className="p-4 bg-card">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Newspaper className="h-4 w-4 text-primary" />
-                <h3 className="font-semibold text-base">Current Affairs</h3>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <Bookmark className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <LayoutGrid className="h-4 w-4" />
-                </Button>
-                <div className="w-10 h-5 bg-primary rounded-full relative mx-1">
-                  <div className="absolute right-1 top-1 w-3 h-3 bg-primary-foreground rounded-full"></div>
-                </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePrevNews}>
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNextNews}>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {currentAffairsData.map((item, idx) => (
-                <div 
-                  key={idx} 
-                  className="group cursor-pointer"
-                  onClick={() => handleNewsClick(item)}
-                >
-                  <div className="relative rounded-lg overflow-hidden mb-2">
-                    <img 
-                      src={item.image} 
-                      alt={item.title}
-                      className="w-full h-36 object-cover transition-transform group-hover:scale-105"
-                    />
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="absolute top-2 right-2 h-8 w-8 bg-card/80 hover:bg-card"
-                    >
-                      <Bookmark className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-1">{item.category}</p>
-                  <h4 className="font-semibold text-sm mb-1">{item.title}</h4>
-                  <p className="text-xs text-muted-foreground line-clamp-2">{item.description}</p>
-                </div>
-              ))}
-            </div>
-          </Card>
-
           {/* Performance Graph */}
           <Card className="p-4 bg-card">
             <div className="flex items-center justify-between mb-4">
@@ -290,6 +235,61 @@ const StudentDashboard = () => {
                   />
                 </LineChart>
               </ResponsiveContainer>
+            </div>
+          </Card>
+
+          {/* Current Affairs Section */}
+          <Card className="p-4 bg-card">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Newspaper className="h-4 w-4 text-primary" />
+                <h3 className="font-semibold text-base">Current Affairs</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Bookmark className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+                <div className="w-10 h-5 bg-primary rounded-full relative mx-1">
+                  <div className="absolute right-1 top-1 w-3 h-3 bg-primary-foreground rounded-full"></div>
+                </div>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handlePrevNews}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleNextNews}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {currentAffairsData.map((item, idx) => (
+                <div 
+                  key={idx} 
+                  className="group cursor-pointer"
+                  onClick={() => handleNewsClick(item)}
+                >
+                  <div className="relative rounded-lg overflow-hidden mb-2">
+                    <img 
+                      src={item.image} 
+                      alt={item.title}
+                      className="w-full h-36 object-cover transition-transform group-hover:scale-105"
+                    />
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute top-2 right-2 h-8 w-8 bg-card/80 hover:bg-card"
+                    >
+                      <Bookmark className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-1">{item.category}</p>
+                  <h4 className="font-semibold text-sm mb-1">{item.title}</h4>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{item.description}</p>
+                </div>
+              ))}
             </div>
           </Card>
 
