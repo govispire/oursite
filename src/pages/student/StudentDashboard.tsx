@@ -177,66 +177,139 @@ const StudentDashboard = () => {
             </Card>
           </div>
 
-          {/* Performance Graph */}
-          <Card className="p-4 bg-card">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="h-4 w-4 text-primary">📊</div>
-                <h3 className="font-semibold text-base">Performance Graph - Test/Quiz</h3>
-              </div>
-              <div className="flex items-center gap-4 text-xs">
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded-full bg-primary"></div>
-                  <span>Tests</span>
+          {/* Performance Graph & Daily Vocabulary Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Performance Graph */}
+            <Card className="p-4 bg-card lg:col-span-2">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 text-primary">📊</div>
+                  <h3 className="font-semibold text-base">Performance Graph - Test/Quiz</h3>
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded-full bg-primary/50"></div>
-                  <span>Quizzes</span>
+                <div className="flex items-center gap-4 text-xs">
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded-full bg-primary"></div>
+                    <span>Tests</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-3 h-3 rounded-full bg-primary/50"></div>
+                    <span>Quizzes</span>
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={performanceData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis 
-                    dataKey="week" 
-                    tick={{ fontSize: 12 }} 
-                    stroke="hsl(var(--muted-foreground))"
-                  />
-                  <YAxis 
-                    tick={{ fontSize: 12 }} 
-                    stroke="hsl(var(--muted-foreground))"
-                    domain={[0, 100]}
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '8px'
-                    }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="tests" 
-                    stroke="hsl(var(--primary))" 
-                    strokeWidth={2}
-                    dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2 }}
-                    activeDot={{ r: 6 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="quizzes" 
-                    stroke="hsl(var(--primary) / 0.5)" 
-                    strokeWidth={2}
-                    dot={{ fill: 'hsl(var(--primary) / 0.5)', strokeWidth: 2 }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
+              
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={performanceData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis 
+                      dataKey="week" 
+                      tick={{ fontSize: 12 }} 
+                      stroke="hsl(var(--muted-foreground))"
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 12 }} 
+                      stroke="hsl(var(--muted-foreground))"
+                      domain={[0, 100]}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="tests" 
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth={2}
+                      dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2 }}
+                      activeDot={{ r: 6 }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="quizzes" 
+                      stroke="hsl(var(--primary) / 0.5)" 
+                      strokeWidth={2}
+                      dot={{ fill: 'hsl(var(--primary) / 0.5)', strokeWidth: 2 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+
+            {/* Daily Vocabulary Section */}
+            <Card className="p-4 bg-card">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">📚</span>
+                  <h3 className="font-semibold text-base">Word of the Day</h3>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                </span>
+              </div>
+              
+              {(() => {
+                const vocabularyBank = [
+                  { word: 'Ephemeral', meaning: 'Lasting for a very short time', example: 'The ephemeral beauty of cherry blossoms.', type: 'Adjective', synonyms: ['Transient', 'Fleeting', 'Brief'] },
+                  { word: 'Ubiquitous', meaning: 'Present, appearing, or found everywhere', example: 'Mobile phones have become ubiquitous.', type: 'Adjective', synonyms: ['Omnipresent', 'Pervasive', 'Universal'] },
+                  { word: 'Pragmatic', meaning: 'Dealing with things sensibly and realistically', example: 'A pragmatic approach to solving problems.', type: 'Adjective', synonyms: ['Practical', 'Realistic', 'Sensible'] },
+                  { word: 'Ameliorate', meaning: 'To make something better or improve', example: 'Steps to ameliorate the situation.', type: 'Verb', synonyms: ['Improve', 'Enhance', 'Better'] },
+                  { word: 'Cogent', meaning: 'Clear, logical, and convincing', example: 'She presented a cogent argument.', type: 'Adjective', synonyms: ['Compelling', 'Persuasive', 'Convincing'] },
+                  { word: 'Exacerbate', meaning: 'To make a problem or situation worse', example: 'The drought exacerbated food shortages.', type: 'Verb', synonyms: ['Worsen', 'Aggravate', 'Intensify'] },
+                  { word: 'Benevolent', meaning: 'Well-meaning and kindly', example: 'A benevolent ruler cares for citizens.', type: 'Adjective', synonyms: ['Kind', 'Charitable', 'Generous'] },
+                  { word: 'Inevitable', meaning: 'Certain to happen; unavoidable', example: 'Change is inevitable in life.', type: 'Adjective', synonyms: ['Unavoidable', 'Certain', 'Inescapable'] },
+                  { word: 'Clandestine', meaning: 'Kept secret or done secretively', example: 'A clandestine meeting at midnight.', type: 'Adjective', synonyms: ['Secret', 'Covert', 'Hidden'] },
+                  { word: 'Meticulous', meaning: 'Showing great attention to detail', example: 'Meticulous planning ensured success.', type: 'Adjective', synonyms: ['Careful', 'Precise', 'Thorough'] },
+                  { word: 'Eloquent', meaning: 'Fluent or persuasive in speaking', example: 'An eloquent speech moved the audience.', type: 'Adjective', synonyms: ['Articulate', 'Expressive', 'Fluent'] },
+                  { word: 'Resilient', meaning: 'Able to recover quickly from difficulties', example: 'Children are remarkably resilient.', type: 'Adjective', synonyms: ['Tough', 'Strong', 'Adaptable'] },
+                  { word: 'Ambiguous', meaning: 'Open to more than one interpretation', example: 'The statement was deliberately ambiguous.', type: 'Adjective', synonyms: ['Vague', 'Unclear', 'Equivocal'] },
+                  { word: 'Proliferate', meaning: 'Increase rapidly in number', example: 'Fake news proliferates on social media.', type: 'Verb', synonyms: ['Multiply', 'Spread', 'Expand'] },
+                  { word: 'Tenacious', meaning: 'Holding firmly; persistent', example: 'A tenacious pursuit of excellence.', type: 'Adjective', synonyms: ['Persistent', 'Determined', 'Resolute'] },
+                ];
+                const dayOfYear = Math.floor((new Date().getTime() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
+                const todayVocab = vocabularyBank[dayOfYear % vocabularyBank.length];
+                
+                return (
+                  <div className="space-y-4">
+                    <div className="text-center p-4 bg-primary/5 rounded-xl border border-primary/10">
+                      <h4 className="text-2xl font-bold text-primary mb-1">{todayVocab.word}</h4>
+                      <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{todayVocab.type}</span>
+                    </div>
+                    
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Meaning</p>
+                      <p className="text-sm">{todayVocab.meaning}</p>
+                    </div>
+                    
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Example</p>
+                      <p className="text-sm italic text-muted-foreground">"{todayVocab.example}"</p>
+                    </div>
+                    
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Synonyms</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {todayVocab.synonyms.map((syn, idx) => (
+                          <span key={idx} className="text-xs bg-muted px-2 py-1 rounded-full">
+                            {syn}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <Button variant="outline" size="sm" className="w-full mt-2">
+                      <Bookmark className="h-3 w-3 mr-2" />
+                      Save to Vocabulary List
+                    </Button>
+                  </div>
+                );
+              })()}
+            </Card>
+          </div>
 
           {/* Current Affairs Section */}
           <Card className="p-4 bg-card">
