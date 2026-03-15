@@ -108,7 +108,7 @@ export function useCountdownTimer() {
           if (prevTime <= 1) {
             // Timer complete
             setIsActive(false);
-            clearInterval(interval as NodeJS.Timeout);
+            clearInterval(interval!);
             displayRandomQuote();
             toast({
               title: "Timer complete!",

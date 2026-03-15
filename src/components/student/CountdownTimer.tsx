@@ -179,7 +179,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ className }) => {
 
   // Show quote every 2 minutes during full screen mode
   useEffect(() => {
-    let quoteInterval: NodeJS.Timeout | null = null;
+    let quoteInterval: ReturnType<typeof setInterval> | null = null;
     
     if (isFullScreenMode && isActive && !isPaused) {
       quoteInterval = setInterval(() => {

@@ -84,7 +84,7 @@ export function useStudyTimer() {
           if (prevTime <= 1) {
             // Timer complete
             setIsActive(false);
-            clearInterval(interval as NodeJS.Timeout);
+            clearInterval(interval!);
             toast({
               title: "Study session complete!",
               description: "Great job! Take a short break before continuing.",
