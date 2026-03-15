@@ -100,7 +100,7 @@ export function useCountdownTimer() {
 
   // Timer effect
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
 
     if (isActive && !isPaused) {
       interval = setInterval(() => {
@@ -108,7 +108,7 @@ export function useCountdownTimer() {
           if (prevTime <= 1) {
             // Timer complete
             setIsActive(false);
-            clearInterval(interval as NodeJS.Timeout);
+            clearInterval(interval!);
             displayRandomQuote();
             toast({
               title: "Timer complete!",

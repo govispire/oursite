@@ -76,7 +76,7 @@ export function useStudyTimer() {
 
   // Timer effect - ensure it runs in both expanded and collapsed states
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
 
     if (isActive && !isPaused) {
       interval = setInterval(() => {
@@ -84,7 +84,7 @@ export function useStudyTimer() {
           if (prevTime <= 1) {
             // Timer complete
             setIsActive(false);
-            clearInterval(interval as NodeJS.Timeout);
+            clearInterval(interval!);
             toast({
               title: "Study session complete!",
               description: "Great job! Take a short break before continuing.",

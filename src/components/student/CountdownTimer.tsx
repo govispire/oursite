@@ -138,7 +138,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ className }) => {
 
   // Timer effect
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
 
     if (isActive && !isPaused) {
       interval = setInterval(() => {
@@ -146,7 +146,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ className }) => {
           if (prevTime <= 1) {
             // Timer complete
             setIsActive(false);
-            clearInterval(interval as NodeJS.Timeout);
+            clearInterval(interval!);
             displayRandomQuote();
             return 0;
           }
@@ -179,7 +179,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ className }) => {
 
   // Show quote every 2 minutes during full screen mode
   useEffect(() => {
-    let quoteInterval: NodeJS.Timeout | null = null;
+    let quoteInterval: ReturnType<typeof setInterval> | null = null;
     
     if (isFullScreenMode && isActive && !isPaused) {
       quoteInterval = setInterval(() => {
