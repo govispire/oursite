@@ -146,7 +146,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ className }) => {
           if (prevTime <= 1) {
             // Timer complete
             setIsActive(false);
-            clearInterval(interval as NodeJS.Timeout);
+            clearInterval(interval!);
             displayRandomQuote();
             return 0;
           }
