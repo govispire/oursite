@@ -684,6 +684,87 @@ const StudentDashboard = () => {
               <Link to="/student/tests">View All Tests</Link>
             </Button>
           </Card>
+
+          {/* Top Performers - Sidebar */}
+          <Card className="p-4 bg-card rounded-2xl">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-1 h-5 bg-primary rounded-full" />
+              <h3 className="font-semibold text-sm">Top Performers</h3>
+            </div>
+            <div className="space-y-2">
+              {topPerformers.map((p, i) => (
+                <div key={i} className={`flex items-center gap-2.5 p-2 rounded-xl transition-colors ${p.name === 'You' ? 'bg-primary/5 border border-primary/20' : 'hover:bg-muted/50'}`}>
+                  <span className="text-xs font-bold text-muted-foreground w-4">{i + 1}</span>
+                  <span className="text-lg">{p.avatar}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className={`text-xs font-medium truncate ${p.name === 'You' ? 'text-primary' : ''}`}>{p.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{p.tests} tests</p>
+                  </div>
+                  <span className="text-xs font-bold">{p.score}%</span>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Weekly Activity - Sidebar */}
+          <Card className="p-4 bg-card rounded-2xl">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-1 h-5 bg-primary rounded-full" />
+              <h3 className="font-semibold text-sm">Weekly Activity</h3>
+              <span className="ml-auto text-[10px] font-medium text-primary">This Week</span>
+            </div>
+            <div className="h-[160px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={weeklyActivity} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="day" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} />
+                  <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} domain={[0, 10]} />
+                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '11px' }} />
+                  <Bar dataKey="hours" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} barSize={20} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex items-center justify-between mt-1 text-[10px] text-muted-foreground">
+              <span>Avg: <strong className="text-foreground">5.3h</strong>/day</span>
+              <span>Total: <strong className="text-foreground">37.4h</strong></span>
+            </div>
+          </Card>
+
+          {/* Word of the Day - Sidebar */}
+          <Card className="p-4 bg-card rounded-2xl">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-1 h-5 bg-primary rounded-full" />
+              <h3 className="font-semibold text-sm">Word of the Day</h3>
+              <span className="ml-auto text-[10px] text-muted-foreground">
+                {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+              </span>
+            </div>
+            <div className="text-center p-3 bg-primary/5 rounded-xl border border-primary/10 mb-3">
+              <h4 className="text-lg font-bold text-primary mb-0.5">{todayVocab.word}</h4>
+              <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full">{todayVocab.type}</span>
+            </div>
+            <div className="space-y-1.5 text-xs">
+              <div>
+                <p className="font-medium text-muted-foreground mb-0.5">Meaning</p>
+                <p>{todayVocab.meaning}</p>
+              </div>
+              <div>
+                <p className="font-medium text-muted-foreground mb-0.5">Example</p>
+                <p className="italic text-muted-foreground">"{todayVocab.example}"</p>
+              </div>
+              <div>
+                <p className="font-medium text-muted-foreground mb-1">Synonyms</p>
+                <div className="flex flex-wrap gap-1">
+                  {todayVocab.synonyms.map((syn, idx) => (
+                    <span key={idx} className="text-[10px] bg-muted px-2 py-0.5 rounded-full">{syn}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" className="w-full mt-3 text-xs">
+              <Bookmark className="h-3 w-3 mr-1.5" />Save to Vocabulary List
+            </Button>
+          </Card>
         </div>
       </div>
 
