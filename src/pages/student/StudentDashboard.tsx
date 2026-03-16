@@ -285,21 +285,23 @@ const StudentDashboard = () => {
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
               {upcomingExamsList.map((exam, idx) => (
-                <Card key={idx} className="p-3 text-center border border-border/50 rounded-xl hover:shadow-md transition-all cursor-pointer hover:border-primary/30">
-                  <div className="w-12 h-12 mx-auto rounded-xl bg-muted/60 flex items-center justify-center text-2xl mb-2">
-                    {exam.icon}
-                  </div>
-                  <p className="text-xs font-semibold text-foreground leading-tight mb-1 line-clamp-2">{exam.name}</p>
-                  <p className="text-[10px] text-muted-foreground flex items-center justify-center gap-1 mb-1.5">
-                    <Calendar className="h-2.5 w-2.5" />{exam.date}
-                  </p>
-                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${exam.badgeColor}`}>
-                    {exam.badge === 'Hot' && <span className="mr-0.5">🔥</span>}
-                    {exam.badge === 'New' && <span className="mr-0.5">✨</span>}
-                    {exam.badge === 'Closing' && <span className="mr-0.5">⏰</span>}
-                    {exam.badge}
-                  </span>
-                </Card>
+                <Link key={idx} to="/student/exam-notifications">
+                  <Card className="p-3 text-center border border-border/50 rounded-xl hover:shadow-md transition-all cursor-pointer hover:border-primary/30">
+                    <div className="w-12 h-12 mx-auto rounded-xl bg-muted/60 flex items-center justify-center text-2xl mb-2">
+                      {exam.icon}
+                    </div>
+                    <p className="text-xs font-semibold text-foreground leading-tight mb-1 line-clamp-2">{exam.name}</p>
+                    <p className="text-[10px] text-muted-foreground flex items-center justify-center gap-1 mb-1.5">
+                      <Calendar className="h-2.5 w-2.5" />{exam.date}
+                    </p>
+                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${exam.badgeColor}`}>
+                      {exam.badge === 'Hot' && <span className="mr-0.5">🔥</span>}
+                      {exam.badge === 'New' && <span className="mr-0.5">✨</span>}
+                      {exam.badge === 'Closing' && <span className="mr-0.5">⏰</span>}
+                      {exam.badge}
+                    </span>
+                  </Card>
+                </Link>
               ))}
             </div>
           </Card>
