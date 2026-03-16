@@ -1,14 +1,19 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   Target, ChevronLeft, ChevronRight, Newspaper, Bookmark, LayoutGrid,
-  Play, Clock, FileText, TrendingUp, Users, Award, Calendar, BarChart3
+  Play, Clock, FileText, TrendingUp, Users, Award, Calendar, BarChart3,
+  Trophy, Bell, ExternalLink, ArrowRight, Flame, Sparkles, CheckCircle2
 } from 'lucide-react';
 import NewsArticleDialog from '@/components/student/NewsArticleDialog';
 import StatCardDialog from '@/components/student/StatCardDialog';
+import { useSelfCareExams } from '@/hooks/useSelfCareExams';
+import { examNotifications } from '@/data/examNotificationData';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar
@@ -49,6 +54,17 @@ const topPerformers = [
   { name: 'You', score: 85.1, tests: 40, avatar: '⭐' },
 ];
 
+// Upcoming exams with icons/badges
+const upcomingExamsList = [
+  { name: 'IBPS RRB PO', date: 'Mon, 24 Feb', badge: 'Hot', badgeColor: 'bg-orange-100 text-orange-600', icon: '🏦' },
+  { name: 'IBPS RRB Clerk', date: 'Wed, 26 Feb', badge: 'Hot', badgeColor: 'bg-orange-100 text-orange-600', icon: '🏦' },
+  { name: 'NIACL AO Mains', date: 'Sat, 1 Mar', badge: '7d left', badgeColor: 'bg-amber-100 text-amber-700', icon: '🌐' },
+  { name: 'LIC AAO Mains', date: 'Sun, 2 Mar', badge: '8d left', badgeColor: 'bg-amber-100 text-amber-700', icon: '🌐' },
+  { name: 'SSC CGL Tier 1', date: 'Mon, 10 Mar', badge: 'New', badgeColor: 'bg-blue-100 text-blue-600', icon: '📋' },
+  { name: 'RRB NTPC', date: 'Sat, 15 Mar', badge: '21d left', badgeColor: 'bg-amber-100 text-amber-700', icon: '🚂' },
+  { name: 'SBI PO Prelims', date: 'Sun, 23 Mar', badge: 'Closing', badgeColor: 'bg-red-100 text-red-600', icon: '🏦' },
+];
+
 const StudentDashboard = () => {
   const { user } = useAuth();
   const [attendanceView, setAttendanceView] = useState<'week' | 'month'>('month');
@@ -57,7 +73,11 @@ const StudentDashboard = () => {
   const [newsDialogOpen, setNewsDialogOpen] = useState(false);
   const [statDialogType, setStatDialogType] = useState<'journey' | 'hours' | 'active' | 'tests' | null>(null);
 
+  const { exams: selfCareExams } = useSelfCareExams();
   const selectedExams = ['IBPS PO', 'SBI Clerk', 'RRB NTPC'];
+
+  // Recent notifications from exam notification data
+  const recentNotifications = examNotifications.slice(0, 5);
 
   const currentAffairsData = [
     { title: 'RBI Policy Updates', description: 'Latest monetary policy decisions and their impact on banking...', category: 'Today', image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400', content: 'The Reserve Bank of India kept the repo rate unchanged at 6.5% in its latest monetary policy review.' },
@@ -106,6 +126,14 @@ const StudentDashboard = () => {
   const todayVocab = vocabularyBank[dayOfYear % vocabularyBank.length];
 
   const totalTests = studyStatusData.reduce((a, b) => a + b.value, 0);
+
+  const getStageIcon = (status: string) => {
+    switch (status) {
+      case 'cleared': return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
+      case 'pending': return <Clock className="h-4 w-4 text-muted-foreground" />;
+      default: return <Clock className="h-4 w-4 text-muted-foreground" />;
+    }
+  };
 
   return (
     <div className="h-screen overflow-y-auto bg-muted/30">
@@ -166,49 +194,166 @@ const StudentDashboard = () => {
             })}
           </div>
 
+          {/* Your Current Exams Status */}
+          <Card className="p-4 sm:p-5 bg-card rounded-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                  <Trophy className="h-5 w-5 text-emerald-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-base">Your Current Exams Status</h3>
+                  <p className="text-xs text-muted-foreground">Tracking <span className="text-primary font-semibold">{selfCareExams.length}</span> active applications</p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" className="gap-1" asChild>
+                <Link to="/student/self-care">View All <ArrowRight className="h-3.5 w-3.5" /></Link>
+              </Button>
+            </div>
+            
+            {selfCareExams.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {selfCareExams.slice(0, 4).map((exam) => {
+                  const currentStageIdx = exam.stages.findIndex(s => s.status === 'pending');
+                  return (
+                    <Card key={exam.id} className="p-4 border border-border/60 rounded-xl hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h4 className="font-semibold text-sm">{exam.name}</h4>
+                          <span className="text-xs text-muted-foreground uppercase tracking-wide">{exam.category}</span>
+                        </div>
+                        <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-200 text-xs">
+                          <Flame className="h-3 w-3 mr-1" />Active
+                        </Badge>
+                      </div>
+                      
+                      {/* Stage Progress */}
+                      <div className="flex items-center gap-1 mb-3">
+                        {exam.stages.map((stage, idx) => (
+                          <React.Fragment key={idx}>
+                            <div className={`flex flex-col items-center ${idx <= currentStageIdx || currentStageIdx === -1 ? '' : 'opacity-40'}`}>
+                              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 ${
+                                stage.status === 'cleared' ? 'bg-emerald-500 text-white border-emerald-500' :
+                                stage.status === 'pending' && idx === currentStageIdx ? 'bg-primary text-primary-foreground border-primary border-dashed' :
+                                'bg-muted text-muted-foreground border-muted'
+                              }`}>
+                                {idx + 1}
+                              </div>
+                              <span className="text-[9px] font-medium text-muted-foreground mt-1 text-center leading-tight max-w-[60px] truncate">
+                                {stage.name.toUpperCase()}
+                              </span>
+                            </div>
+                            {idx < exam.stages.length - 1 && (
+                              <div className={`flex-1 h-0.5 mt-[-12px] ${stage.status === 'cleared' ? 'bg-emerald-400' : 'bg-muted'}`} />
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </div>
+                      
+                      {exam.firstExamDate && (
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <Calendar className="h-3 w-3 text-primary" />
+                          <span>{new Date(exam.firstExamDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                        </div>
+                      )}
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Trophy className="h-10 w-10 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">No active exam applications yet.</p>
+                <Button variant="outline" size="sm" className="mt-2" asChild>
+                  <Link to="/student/self-care">Add Your First Exam</Link>
+                </Button>
+              </div>
+            )}
+          </Card>
+
+          {/* Upcoming Exams */}
+          <Card className="p-4 sm:p-5 bg-card rounded-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-5 bg-primary rounded-full" />
+                <TrendingUp className="h-4 w-4 text-primary" />
+                <h3 className="font-semibold text-base">Upcoming Exams</h3>
+              </div>
+              <Button variant="link" size="sm" className="gap-1 text-primary" asChild>
+                <Link to="/student/exam-notifications">View More <ArrowRight className="h-3.5 w-3.5" /></Link>
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+              {upcomingExamsList.map((exam, idx) => (
+                <Card key={idx} className="p-3 text-center border border-border/50 rounded-xl hover:shadow-md transition-all cursor-pointer hover:border-primary/30">
+                  <div className="w-12 h-12 mx-auto rounded-xl bg-muted/60 flex items-center justify-center text-2xl mb-2">
+                    {exam.icon}
+                  </div>
+                  <p className="text-xs font-semibold text-foreground leading-tight mb-1 line-clamp-2">{exam.name}</p>
+                  <p className="text-[10px] text-muted-foreground flex items-center justify-center gap-1 mb-1.5">
+                    <Calendar className="h-2.5 w-2.5" />{exam.date}
+                  </p>
+                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${exam.badgeColor}`}>
+                    {exam.badge === 'Hot' && <span className="mr-0.5">🔥</span>}
+                    {exam.badge === 'New' && <span className="mr-0.5">✨</span>}
+                    {exam.badge === 'Closing' && <span className="mr-0.5">⏰</span>}
+                    {exam.badge}
+                  </span>
+                </Card>
+              ))}
+            </div>
+          </Card>
+
           {/* Performance Graph + Study Status Donut */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Performance Graph */}
-            <Card className="p-4 bg-card lg:col-span-2 rounded-2xl">
+            <Card className="p-4 sm:p-5 bg-card lg:col-span-2 rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-1 h-5 bg-primary rounded-full" />
-                <h3 className="font-semibold text-base">Goal Completion</h3>
+                <div className="w-1 h-6 bg-primary rounded-full" />
+                <div>
+                  <h3 className="font-semibold text-base leading-tight">Goal</h3>
+                  <h3 className="font-semibold text-base leading-tight">Completion</h3>
+                </div>
                 <div className="ml-auto flex items-center gap-4 text-xs">
-                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-primary" />Tests</span>
-                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-primary/40" />Quizzes</span>
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-primary" />Tests</span>
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-sky-300" />Quizzes</span>
                 </div>
               </div>
-              <div className="h-64">
+              <div className="h-[280px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={performanceData}>
+                  <AreaChart data={performanceData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
                     <defs>
                       <linearGradient id="testGrad" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
                         <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="quizGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.1} />
-                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#7dd3fc" stopOpacity={0.2} />
+                        <stop offset="95%" stopColor="#7dd3fc" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="week" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" />
-                    <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" domain={[0, 100]} />
-                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px' }} />
-                    <Area type="monotone" dataKey="tests" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#testGrad)" dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 3 }} />
-                    <Area type="monotone" dataKey="quizzes" stroke="hsl(var(--primary) / 0.4)" strokeWidth={2} fill="url(#quizGrad)" dot={{ fill: 'hsl(var(--primary) / 0.4)', strokeWidth: 2, r: 3 }} />
+                    <XAxis dataKey="week" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" domain={[0, 100]} tickLine={false} axisLine={false} />
+                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px', fontSize: '12px' }} />
+                    <Area type="monotone" dataKey="quizzes" stroke="#7dd3fc" strokeWidth={2.5} fill="url(#quizGrad)" dot={{ fill: '#7dd3fc', strokeWidth: 2, r: 4 }} />
+                    <Area type="monotone" dataKey="tests" stroke="hsl(var(--primary))" strokeWidth={2.5} fill="url(#testGrad)" dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }} />
                   </AreaChart>
                 </ResponsiveContainer>
+              </div>
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <span className="w-3 h-3 rounded-full bg-primary" />
+                <span className="text-xs text-muted-foreground">Passed</span>
               </div>
             </Card>
 
             {/* Study Status Donut */}
-            <Card className="p-4 bg-card rounded-2xl">
+            <Card className="p-4 sm:p-5 bg-card rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-1 h-5 bg-primary rounded-full" />
                 <h3 className="font-semibold text-base">Study Status</h3>
               </div>
-              <div className="h-48 relative">
+              <div className="h-52 relative">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie data={studyStatusData} cx="50%" cy="50%" innerRadius={55} outerRadius={80} dataKey="value" strokeWidth={0}>
@@ -235,10 +380,61 @@ const StudentDashboard = () => {
             </Card>
           </div>
 
+          {/* Recent Notifications */}
+          <Card className="p-4 sm:p-5 bg-card rounded-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-5 bg-primary rounded-full" />
+                <Bell className="h-4 w-4 text-primary" />
+                <h3 className="font-semibold text-base">Recent Exam Notifications</h3>
+              </div>
+              <Button variant="link" size="sm" className="gap-1 text-primary" asChild>
+                <Link to="/student/exam-notifications">View All <ArrowRight className="h-3.5 w-3.5" /></Link>
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {recentNotifications.map((notif) => (
+                <div key={notif.id} className="flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/60 transition-colors">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <FileText className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-medium text-sm truncate">{notif.examName}</p>
+                        {notif.notificationStatus === 'new' && (
+                          <Badge className="bg-emerald-100 text-emerald-700 border-0 text-[10px] px-1.5 py-0">NEW</Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Apply: {notif.applicationPeriod.startDate} - {notif.applicationPeriod.endDate}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {notif.applyStatus === 'applied' ? (
+                      <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-600 border-emerald-200">Applied</Badge>
+                    ) : notif.resultStatus === 'declared' ? (
+                      <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-200">Result Out</Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-xs bg-primary/5 text-primary border-primary/20">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5" />
+                        Applications Open
+                      </Badge>
+                    )}
+                    <Button variant="ghost" size="sm" className="h-7 text-xs px-2">
+                      {notif.applyStatus === 'applied' ? 'Details' : 'Apply'}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+
           {/* Bottom Row: Top Performers + Weekly Activity + Vocabulary */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Top Performers */}
-            <Card className="p-4 bg-card rounded-2xl">
+            <Card className="p-4 sm:p-5 bg-card rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-1 h-5 bg-primary rounded-full" />
                 <h3 className="font-semibold text-base">Top Performers</h3>
@@ -259,20 +455,20 @@ const StudentDashboard = () => {
             </Card>
 
             {/* Weekly Activity */}
-            <Card className="p-4 bg-card rounded-2xl">
+            <Card className="p-4 sm:p-5 bg-card rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-1 h-5 bg-primary rounded-full" />
                 <h3 className="font-semibold text-base">Weekly Activity</h3>
-                <span className="ml-auto text-xs text-muted-foreground">This Week</span>
+                <span className="ml-auto text-xs font-medium text-primary">This Week</span>
               </div>
-              <div className="h-52">
+              <div className="h-[220px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={weeklyActivity}>
+                  <BarChart data={weeklyActivity} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                    <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                    <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px' }} />
-                    <Bar dataKey="hours" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
+                    <XAxis dataKey="day" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} domain={[0, 10]} />
+                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px', fontSize: '12px' }} />
+                    <Bar dataKey="hours" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} barSize={28} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -283,7 +479,7 @@ const StudentDashboard = () => {
             </Card>
 
             {/* Daily Vocabulary */}
-            <Card className="p-4 bg-card rounded-2xl">
+            <Card className="p-4 sm:p-5 bg-card rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-1 h-5 bg-primary rounded-full" />
                 <h3 className="font-semibold text-base">Word of the Day</h3>
