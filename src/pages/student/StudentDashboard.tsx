@@ -433,8 +433,8 @@ const StudentDashboard = () => {
             </div>
           </Card>
 
-          {/* Bottom Row: Top Performers + Weekly Activity + Vocabulary */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Bottom Row: Top Performers + Weekly Activity + Vocabulary - visible on mobile/tablet only */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:hidden gap-4">
             {/* Top Performers */}
             <Card className="p-4 sm:p-5 bg-card rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
