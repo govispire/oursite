@@ -1,102 +1,47 @@
 
 
-# Team Study Page - Premium UI Enhancement
+# Dashboard Enhancement Plan
 
-## Overview
-Redesign the Team Study page with a top-class, polished UI featuring gradient accents, smooth animations, better visual hierarchy, and enhanced interactivity across all 7 sections.
+## Changes to `src/pages/student/StudentDashboard.tsx`
 
-## Changes by Component
+### 1. Replace Welcome Banner with Target Examination Card
+Replace the current green gradient welcome banner with a dark blue gradient "Target Examination" card matching the reference:
+- Dark gradient background (`from-[#1a237e] via-[#283593] to-[#1565c0]`) with subtle radial pulse pattern
+- Exam name prominently displayed (e.g., "SBI CLERK" from user's selected exams)
+- Subtitle: "Preliminary Examination · 13,735 Vacancies"
+- Info badges row: Notification date, Location, Duration/Marks, Day of prep
+- "Days Left" counter badge in top-right corner (large number + "Days Left" label)
+- Overall Preparation Progress bar with percentage
+- Section-wise Readiness: 4 horizontal bars (Quantitative, Reasoning, English, Gen. Awareness) with distinct colors and percentages
+- Action buttons: "Start Full Mock Test", "View Syllabus", "Score Prediction"
 
-### 1. `src/pages/student/TeamStudy.tsx` - Page Layout Overhaul
-- Add a gradient hero header with animated background pattern and a motivational tagline
-- Use framer-motion for staggered section entrance animations
-- Add a "Next Test Countdown" banner between Hero Stats and Leaderboard
-- Improve spacing rhythm and section dividers
+### 2. Add Recent Mock Test Performance Section
+New card after the charts section, styled like reference image-31:
+- Left-accented header with blue dot: "Recent Mock Test Performance" + "View All" link
+- Clean table with columns: TEST, SCORE (green), ACCURACY, DATE, RANK (indigo)
+- 4 mock test rows with mock data
+- Green improvement badge at bottom: "↑ +7 marks improvement over last 3 tests"
 
-### 2. `src/components/student/team-study/HeroStats.tsx` - Animated Stat Cards
-- Add animated number counters (count-up effect on mount)
-- Gradient icon backgrounds with subtle glow
-- Hover lift effect with shadow transition
-- Add sparkline mini-trends beneath each stat value
-- Ring/progress indicator around the icon for visual interest
+### 3. Add Strict Study Mode Widget
+New card in the right sidebar (desktop) and mobile bottom section:
+- Red dot indicator + "Strict Study Mode" header
+- Two stat boxes: "LAST SESSION" (time) and "FOCUS SCORE" (percentage in green)
+- "Next Planned Session" row with time
+- Red "Start Strict Mode (25 min)" button with lock icon
+- When activated: full-screen dark overlay with large countdown timer, current task label, progress bar (red→green gradient), Pause and End Session buttons
+- State managed with `useState` for `isStrictModeActive`, `strictTimeLeft`, timer via `useEffect`+`setInterval`
 
-### 3. `src/components/student/team-study/LeaderboardSection.tsx` - Premium Podium
-- Animated podium with gradient columns that grow on load
-- Glowing ring around 1st place avatar with pulse animation
-- Crown bounce animation for the winner
-- Smooth tab transitions for period switching
-- Add "Your Team" highlight row if user's team is in rankings
-- Hover effects showing detailed stats tooltip
+### 4. Color Consistency Fix
+- Primary color from CSS is `200 98% 39%` (blue). Ensure all cards use `hsl(var(--primary))` instead of hardcoded colors
+- Target exam card uses a deeper navy gradient that complements the primary blue
+- Remove any leftover teal/green references that don't match the actual theme
 
-### 4. `src/components/student/team-study/MyTeamsGrid.tsx` - Enhanced Team Cards
-- Add gradient top border per team category color (UPSC=indigo, Banking=emerald, SSC=amber)
-- Animated progress bar fill on mount
-- Better badge styling with category-specific colors
-- Improved member avatar stack with hover-expand effect
-- Card hover: subtle scale + elevated shadow
-- Detail dialog: add animated charts for member performance comparison
+## Files Modified
+1. `src/pages/student/StudentDashboard.tsx` - All changes in this single file
 
-### 5. `src/components/student/team-study/ScheduledTestsList.tsx` - Rich Test Cards
-- Add countdown timer for live/upcoming tests (shows "Starts in 2h 30m")
-- Color-coded left border by status (green=live, yellow=upcoming, red=expired)
-- Animated status pulse for live tests
-- Progress bar showing completion (e.g., "3/5 members completed")
-- Better visual separation between test metadata sections
-
-### 6. `src/components/student/team-study/JoinTeamSection.tsx` - Polished Join Experience
-- Animated code input with individual character boxes (OTP-style)
-- Public team cards with gradient hover and category-colored accents
-- Add team avatar with initials on gradient backgrounds
-- "Hot" or "Trending" badge on popular teams
-- Smooth filter transition animations
-
-### 7. `src/components/student/team-study/TeamChat.tsx` - Modern Chat Panel
-- Glassmorphism chat panel background
-- Smooth slide-in animation from bottom-right
-- Typing indicator animation
-- Message bubble gradient for sent messages
-- Better avatar styling with online status dot
-- Unread count with pulse animation on the toggle button
-
-### 8. `src/components/student/team-study/CreateTeamModal.tsx` - Improved Modal
-- Step indicator (1/2 or progress dots)
-- Better form layout with floating labels
-- Category selection as visual cards instead of dropdown
-- Preview card showing how the team will look before creating
-- Success animation (confetti or checkmark) on creation
-
-### 9. `src/components/student/team-study/ScheduleTestModal.tsx` - Enhanced Form
-- Test mode selection as illustrated cards with icons
-- Better form grid layout with grouped sections
-- Visual preview of scheduled test card at bottom
-- Animated transitions between form sections
-
-## Technical Details
-
-### Dependencies Used
-- `framer-motion` (already installed) - for entrance animations, layout transitions
-- `lucide-react` (already installed) - for enhanced iconography
-- `date-fns` (already installed) - for countdown timer calculations
-- Tailwind CSS utilities - gradients, shadows, animations
-
-### Animation Strategy
-- Use `framer-motion` `motion.div` with staggered children for section reveals
-- CSS transitions for hover effects (performant, GPU-accelerated)
-- `animate-pulse` for live status indicators
-- Count-up effect using `useEffect` + `requestAnimationFrame`
-
-### Files Modified (10 files)
-1. `src/pages/student/TeamStudy.tsx`
-2. `src/components/student/team-study/HeroStats.tsx`
-3. `src/components/student/team-study/LeaderboardSection.tsx`
-4. `src/components/student/team-study/MyTeamsGrid.tsx`
-5. `src/components/student/team-study/ScheduledTestsList.tsx`
-6. `src/components/student/team-study/JoinTeamSection.tsx`
-7. `src/components/student/team-study/TeamChat.tsx`
-8. `src/components/student/team-study/CreateTeamModal.tsx`
-9. `src/components/student/team-study/ScheduleTestModal.tsx`
-10. `src/components/student/team-study/teamStudyData.ts` (add more mock data for richer previews)
-
-### No New Dependencies Required
-All enhancements use existing packages (framer-motion, date-fns, Tailwind, Radix UI components).
+## Technical Notes
+- Strict mode timer uses `ReturnType<typeof setInterval>` per project constraint
+- Mock test data is hardcoded as a const array (no new files needed)
+- Full-screen overlay uses `fixed inset-0 z-50` with dark background
+- All recharts components remain unchanged
 
