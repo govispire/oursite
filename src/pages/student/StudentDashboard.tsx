@@ -1,14 +1,16 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   Target, ChevronLeft, ChevronRight, Newspaper, Bookmark, LayoutGrid,
   Play, Clock, FileText, TrendingUp, Users, Award, Calendar, BarChart3,
-  Trophy, Bell, ExternalLink, ArrowRight, Flame, Sparkles, CheckCircle2
+  Trophy, Bell, ExternalLink, ArrowRight, Flame, Sparkles, CheckCircle2,
+  MapPin, Lock, Pause, X, BookOpen
 } from 'lucide-react';
 import NewsArticleDialog from '@/components/student/NewsArticleDialog';
 import StatCardDialog from '@/components/student/StatCardDialog';
@@ -65,6 +67,22 @@ const upcomingExamsList = [
   { name: 'SBI PO Prelims', date: 'Sun, 23 Mar', badge: 'Closing', badgeColor: 'bg-red-100 text-red-600', icon: '🏦' },
 ];
 
+// Recent mock test performance data
+const recentMockTests = [
+  { name: 'SBI Clerk Prelims Mock 4', score: 82, total: 100, accuracy: 78.5, date: '12 Mar 2026', rank: 124 },
+  { name: 'IBPS PO Prelims Mock 7', score: 76, total: 100, accuracy: 72.1, date: '10 Mar 2026', rank: 287 },
+  { name: 'SBI Clerk Mains Mock 2', score: 118, total: 190, accuracy: 68.4, date: '8 Mar 2026', rank: 456 },
+  { name: 'IBPS RRB PO Mock 3', score: 88, total: 100, accuracy: 81.2, date: '5 Mar 2026', rank: 98 },
+];
+
+// Section-wise readiness
+const sectionReadiness = [
+  { name: 'Quantitative Aptitude', percent: 72, color: 'bg-sky-500' },
+  { name: 'Reasoning Ability', percent: 85, color: 'bg-violet-500' },
+  { name: 'English Language', percent: 64, color: 'bg-amber-500' },
+  { name: 'General Awareness', percent: 58, color: 'bg-emerald-500' },
+];
+
 const StudentDashboard = () => {
   const { user } = useAuth();
   const [attendanceView, setAttendanceView] = useState<'week' | 'month'>('month');
@@ -72,6 +90,11 @@ const StudentDashboard = () => {
   const [selectedNews, setSelectedNews] = useState<any>(null);
   const [newsDialogOpen, setNewsDialogOpen] = useState(false);
   const [statDialogType, setStatDialogType] = useState<'journey' | 'hours' | 'active' | 'tests' | null>(null);
+
+  // Strict Study Mode state
+  const [isStrictModeActive, setIsStrictModeActive] = useState(false);
+  const [strictTimeLeft, setStrictTimeLeft] = useState(25 * 60); // 25 min
+  const [isStrictPaused, setIsStrictPaused] = useState(false);
 
   const { exams: selfCareExams } = useSelfCareExams();
   const selectedExams = ['IBPS PO', 'SBI Clerk', 'RRB NTPC'];
@@ -127,6 +150,43 @@ const StudentDashboard = () => {
 
   const totalTests = studyStatusData.reduce((a, b) => a + b.value, 0);
 
+  // Days left calculation
+  const examDate = new Date('2026-04-15');
+  const today = new Date();
+  const daysLeft = Math.max(0, Math.ceil((examDate.getTime() - today.getTime()) / 86400000));
+  const overallPrep = 72;
+
+  // Strict mode timer
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null;
+    if (isStrictModeActive && !isStrictPaused) {
+      interval = setInterval(() => {
+        setStrictTimeLeft((prev) => {
+          if (prev <= 1) {
+            setIsStrictModeActive(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => { if (interval) clearInterval(interval); };
+  }, [isStrictModeActive, isStrictPaused]);
+
+  const formatStrictTime = useCallback((seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }, []);
+
+  const startStrictMode = () => {
+    setStrictTimeLeft(25 * 60);
+    setIsStrictModeActive(true);
+    setIsStrictPaused(false);
+  };
+
+  const strictProgress = ((25 * 60 - strictTimeLeft) / (25 * 60)) * 100;
+
   const getStageIcon = (status: string) => {
     switch (status) {
       case 'cleared': return <CheckCircle2 className="h-4 w-4 text-emerald-500" />;
@@ -140,31 +200,81 @@ const StudentDashboard = () => {
       <div className="flex flex-col lg:flex-row gap-4 p-3 sm:p-4 max-w-full">
         {/* Main Content */}
         <div className="flex-1 min-w-0 space-y-4 w-full lg:w-auto">
-          {/* Welcome Banner */}
-          <Card className="bg-gradient-to-r from-primary to-primary/80 p-4 sm:p-5 text-primary-foreground border-0 shadow-lg rounded-2xl overflow-hidden">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex-1">
-                <h1 className="text-lg sm:text-xl font-bold mb-1 flex items-center gap-2">
-                  <span className="text-2xl">👋</span> Welcome, {user?.name || 'Student User'}
-                </h1>
-                <p className="text-sm text-primary-foreground/80 mb-3">
-                  Track your preparation progress and upcoming exams.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {selectedExams.map((exam, idx) => (
-                    <span key={idx} className={`px-3 py-1.5 rounded-full text-xs font-medium ${idx === 0 ? 'bg-primary-foreground text-primary' : 'bg-primary-foreground/20 text-primary-foreground border border-primary-foreground/30'}`}>
-                      {idx === 0 && <span className="mr-1">☆</span>}{exam}
+          {/* Target Examination Card */}
+          <Card className="relative overflow-hidden border-0 shadow-lg rounded-2xl bg-gradient-to-br from-[hsl(215,50%,15%)] via-[hsl(210,45%,22%)] to-[hsl(200,60%,30%)] text-white">
+            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, hsl(var(--primary)) 0%, transparent 50%)' }} />
+            <div className="relative p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Target className="h-4 w-4 text-sky-300" />
+                    <span className="text-xs font-medium text-sky-300 uppercase tracking-wider">Target Examination</span>
+                  </div>
+                  <h1 className="text-xl sm:text-2xl font-bold mb-0.5">SBI CLERK</h1>
+                  <p className="text-sm text-white/70 mb-3">Preliminary Examination · 13,735 Vacancies</p>
+                  
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <span className="flex items-center gap-1.5 text-xs bg-white/10 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-white/10">
+                      <Bell className="h-3 w-3 text-sky-300" /> Notified: 15 Jan 2026
                     </span>
-                  ))}
+                    <span className="flex items-center gap-1.5 text-xs bg-white/10 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-white/10">
+                      <MapPin className="h-3 w-3 text-sky-300" /> Pan India
+                    </span>
+                    <span className="flex items-center gap-1.5 text-xs bg-white/10 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-white/10">
+                      <Clock className="h-3 w-3 text-sky-300" /> 60 min · 100 marks
+                    </span>
+                    <span className="flex items-center gap-1.5 text-xs bg-white/10 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-white/10">
+                      <Calendar className="h-3 w-3 text-sky-300" /> Day 47 of Prep
+                    </span>
+                  </div>
+
+                  {/* Overall Progress */}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-white/70">Overall Preparation</span>
+                      <span className="font-bold text-sky-300">{overallPrep}%</span>
+                    </div>
+                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-sky-400 to-primary rounded-full transition-all" style={{ width: `${overallPrep}%` }} />
+                    </div>
+                  </div>
+
+                  {/* Section Readiness */}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                    {sectionReadiness.map((sec) => (
+                      <div key={sec.name}>
+                        <div className="flex items-center justify-between text-[11px] mb-0.5">
+                          <span className="text-white/60 truncate">{sec.name}</span>
+                          <span className="font-semibold text-white/90 ml-2">{sec.percent}%</span>
+                        </div>
+                        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                          <div className={`h-full ${sec.color} rounded-full`} style={{ width: `${sec.percent}%` }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 mt-4">
+                    <Button size="sm" className="bg-white/15 hover:bg-white/25 text-white border border-white/20 text-xs h-8 backdrop-blur-sm" asChild>
+                      <Link to="/student/tests"><Play className="h-3 w-3 mr-1" />Start Full Mock</Link>
+                    </Button>
+                    <Button size="sm" className="bg-white/15 hover:bg-white/25 text-white border border-white/20 text-xs h-8 backdrop-blur-sm" asChild>
+                      <Link to="/student/syllabus"><BookOpen className="h-3 w-3 mr-1" />View Syllabus</Link>
+                    </Button>
+                    <Button size="sm" className="bg-white/15 hover:bg-white/25 text-white border border-white/20 text-xs h-8 backdrop-blur-sm">
+                      <TrendingUp className="h-3 w-3 mr-1" />Score Prediction
+                    </Button>
+                  </div>
                 </div>
-              </div>
-              <div className="bg-card rounded-xl p-4 text-center min-w-[120px]">
-                <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mb-1">
-                  <Target className="h-3 w-3 text-primary" />Target
+
+                {/* Days Left */}
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 text-center min-w-[110px] border border-white/15 flex-shrink-0">
+                  <div className="text-4xl font-black text-white leading-none">{daysLeft}</div>
+                  <div className="text-xs font-medium text-sky-300 mt-1">Days Left</div>
+                  <div className="w-full h-px bg-white/20 my-2" />
+                  <div className="text-[10px] text-white/50">Exam Date</div>
+                  <div className="text-xs font-semibold text-white/80">15 Apr 2026</div>
                 </div>
-                <div className="text-lg font-bold text-foreground">IBPS PO</div>
-                <div className="text-2xl font-bold text-primary mt-1">78%</div>
-                <span className="text-xs text-primary font-medium">Active</span>
               </div>
             </div>
           </Card>
@@ -198,8 +308,8 @@ const StudentDashboard = () => {
           <Card className="p-4 sm:p-5 bg-card rounded-2xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                  <Trophy className="h-5 w-5 text-emerald-600" />
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Trophy className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-base">Your Current Exams Status</h3>
@@ -222,12 +332,11 @@ const StudentDashboard = () => {
                           <h4 className="font-semibold text-sm">{exam.name}</h4>
                           <span className="text-xs text-muted-foreground uppercase tracking-wide">{exam.category}</span>
                         </div>
-                        <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-emerald-200 text-xs">
+                        <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 text-xs">
                           <Flame className="h-3 w-3 mr-1" />Active
                         </Badge>
                       </div>
                       
-                      {/* Stage Progress */}
                       <div className="flex items-center gap-1 mb-3">
                         {exam.stages.map((stage, idx) => (
                           <React.Fragment key={idx}>
@@ -308,7 +417,6 @@ const StudentDashboard = () => {
 
           {/* Performance Graph + Study Status Donut */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Performance Graph */}
             <Card className="p-4 sm:p-5 bg-card lg:col-span-2 rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-1 h-6 bg-primary rounded-full" />
@@ -343,13 +451,8 @@ const StudentDashboard = () => {
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
-              <div className="flex items-center justify-center gap-2 mt-2">
-                <span className="w-3 h-3 rounded-full bg-primary" />
-                <span className="text-xs text-muted-foreground">Passed</span>
-              </div>
             </Card>
 
-            {/* Study Status Donut */}
             <Card className="p-4 sm:p-5 bg-card rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-1 h-5 bg-primary rounded-full" />
@@ -382,6 +485,59 @@ const StudentDashboard = () => {
             </Card>
           </div>
 
+          {/* Recent Mock Test Performance */}
+          <Card className="p-4 sm:p-5 bg-card rounded-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-5 bg-primary rounded-full" />
+                <BarChart3 className="h-4 w-4 text-primary" />
+                <h3 className="font-semibold text-base">Recent Mock Test Performance</h3>
+              </div>
+              <Button variant="link" size="sm" className="gap-1 text-primary" asChild>
+                <Link to="/student/tests">View All <ArrowRight className="h-3.5 w-3.5" /></Link>
+              </Button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border/60">
+                    <th className="text-left py-2.5 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Test</th>
+                    <th className="text-center py-2.5 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Score</th>
+                    <th className="text-center py-2.5 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Accuracy</th>
+                    <th className="text-center py-2.5 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden sm:table-cell">Date</th>
+                    <th className="text-center py-2.5 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Rank</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentMockTests.map((test, idx) => (
+                    <tr key={idx} className="border-b border-border/30 hover:bg-muted/30 transition-colors">
+                      <td className="py-3 px-3">
+                        <p className="font-medium text-sm text-foreground">{test.name}</p>
+                      </td>
+                      <td className="text-center py-3 px-3">
+                        <span className="font-bold text-emerald-600">{test.score}</span>
+                        <span className="text-muted-foreground">/{test.total}</span>
+                      </td>
+                      <td className="text-center py-3 px-3">
+                        <span className="font-medium">{test.accuracy}%</span>
+                      </td>
+                      <td className="text-center py-3 px-3 text-muted-foreground hidden sm:table-cell">{test.date}</td>
+                      <td className="text-center py-3 px-3">
+                        <Badge className="bg-primary/10 text-primary border-0 font-bold">#{test.rank}</Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-3 pt-3 border-t border-border/40">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-emerald-500" />
+                <span className="text-sm font-medium text-emerald-600">↑ +7 marks improvement over last 3 tests</span>
+              </div>
+            </div>
+          </Card>
+
           {/* Recent Notifications */}
           <Card className="p-4 sm:p-5 bg-card rounded-2xl">
             <div className="flex items-center justify-between mb-4">
@@ -405,7 +561,7 @@ const StudentDashboard = () => {
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-medium text-sm truncate">{notif.examName}</p>
                         {notif.notificationStatus === 'new' && (
-                          <Badge className="bg-emerald-100 text-emerald-700 border-0 text-[10px] px-1.5 py-0">NEW</Badge>
+                          <Badge className="bg-primary/10 text-primary border-0 text-[10px] px-1.5 py-0">NEW</Badge>
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground">
@@ -417,7 +573,7 @@ const StudentDashboard = () => {
                     {notif.applyStatus === 'applied' ? (
                       <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-600 border-emerald-200">Applied</Badge>
                     ) : notif.resultStatus === 'declared' ? (
-                      <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-200">Result Out</Badge>
+                      <Badge variant="outline" className="text-xs bg-sky-50 text-sky-600 border-sky-200">Result Out</Badge>
                     ) : (
                       <Badge variant="outline" className="text-xs bg-primary/5 text-primary border-primary/20">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5" />
@@ -435,7 +591,6 @@ const StudentDashboard = () => {
 
           {/* Bottom Row: Top Performers + Weekly Activity + Vocabulary - visible on mobile/tablet only */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:hidden gap-4">
-            {/* Top Performers */}
             <Card className="p-4 sm:p-5 bg-card rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-1 h-5 bg-primary rounded-full" />
@@ -456,7 +611,6 @@ const StudentDashboard = () => {
               </div>
             </Card>
 
-            {/* Weekly Activity */}
             <Card className="p-4 sm:p-5 bg-card rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-1 h-5 bg-primary rounded-full" />
@@ -480,7 +634,6 @@ const StudentDashboard = () => {
               </div>
             </Card>
 
-            {/* Daily Vocabulary */}
             <Card className="p-4 sm:p-5 bg-card rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-1 h-5 bg-primary rounded-full" />
@@ -513,6 +666,31 @@ const StudentDashboard = () => {
               </div>
               <Button variant="outline" size="sm" className="w-full mt-3">
                 <Bookmark className="h-3 w-3 mr-2" />Save to Vocabulary List
+              </Button>
+            </Card>
+
+            {/* Strict Study Mode - Mobile */}
+            <Card className="p-4 sm:p-5 bg-card rounded-2xl">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="w-2.5 h-2.5 rounded-full bg-destructive animate-pulse" />
+                <h3 className="font-semibold text-base">Strict Study Mode</h3>
+              </div>
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="bg-muted/40 rounded-xl p-3 text-center">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Last Session</p>
+                  <p className="text-lg font-bold text-foreground">45 min</p>
+                </div>
+                <div className="bg-muted/40 rounded-xl p-3 text-center">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Focus Score</p>
+                  <p className="text-lg font-bold text-emerald-600">87%</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3 p-2 bg-muted/30 rounded-lg">
+                <Clock className="h-3.5 w-3.5 text-primary" />
+                <span>Next Planned Session: <strong className="text-foreground">4:00 PM Today</strong></span>
+              </div>
+              <Button className="w-full gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground" onClick={startStrictMode}>
+                <Lock className="h-4 w-4" />Start Strict Mode (25 min)
               </Button>
             </Card>
           </div>
@@ -685,6 +863,31 @@ const StudentDashboard = () => {
             </Button>
           </Card>
 
+          {/* Strict Study Mode - Sidebar */}
+          <Card className="p-4 bg-card rounded-2xl">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-2.5 h-2.5 rounded-full bg-destructive animate-pulse" />
+              <h3 className="font-semibold text-sm">Strict Study Mode</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <div className="bg-muted/40 rounded-xl p-2.5 text-center">
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Last Session</p>
+                <p className="text-base font-bold text-foreground">45 min</p>
+              </div>
+              <div className="bg-muted/40 rounded-xl p-2.5 text-center">
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-0.5">Focus Score</p>
+                <p className="text-base font-bold text-emerald-600">87%</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3 p-2 bg-muted/30 rounded-lg">
+              <Clock className="h-3 w-3 text-primary" />
+              <span>Next: <strong className="text-foreground">4:00 PM</strong></span>
+            </div>
+            <Button className="w-full gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground text-xs" size="sm" onClick={startStrictMode}>
+              <Lock className="h-3.5 w-3.5" />Start Strict Mode (25 min)
+            </Button>
+          </Card>
+
           {/* Top Performers - Sidebar */}
           <Card className="p-4 bg-card rounded-2xl">
             <div className="flex items-center gap-2 mb-3">
@@ -767,6 +970,52 @@ const StudentDashboard = () => {
           </Card>
         </div>
       </div>
+
+      {/* Strict Study Mode Full-Screen Overlay */}
+      {isStrictModeActive && (
+        <div className="fixed inset-0 z-50 bg-[hsl(220,20%,8%)] flex items-center justify-center">
+          <div className="text-center text-white max-w-md w-full px-6">
+            <div className="mb-2">
+              <Lock className="h-8 w-8 mx-auto text-destructive mb-3" />
+              <h2 className="text-lg font-semibold text-white/80 uppercase tracking-wider">Strict Study Mode</h2>
+            </div>
+            
+            <div className="text-7xl font-black tracking-tight my-8 text-white">
+              {formatStrictTime(strictTimeLeft)}
+            </div>
+
+            <div className="mb-4">
+              <p className="text-sm text-white/50 mb-2">Current Task</p>
+              <p className="text-base font-medium text-white/80">Quantitative Aptitude - Practice Set 5</p>
+            </div>
+
+            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mb-8">
+              <div 
+                className="h-full rounded-full bg-gradient-to-r from-destructive to-emerald-500 transition-all duration-1000" 
+                style={{ width: `${strictProgress}%` }} 
+              />
+            </div>
+
+            <div className="flex items-center justify-center gap-4">
+              <Button 
+                variant="outline" 
+                className="border-white/20 text-white hover:bg-white/10 gap-2"
+                onClick={() => setIsStrictPaused(!isStrictPaused)}
+              >
+                {isStrictPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+                {isStrictPaused ? 'Resume' : 'Pause'}
+              </Button>
+              <Button 
+                variant="outline" 
+                className="border-destructive/50 text-destructive hover:bg-destructive/10 gap-2"
+                onClick={() => { setIsStrictModeActive(false); setStrictTimeLeft(25 * 60); }}
+              >
+                <X className="h-4 w-4" />End Session
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <NewsArticleDialog article={selectedNews} open={newsDialogOpen} onOpenChange={setNewsDialogOpen} />
       {statDialogType && (
