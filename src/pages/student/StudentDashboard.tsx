@@ -322,7 +322,7 @@ const StudentDashboard = () => {
           </div>
 
           {/* Your Current Exams Status */}
-          <Card className="p-4 sm:p-5 bg-card rounded-2xl">
+          <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -398,7 +398,7 @@ const StudentDashboard = () => {
           </Card>
 
           {/* Upcoming Exams */}
-          <Card className="p-4 sm:p-5 bg-card rounded-2xl">
+          <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className="w-1 h-5 bg-primary rounded-full" />
@@ -470,7 +470,7 @@ const StudentDashboard = () => {
               </div>
             </Card>
 
-            <Card className="p-4 sm:p-5 bg-card rounded-2xl">
+            <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-1 h-5 bg-primary rounded-full" />
                 <h3 className="font-semibold text-base">Study Status</h3>
@@ -503,7 +503,7 @@ const StudentDashboard = () => {
           </div>
 
           {/* Recent Mock Test Performance */}
-          <Card className="p-4 sm:p-5 bg-card rounded-2xl">
+          <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className="w-1 h-5 bg-primary rounded-full" />
@@ -556,7 +556,7 @@ const StudentDashboard = () => {
           </Card>
 
           {/* Recent Notifications */}
-          <Card className="p-4 sm:p-5 bg-card rounded-2xl">
+          <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className="w-1 h-5 bg-primary rounded-full" />
@@ -608,7 +608,7 @@ const StudentDashboard = () => {
 
           {/* Bottom Row: Top Performers + Weekly Activity + Vocabulary - visible on mobile/tablet only */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:hidden gap-4">
-            <Card className="p-4 sm:p-5 bg-card rounded-2xl">
+            <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-1 h-5 bg-primary rounded-full" />
                 <h3 className="font-semibold text-base">Top Performers</h3>
@@ -628,7 +628,7 @@ const StudentDashboard = () => {
               </div>
             </Card>
 
-            <Card className="p-4 sm:p-5 bg-card rounded-2xl">
+            <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-1 h-5 bg-primary rounded-full" />
                 <h3 className="font-semibold text-base">Weekly Activity</h3>
@@ -651,7 +651,7 @@ const StudentDashboard = () => {
               </div>
             </Card>
 
-            <Card className="p-4 sm:p-5 bg-card rounded-2xl">
+            <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-1 h-5 bg-primary rounded-full" />
                 <h3 className="font-semibold text-base">Word of the Day</h3>
@@ -687,7 +687,7 @@ const StudentDashboard = () => {
             </Card>
 
             {/* Strict Study Mode - Mobile */}
-            <Card className="p-4 sm:p-5 bg-card rounded-2xl">
+            <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
                 <span className="w-2.5 h-2.5 rounded-full bg-destructive animate-pulse" />
                 <h3 className="font-semibold text-base">Strict Study Mode</h3>
@@ -713,7 +713,7 @@ const StudentDashboard = () => {
           </div>
 
           {/* Current Affairs Section */}
-          <Card className="p-4 bg-card rounded-2xl">
+          <Card className="p-4 bg-card border border-border/60 rounded-2xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className="w-1 h-5 bg-primary rounded-full" />
@@ -748,7 +748,7 @@ const StudentDashboard = () => {
 
           {/* Mobile Right Sidebar Content */}
           <div className="lg:hidden space-y-4">
-            <Card className="p-4 bg-card rounded-2xl">
+            <Card className="p-4 bg-card border border-border/60 rounded-2xl">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div className="w-1 h-5 bg-primary rounded-full" />
@@ -777,7 +777,7 @@ const StudentDashboard = () => {
               </div>
             </Card>
 
-            <Card className="p-4 bg-card rounded-2xl">
+            <Card className="p-4 bg-card border border-border/60 rounded-2xl">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-1 h-5 bg-primary rounded-full" />
                 <h3 className="font-semibold text-sm">Free Test/Quiz</h3>
@@ -810,7 +810,7 @@ const StudentDashboard = () => {
 
         {/* Right Sidebar - Desktop Only */}
         <div className="hidden lg:block w-72 flex-shrink-0 space-y-4">
-          <Card className="p-4 bg-card rounded-2xl">
+          <Card className="p-4 bg-card border border-border/60 rounded-2xl">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="w-1 h-5 bg-primary rounded-full" />
@@ -851,7 +851,7 @@ const StudentDashboard = () => {
             </div>
           </Card>
 
-          <Card className="p-4 bg-card rounded-2xl">
+          <Card className="p-4 bg-card border border-border/60 rounded-2xl">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-1 h-5 bg-primary rounded-full" />
               <h3 className="font-semibold text-sm">Free Test/Quiz</h3>
@@ -881,7 +881,7 @@ const StudentDashboard = () => {
           </Card>
 
           {/* Strict Study Mode - Sidebar */}
-          <Card className="p-4 bg-card rounded-2xl">
+          <Card className="p-4 bg-card border border-border/60 rounded-2xl">
             <div className="flex items-center gap-2 mb-3">
               <span className="w-2.5 h-2.5 rounded-full bg-destructive animate-pulse" />
               <h3 className="font-semibold text-sm">Strict Study Mode</h3>
@@ -906,7 +906,7 @@ const StudentDashboard = () => {
           </Card>
 
           {/* Top Performers - Sidebar */}
-          <Card className="p-4 bg-card rounded-2xl">
+          <Card className="p-4 bg-card border border-border/60 rounded-2xl">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-1 h-5 bg-primary rounded-full" />
               <h3 className="font-semibold text-sm">Top Performers</h3>
@@ -927,7 +927,7 @@ const StudentDashboard = () => {
           </Card>
 
           {/* Weekly Activity - Sidebar */}
-          <Card className="p-4 bg-card rounded-2xl">
+          <Card className="p-4 bg-card border border-border/60 rounded-2xl">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-1 h-5 bg-primary rounded-full" />
               <h3 className="font-semibold text-sm">Weekly Activity</h3>
@@ -951,7 +951,7 @@ const StudentDashboard = () => {
           </Card>
 
           {/* Word of the Day - Sidebar */}
-          <Card className="p-4 bg-card rounded-2xl">
+          <Card className="p-4 bg-card border border-border/60 rounded-2xl">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-1 h-5 bg-primary rounded-full" />
               <h3 className="font-semibold text-sm">Word of the Day</h3>
