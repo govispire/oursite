@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Settings, Filter, BookOpen, Package } from 'lucide-react';
+import { Check, Settings, Filter, BookOpen, Package, ChevronDown } from 'lucide-react';
 import { useExamCategoryContext } from '@/contexts/ExamCategoryContext';
 
 type FilterType = 'all' | 'regular' | 'combo';
