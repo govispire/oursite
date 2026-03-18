@@ -10,7 +10,7 @@ import {
   Target, ChevronLeft, ChevronRight, Newspaper, Bookmark, LayoutGrid,
   Play, Clock, FileText, TrendingUp, Users, Award, Calendar, BarChart3,
   Trophy, Bell, ExternalLink, ArrowRight, Flame, Sparkles, CheckCircle2,
-  MapPin, Lock, Pause, X, BookOpen
+  MapPin, Lock, Pause, X, BookOpen, Search, ChevronDown
 } from 'lucide-react';
 import NewsArticleDialog from '@/components/student/NewsArticleDialog';
 import StatCardDialog from '@/components/student/StatCardDialog';
