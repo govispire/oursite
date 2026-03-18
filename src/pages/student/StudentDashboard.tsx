@@ -279,6 +279,23 @@ const StudentDashboard = () => {
             </div>
           </Card>
 
+        {/* Search Bar */}
+        <div className="relative w-full">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <input
+            type="text"
+            className="w-full pl-11 pr-4 py-3 bg-card border border-border rounded-xl text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            placeholder="Search tests, courses, topics..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
+        {/* Two-column layout */}
+        <div className="flex flex-col lg:flex-row gap-4">
+          {/* Main Content */}
+          <div className="flex-1 min-w-0 space-y-4 w-full lg:w-auto">
+
           {/* Pastel Stat Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {statCards.map((stat) => {
