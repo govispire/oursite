@@ -195,12 +195,12 @@ const StudentDashboard = () => {
     }
   };
 
+  const [searchQuery, setSearchQuery] = useState('');
+
   return (
     <div className="h-screen overflow-y-auto bg-muted/30">
-      <div className="flex flex-col lg:flex-row gap-4 p-3 sm:p-4 max-w-full">
-        {/* Main Content */}
-        <div className="flex-1 min-w-0 space-y-4 w-full lg:w-auto">
-          {/* Target Examination Card */}
+      <div className="p-3 sm:p-4 max-w-full space-y-4">
+        {/* Full-width Target Examination Card */}
           <Card className="relative overflow-hidden border-0 shadow-lg rounded-2xl bg-gradient-to-br from-[hsl(215,50%,15%)] via-[hsl(210,45%,22%)] to-[hsl(200,60%,30%)] text-white">
             <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, hsl(var(--primary)) 0%, transparent 50%)' }} />
             <div className="relative p-4 sm:p-6">
