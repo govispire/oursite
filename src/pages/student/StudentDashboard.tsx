@@ -986,6 +986,7 @@ const StudentDashboard = () => {
             </Button>
           </Card>
         </div>
+        </div>{/* end flex-row */}
       </div>
 
       {/* Strict Study Mode Full-Screen Overlay */}
