@@ -303,7 +303,7 @@ const StudentDashboard = () => {
               return (
                 <Card 
                   key={stat.key}
-                  className={`p-4 ${stat.bg} border-none shadow-sm hover:shadow-md transition-all cursor-pointer rounded-2xl`}
+                  className={`p-4 ${stat.bg} border border-border/60 shadow-sm hover:shadow-md transition-all cursor-pointer rounded-2xl`}
                   onClick={() => setStatDialogType(stat.key as any)}
                 >
                   <div className="flex items-start justify-between">
