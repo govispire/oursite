@@ -106,6 +106,7 @@ const categoryMapping: Record<string, string> = {
 };
 
 const StudentCourses = () => {
+  const navigate = useNavigate();
   const { courses: globalFilteredCourses, hasFilters, selectedCategories } = useCategoryFilteredCourses();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedExam, setSelectedExam] = useState<string | null>('sbi-po');
