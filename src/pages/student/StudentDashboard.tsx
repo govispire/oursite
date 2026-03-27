@@ -553,9 +553,50 @@ const StudentDashboard = () => {
                 <span className="text-sm font-medium text-emerald-600">↑ +7 marks improvement over last 3 tests</span>
               </div>
             </div>
+           </Card>
+
+          {/* My Courses Progress */}
+          <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-5 bg-primary rounded-full" />
+                <BookOpen className="h-4 w-4 text-primary" />
+                <h3 className="font-semibold text-base">My Courses</h3>
+              </div>
+              <Button variant="link" size="sm" className="gap-1 text-primary" asChild>
+                <Link to="/student/courses">View All <ArrowRight className="h-3.5 w-3.5" /></Link>
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {[
+                { title: 'SBI PO Prelims Crash Course', progress: 65, lessons: 24, total: 36, icon: '🏦' },
+                { title: 'Quant Speed Booster', progress: 42, lessons: 10, total: 25, icon: '📊' },
+                { title: 'Reasoning Master Class', progress: 80, lessons: 20, total: 25, icon: '🧩' },
+              ].map((course, idx) => (
+                <Link key={idx} to="/student/courses" className="block">
+                  <Card className="p-4 border border-border/50 rounded-xl hover:shadow-md hover:border-primary/30 transition-all cursor-pointer">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-lg flex-shrink-0">
+                        {course.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-sm truncate">{course.title}</h4>
+                        <p className="text-xs text-muted-foreground mt-0.5">{course.lessons}/{course.total} lessons completed</p>
+                        <div className="mt-2">
+                          <div className="flex items-center justify-between text-[10px] mb-1">
+                            <span className="text-muted-foreground">Progress</span>
+                            <span className="font-bold text-primary">{course.progress}%</span>
+                          </div>
+                          <Progress value={course.progress} className="h-1.5" />
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </Link>
+              ))}
+            </div>
           </Card>
 
-          {/* Recent Notifications */}
           <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">

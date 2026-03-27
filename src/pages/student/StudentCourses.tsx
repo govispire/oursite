@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -85,11 +86,11 @@ const roadmapSteps = [
 
 // Daily practice items
 const dailyPractice = [
-  { id: 'quiz', title: "Today's Quiz", desc: '15 questions · 10 min', icon: Zap, color: 'text-primary', bg: 'bg-primary/10' },
-  { id: 'ca', title: 'Daily Current Affairs', desc: 'Updated today', icon: Newspaper, color: 'text-primary', bg: 'bg-primary/10' },
-  { id: 'vocab', title: 'Vocabulary Builder', desc: '10 new words', icon: BookOpen, color: 'text-primary', bg: 'bg-primary/10' },
-  { id: 'puzzle', title: 'Puzzle of the Day', desc: 'Reasoning challenge', icon: Brain, color: 'text-primary', bg: 'bg-primary/10' },
-  { id: 'mini', title: 'Mini Mock Test', desc: '30 questions · 20 min', icon: Timer, color: 'text-primary', bg: 'bg-primary/10' },
+  { id: 'quiz', title: "Today's Quiz", desc: '15 questions · 10 min', icon: Zap, color: 'text-primary', bg: 'bg-primary/10', route: '/student/daily-quizzes' },
+  { id: 'ca', title: 'Daily Current Affairs', desc: 'Updated today', icon: Newspaper, color: 'text-primary', bg: 'bg-primary/10', route: '/student/current-affairs' },
+  { id: 'vocab', title: 'Vocabulary Builder', desc: '10 new words', icon: BookOpen, color: 'text-primary', bg: 'bg-primary/10', route: '/student/daily-quizzes' },
+  { id: 'puzzle', title: 'Puzzle of the Day', desc: 'Reasoning challenge', icon: Brain, color: 'text-primary', bg: 'bg-primary/10', route: '/student/speed-drills' },
+  { id: 'mini', title: 'Mini Mock Test', desc: '30 questions · 20 min', icon: Timer, color: 'text-primary', bg: 'bg-primary/10', route: '/student/tests' },
 ];
 
 // Category mapping
@@ -105,6 +106,7 @@ const categoryMapping: Record<string, string> = {
 };
 
 const StudentCourses = () => {
+  const navigate = useNavigate();
   const { courses: globalFilteredCourses, hasFilters, selectedCategories } = useCategoryFilteredCourses();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedExam, setSelectedExam] = useState<string | null>('sbi-po');
@@ -366,6 +368,7 @@ const StudentCourses = () => {
             <Card
               key={item.id}
               className="p-4 cursor-pointer hover:shadow-md transition-all hover:border-primary/30 border border-border group"
+              onClick={() => navigate(item.route)}
             >
               <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-2.5", item.bg)}>
                 <item.icon className={cn("h-5 w-5", item.color)} />
