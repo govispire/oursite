@@ -85,11 +85,11 @@ const roadmapSteps = [
 
 // Daily practice items
 const dailyPractice = [
-  { id: 'quiz', title: "Today's Quiz", desc: '15 questions · 10 min', icon: Zap, color: 'text-primary', bg: 'bg-primary/10' },
-  { id: 'ca', title: 'Daily Current Affairs', desc: 'Updated today', icon: Newspaper, color: 'text-primary', bg: 'bg-primary/10' },
-  { id: 'vocab', title: 'Vocabulary Builder', desc: '10 new words', icon: BookOpen, color: 'text-primary', bg: 'bg-primary/10' },
-  { id: 'puzzle', title: 'Puzzle of the Day', desc: 'Reasoning challenge', icon: Brain, color: 'text-primary', bg: 'bg-primary/10' },
-  { id: 'mini', title: 'Mini Mock Test', desc: '30 questions · 20 min', icon: Timer, color: 'text-primary', bg: 'bg-primary/10' },
+  { id: 'quiz', title: "Today's Quiz", desc: '15 questions · 10 min', icon: Zap, color: 'text-primary', bg: 'bg-primary/10', route: '/student/daily-quizzes' },
+  { id: 'ca', title: 'Daily Current Affairs', desc: 'Updated today', icon: Newspaper, color: 'text-primary', bg: 'bg-primary/10', route: '/student/current-affairs' },
+  { id: 'vocab', title: 'Vocabulary Builder', desc: '10 new words', icon: BookOpen, color: 'text-primary', bg: 'bg-primary/10', route: '/student/daily-quizzes' },
+  { id: 'puzzle', title: 'Puzzle of the Day', desc: 'Reasoning challenge', icon: Brain, color: 'text-primary', bg: 'bg-primary/10', route: '/student/speed-drills' },
+  { id: 'mini', title: 'Mini Mock Test', desc: '30 questions · 20 min', icon: Timer, color: 'text-primary', bg: 'bg-primary/10', route: '/student/tests' },
 ];
 
 // Category mapping
