@@ -368,6 +368,7 @@ const StudentCourses = () => {
             <Card
               key={item.id}
               className="p-4 cursor-pointer hover:shadow-md transition-all hover:border-primary/30 border border-border group"
+              onClick={() => navigate(item.route)}
             >
               <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center mb-2.5", item.bg)}>
                 <item.icon className={cn("h-5 w-5", item.color)} />
