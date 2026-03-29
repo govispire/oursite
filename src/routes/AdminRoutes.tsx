@@ -11,6 +11,7 @@ import EditTests from '@/pages/admin/EditTests';
 import UploadCourses from '@/pages/admin/UploadCourses';
 import AdminNotifications from '@/pages/admin/AdminNotifications';
 import AdminSettings from '@/pages/admin/AdminSettings';
+import ManageSyllabus from '@/pages/admin/ManageSyllabus';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import NotFound from '@/pages/NotFound';
 import ExamInterface from '@/pages/student/ExamInterface';
@@ -28,6 +29,7 @@ const AdminRoutes = () => {
           <Route path="/edit-tests" element={<EditTests />} />
           <Route path="/upload-courses" element={<UploadCourses />} />
           <Route path="/notifications" element={<AdminNotifications />} />
+          <Route path="/manage-syllabus" element={<ManageSyllabus />} />
           <Route path="/settings" element={<AdminSettings />} />
           <Route path="*" element={<NotFound />} />
         </Route>
