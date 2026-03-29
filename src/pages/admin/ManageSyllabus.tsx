@@ -407,7 +407,7 @@ const ManageSyllabus = () => {
                             <TableCell className="text-center">
                               <Badge
                                 variant={hasAllResources ? 'default' : 'secondary'}
-                                className={`text-xs ${hasAllResources ? 'bg-primary/10 text-primary border-primary/20' : 'bg-amber-50 text-amber-700 border-amber-200'}`}
+                                className={`text-xs ${hasAllResources ? 'bg-primary/10 text-primary border-primary/20' : 'bg-muted text-muted-foreground border-border'}`}
                               >
                                 {hasAllResources ? 'Complete' : 'Incomplete'}
                               </Badge>
