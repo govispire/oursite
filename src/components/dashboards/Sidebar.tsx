@@ -237,6 +237,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role, basePath, collapsed }) => {
           { icon: <Users size={18} />, label: 'Manage Students', to: `${basePath}/manage-students` },
           { icon: <FileCheck size={18} />, label: 'Create/Edit Tests', to: `${basePath}/edit-tests` },
           { icon: <Upload size={18} />, label: 'Upload Courses & PDFs', to: `${basePath}/upload-courses` },
+          { icon: <BookOpen size={18} />, label: 'Manage Syllabus', to: `${basePath}/manage-syllabus` },
           { icon: <Bell size={18} />, label: 'Push Notifications', to: `${basePath}/notifications` },
         ];
       case 'super-admin':
