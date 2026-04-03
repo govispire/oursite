@@ -563,7 +563,7 @@ const ManageSyllabus = () => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setEditSubjectDialog({ isOpen: true, subjectId: subject.id, name: subject.name, marks: subject.marks })}>
+                      <DropdownMenuItem onClick={() => setEditSubjectDialog({ isOpen: true, subjectId: subject.id, name: subject.name, marks: String(subject.marks) })}>
                         <Edit className="h-4 w-4 mr-2" /> Edit Subject
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => { setActiveSubjectId(subject.id); setAddTopicDialog(true); }}>
