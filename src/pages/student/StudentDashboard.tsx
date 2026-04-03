@@ -201,41 +201,40 @@ const StudentDashboard = () => {
     <div className="h-screen overflow-y-auto bg-muted/30">
       <div className="p-3 sm:p-4 max-w-full space-y-4">
         {/* Full-width Target Examination Card */}
-          <Card className="relative overflow-hidden border-0 shadow-lg rounded-2xl bg-gradient-to-br from-[hsl(215,50%,15%)] via-[hsl(210,45%,22%)] to-[hsl(200,60%,30%)] text-white">
-            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 80% 20%, hsl(var(--primary)) 0%, transparent 50%)' }} />
-            <div className="relative p-4 sm:p-6">
+          <Card className="overflow-hidden border border-border/80 shadow-sm rounded-2xl bg-card">
+            <div className="p-4 sm:p-6">
               <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <Target className="h-4 w-4 text-sky-300" />
-                    <span className="text-xs font-medium text-sky-300 uppercase tracking-wider">Target Examination</span>
+                    <Target className="h-4 w-4 text-primary" />
+                    <span className="text-xs font-medium text-primary uppercase tracking-wider">Target Examination</span>
                   </div>
-                  <h1 className="text-xl sm:text-2xl font-bold mb-0.5">SBI CLERK</h1>
-                  <p className="text-sm text-white/70 mb-3">Preliminary Examination · 13,735 Vacancies</p>
+                  <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-0.5">SBI CLERK</h1>
+                  <p className="text-sm text-muted-foreground mb-3">Preliminary Examination · 13,735 Vacancies</p>
                   
                   <div className="flex flex-wrap gap-2 mb-4">
-                    <span className="flex items-center gap-1.5 text-xs bg-white/10 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-white/10">
-                      <Bell className="h-3 w-3 text-sky-300" /> Notified: 15 Jan 2026
+                    <span className="flex items-center gap-1.5 text-xs bg-muted/50 px-2.5 py-1.5 rounded-lg border border-border">
+                      <Bell className="h-3 w-3 text-primary" /> Notified: 15 Jan 2026
                     </span>
-                    <span className="flex items-center gap-1.5 text-xs bg-white/10 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-white/10">
-                      <MapPin className="h-3 w-3 text-sky-300" /> Pan India
+                    <span className="flex items-center gap-1.5 text-xs bg-muted/50 px-2.5 py-1.5 rounded-lg border border-border">
+                      <MapPin className="h-3 w-3 text-primary" /> Pan India
                     </span>
-                    <span className="flex items-center gap-1.5 text-xs bg-white/10 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-white/10">
-                      <Clock className="h-3 w-3 text-sky-300" /> 60 min · 100 marks
+                    <span className="flex items-center gap-1.5 text-xs bg-muted/50 px-2.5 py-1.5 rounded-lg border border-border">
+                      <Clock className="h-3 w-3 text-primary" /> 60 min · 100 marks
                     </span>
-                    <span className="flex items-center gap-1.5 text-xs bg-white/10 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-white/10">
-                      <Calendar className="h-3 w-3 text-sky-300" /> Day 47 of Prep
+                    <span className="flex items-center gap-1.5 text-xs bg-muted/50 px-2.5 py-1.5 rounded-lg border border-border">
+                      <Calendar className="h-3 w-3 text-primary" /> Day 47 of Prep
                     </span>
                   </div>
 
                   {/* Overall Progress */}
                   <div className="mb-4">
                     <div className="flex items-center justify-between text-xs mb-1.5">
-                      <span className="text-white/70">Overall Preparation</span>
-                      <span className="font-bold text-sky-300">{overallPrep}%</span>
+                      <span className="text-muted-foreground">Overall Preparation</span>
+                      <span className="font-bold text-primary">{overallPrep}%</span>
                     </div>
-                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-sky-400 to-primary rounded-full transition-all" style={{ width: `${overallPrep}%` }} />
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${overallPrep}%` }} />
                     </div>
                   </div>
 
@@ -244,10 +243,10 @@ const StudentDashboard = () => {
                     {sectionReadiness.map((sec) => (
                       <div key={sec.name}>
                         <div className="flex items-center justify-between text-[11px] mb-0.5">
-                          <span className="text-white/60 truncate">{sec.name}</span>
-                          <span className="font-semibold text-white/90 ml-2">{sec.percent}%</span>
+                          <span className="text-muted-foreground truncate">{sec.name}</span>
+                          <span className="font-semibold text-foreground ml-2">{sec.percent}%</span>
                         </div>
-                        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                           <div className={`h-full ${sec.color} rounded-full`} style={{ width: `${sec.percent}%` }} />
                         </div>
                       </div>
@@ -255,25 +254,25 @@ const StudentDashboard = () => {
                   </div>
 
                   <div className="flex flex-wrap gap-2 mt-4">
-                    <Button size="sm" className="bg-white/15 hover:bg-white/25 text-white border border-white/20 text-xs h-8 backdrop-blur-sm" asChild>
+                    <Button size="sm" variant="outline" className="text-xs h-8" asChild>
                       <Link to="/student/tests"><Play className="h-3 w-3 mr-1" />Start Full Mock</Link>
                     </Button>
-                    <Button size="sm" className="bg-white/15 hover:bg-white/25 text-white border border-white/20 text-xs h-8 backdrop-blur-sm" asChild>
+                    <Button size="sm" variant="outline" className="text-xs h-8" asChild>
                       <Link to="/student/syllabus"><BookOpen className="h-3 w-3 mr-1" />View Syllabus</Link>
                     </Button>
-                    <Button size="sm" className="bg-white/15 hover:bg-white/25 text-white border border-white/20 text-xs h-8 backdrop-blur-sm">
+                    <Button size="sm" variant="outline" className="text-xs h-8">
                       <TrendingUp className="h-3 w-3 mr-1" />Score Prediction
                     </Button>
                   </div>
                 </div>
 
                 {/* Days Left */}
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 text-center min-w-[110px] border border-white/15 flex-shrink-0">
-                  <div className="text-4xl font-black text-white leading-none">{daysLeft}</div>
-                  <div className="text-xs font-medium text-sky-300 mt-1">Days Left</div>
-                  <div className="w-full h-px bg-white/20 my-2" />
-                  <div className="text-[10px] text-white/50">Exam Date</div>
-                  <div className="text-xs font-semibold text-white/80">15 Apr 2026</div>
+                <div className="bg-primary/5 rounded-2xl p-4 text-center min-w-[110px] border border-primary/20 flex-shrink-0">
+                  <div className="text-4xl font-black text-primary leading-none">{daysLeft}</div>
+                  <div className="text-xs font-medium text-primary mt-1">Days Left</div>
+                  <div className="w-full h-px bg-border my-2" />
+                  <div className="text-[10px] text-muted-foreground">Exam Date</div>
+                  <div className="text-xs font-semibold text-foreground">15 Apr 2026</div>
                 </div>
               </div>
             </div>
