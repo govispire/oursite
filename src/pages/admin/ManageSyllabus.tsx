@@ -220,6 +220,7 @@ const ManageSyllabus = () => {
     const newTopic: TopicConfig = {
       id: topicId,
       name: newTopicForm.name,
+      progress: 0,
       videos: [],
       pdfs: [],
       tests: []
