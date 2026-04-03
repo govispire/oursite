@@ -200,7 +200,8 @@ const ManageSyllabus = () => {
     const newSubject: SubjectConfig = {
       id: subjectId,
       name: newSubjectForm.name,
-      marks: newSubjectForm.marks || '35',
+      marks: Number(newSubjectForm.marks) || 35,
+      iconName: 'BookOpen',
       iconBg: newSubjectForm.iconBg,
       topics: []
     };
