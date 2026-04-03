@@ -182,7 +182,7 @@ const ManageSyllabus = () => {
       id: tierId,
       name: newTierForm.name,
       duration: newTierForm.duration || '60 minutes',
-      totalMarks: newTierForm.totalMarks || '100',
+      totalMarks: Number(newTierForm.totalMarks) || 100,
       negativeMarking: newTierForm.negativeMarking || '-0.25 per wrong',
       sectionalCutoff: newTierForm.sectionalCutoff,
       subjects: []
