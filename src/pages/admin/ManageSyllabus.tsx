@@ -304,11 +304,11 @@ const ManageSyllabus = () => {
             topics: s.topics.map(tp => {
               if (tp.id !== topicId) return tp;
               if (type === 'videos') {
-                return { ...tp, videos: [...tp.videos, { id: resourceId, title: addResourceForm.title, instructor: addResourceForm.instructor || 'Instructor', duration: addResourceForm.duration || '15 min', url: '' }] };
+                return { ...tp, videos: [...tp.videos, { id: resourceId, title: addResourceForm.title, instructor: addResourceForm.instructor || 'Instructor', duration: addResourceForm.duration || '15 min', rating: 4.5, completed: false }] };
               } else if (type === 'pdfs') {
-                return { ...tp, pdfs: [...tp.pdfs, { id: resourceId, title: addResourceForm.title, pages: addResourceForm.pages || '10', type: addResourceForm.type || 'Notes', downloadUrl: '' }] };
+                return { ...tp, pdfs: [...tp.pdfs, { id: resourceId, title: addResourceForm.title, pages: Number(addResourceForm.pages) || 10, type: (addResourceForm.type || 'notes') as 'notes' | 'pyq' | 'formulas' | 'summary' }] };
               } else {
-                return { ...tp, tests: [...tp.tests, { id: resourceId, title: addResourceForm.title, questions: addResourceForm.questions || '20', duration: addResourceForm.duration || '30 min', difficulty: (addResourceForm.difficulty || 'Medium') as any }] };
+                return { ...tp, tests: [...tp.tests, { id: resourceId, title: addResourceForm.title, questions: Number(addResourceForm.questions) || 20, duration: addResourceForm.duration || '30 min', difficulty: (addResourceForm.difficulty?.toLowerCase() || 'medium') as 'easy' | 'medium' | 'hard' }] };
               }
             })
           };
