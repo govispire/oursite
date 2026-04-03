@@ -281,7 +281,7 @@ const ManageSyllabus = () => {
       ...exam,
       tiers: exam.tiers.map(t => t.id === selectedTier ? {
         ...t,
-        subjects: t.subjects.map(s => s.id === editSubjectDialog.subjectId ? { ...s, name: editSubjectDialog.name, marks: editSubjectDialog.marks } : s)
+        subjects: t.subjects.map(s => s.id === editSubjectDialog.subjectId ? { ...s, name: editSubjectDialog.name, marks: Number(editSubjectDialog.marks) || s.marks } : s)
       } : t)
     }));
     setEditSubjectDialog({ isOpen: false, subjectId: '', name: '', marks: '' });
