@@ -1,72 +1,73 @@
 
 
-# Dashboard + Admin Manage Syllabus Enhancement Plan
+# Student Dashboard Redesign — Tab-Based Focus Layout
 
-## Part 1: Dashboard — Target Exam Card White Theme
+## Concept
+Replace the current long-scroll dashboard with a **tab-based single-focus layout**. The Target Exam card stays at the top, followed by 4 tabs: **Overview, Practice, Performance, Resources**. Each tab shows only its relevant content, reducing cognitive overload.
 
-### Problem
-The Target Examination card uses a dark navy gradient (`from-[hsl(215,50%,15%)]`) which the user wants changed to white/light.
+## Current vs New Structure
 
-### Solution
-In `src/pages/student/StudentDashboard.tsx` (lines 204-280):
-- Change card background from dark navy gradient to `bg-card` (white) with `border border-border/80`
-- Change all text colors from `text-white`, `text-white/70`, `text-sky-300` to `text-foreground`, `text-muted-foreground`, `text-primary`
-- Change info badges from `bg-white/10 border-white/10` to `bg-muted/50 border-border`
-- Change progress bar backgrounds from `bg-white/10` to `bg-muted`
-- Change Days Left box from `bg-white/10` to `bg-primary/5 border-primary/20`
-- Change action buttons from `bg-white/15 text-white` to standard `variant="outline"` styling
-- Remove the radial gradient overlay `div` (line 205)
-
-## Part 2: Admin Manage Syllabus — Fully Functional CRUD
-
-### Problem
-Currently all dialogs (Add Exam, Add Tier, Add Subject, Add Topic, Edit/Delete resources) only open/close but don't actually modify state. Clicking Save does nothing. Edit/Delete buttons on resources are non-functional.
-
-### Solution
-In `src/pages/admin/ManageSyllabus.tsx`:
-
-1. **Add local mutable state** — Deep clone `allSyllabusData` into a `useState` hook so all CRUD operations modify local state:
-   ```tsx
-   const [syllabusData, setSyllabusData] = useState(() => JSON.parse(JSON.stringify(allSyllabusData)));
-   ```
-
-2. **Add Exam Dialog** — Add form state (`newExamName`, `newExamCategory`, etc.), on Save: create new exam entry in `syllabusData`, select it, close dialog, show toast.
-
-3. **Add Tier Dialog** — Add form state, on Save: push new tier into current exam's tiers array, select it.
-
-4. **Add Subject Dialog** — Add form state, on Save: push new subject into current tier's subjects array.
-
-5. **Add Topic Dialog** — Add form state, on Save: push new topic into the active subject's topics array (identified by `activeSubjectId`).
-
-6. **Delete Topic** — Wire the Trash2 button in the topic table row to remove the topic from state with confirmation.
-
-7. **Edit Topic** — Wire the Edit button to open a dialog pre-filled with topic name, allowing rename.
-
-8. **Delete Subject** — Wire the Trash2 dropdown item to remove subject from state.
-
-9. **Edit Subject** — Wire the Edit dropdown item to open a dialog for renaming.
-
-10. **Resource Management (Videos/PDFs/Tests)**:
-    - **Add Resource**: The "Add Video/PDF/Test" button in the resource dialog opens an inline form with title input (+ instructor/duration for videos, pages/type for PDFs, questions/duration/difficulty for tests). On save, push to the topic's resource array.
-    - **Edit Resource**: Wire the Edit button on each resource card to toggle inline edit mode with pre-filled inputs.
-    - **Delete Resource**: Wire the Trash2 button to remove the resource from the array with confirmation.
-
-11. **Delete Exam** — Wire the "Delete Exam" dropdown menu item to remove exam from state.
-
-12. **Toast notifications** — Import `useToast` and show success messages on each CRUD operation.
-
-### Form State Structure
-Add these states:
-```tsx
-const [newExamForm, setNewExamForm] = useState({ shortName: '', fullName: '', category: '', stages: '', examDate: '', logo: '' });
-const [newTierForm, setNewTierForm] = useState({ name: '', duration: '', totalMarks: '', negativeMarking: '', sectionalCutoff: false });
-const [newSubjectForm, setNewSubjectForm] = useState({ name: '', marks: '', iconBg: 'bg-blue-50' });
-const [newTopicForm, setNewTopicForm] = useState({ name: '', description: '' });
-const [addResourceForm, setAddResourceForm] = useState({ title: '', instructor: '', duration: '', pages: '', type: '', questions: '', difficulty: '' });
-const [editingResourceId, setEditingResourceId] = useState<string | null>(null);
+```text
+CURRENT (scroll-heavy):             NEW (tab-focused):
+┌─────────────────────────┐         ┌──────────────────────────┐
+│ Target Exam Card        │         │ Target Exam Card         │
+│ Search Bar              │         │  + circular progress     │
+│ 4 Stat Cards            │         │  + donut charts per subj │
+│ Current Exam Status     │         │  + Days Left (green box) │
+│ Upcoming Exams          │         │  + Action buttons        │
+│ Performance Graph       │         ├──────────────────────────┤
+│ Study Status Donut      │         │ [Overview][Practice]     │
+│ Mock Test Table         │         │ [Performance][Resources] │
+│ My Courses              │         ├──────────────────────────┤
+│ Notifications           │         │ Tab content only         │
+│ Current Affairs         │         │ (one section at a time)  │
+│ ... (sidebar widgets)   │         └──────────────────────────┘
+└─────────────────────────┘
 ```
 
+## Tab Content Breakdown
+
+### Overview Tab
+- 5 stat cards (Journey Days, Study Hours, Active Streak, Tests Done, Today's Tasks) in a row
+- Today's Goals section (add goal, view history)
+- Study Timer widget (duration picker: 30m, 1hr, 1.5hr, 2hr)
+- Current Exam Status (existing)
+
+### Practice Tab
+- Daily Free Tests card (list of 5 tests with questions/duration/difficulty + "Start Test" buttons)
+- Upcoming Live Tests section (with "Live" badge, register button)
+- Speed Drills quick-access
+
+### Performance Tab
+- Performance Graph (weekly average scores line chart — full width)
+- Exam Percentile gauge (semi-circle gauge showing percentile)
+- Strong/Weak subjects breakdown
+- Recent Mock Test table
+
+### Resources Tab
+- Featured Courses horizontal carousel with course cards (image, title, instructor, badge, rating, price)
+- Upcoming Exams grid (existing)
+- Recent Exam Notifications (existing)
+
+## Target Exam Card Enhancements
+- Add **circular donut charts** for each subject (Quantitative, Reasoning, English, Gen. Awareness) showing percentage, replacing the linear progress bars
+- Add a large **overall circular progress** (64% style) on the right side
+- Keep the green "Days Left" box but make it more prominent with larger font
+- Add exam metadata: date, duration, marks inline
+
+## Key Changes in `StudentDashboard.tsx`
+1. Add `activeTab` state (`'overview' | 'practice' | 'performance' | 'resources'`)
+2. Replace the two-column layout with a single full-width column under tabs
+3. Move sidebar widgets (Top Performers, Weekly Activity, Word of the Day, Strict Mode) into relevant tabs or remove from default view
+4. Replace section-readiness linear bars with circular donut mini-charts using Recharts `PieChart`
+5. Add Today's Goals section with add/history buttons
+6. Add Study Timer with duration picker buttons
+7. Add Daily Free Tests list in Practice tab
+8. Add Exam Percentile gauge in Performance tab
+9. Add Featured Courses carousel in Resources tab
+10. Remove the search bar (content is now organized by tabs)
+11. Remove the right sidebar entirely — all content lives in tabs
+
 ## Files Modified
-1. `src/pages/student/StudentDashboard.tsx` — Target Exam card white theme
-2. `src/pages/admin/ManageSyllabus.tsx` — Full CRUD functionality with local state management
+1. `src/pages/student/StudentDashboard.tsx` — Complete restructure with tab-based layout
 
