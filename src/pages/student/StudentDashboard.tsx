@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import NewsArticleDialog from '@/components/student/NewsArticleDialog';
 import StatCardDialog from '@/components/student/StatCardDialog';
+import ConfettiCelebration from '@/components/student/quiz/ConfettiCelebration';
 import { useSelfCareExams } from '@/hooks/useSelfCareExams';
 import { examNotifications } from '@/data/examNotificationData';
 import { 
@@ -23,19 +24,22 @@ import {
   PieChart, Pie, Cell, AreaChart, Area, BarChart, Bar
 } from 'recharts';
 
-// Stat cards for Overview tab
+// Streak milestone config
+const STREAK_MILESTONES = [7, 15, 30, 50, 75, 100];
+
+// Stat cards — consistent teal/primary palette
 const statCards = [
-  { key: 'journey', label: 'Journey Days', value: '347', sub: 'Preparation ongoing', icon: Calendar, bg: 'bg-sky-50 dark:bg-sky-950/30', iconBg: 'bg-gradient-to-br from-sky-400 to-blue-500', accent: 'text-sky-600' },
-  { key: 'hours', label: 'Study Hours', value: '195', sub: '6+ hours today', icon: Clock, bg: 'bg-violet-50 dark:bg-violet-950/30', iconBg: 'bg-gradient-to-br from-violet-400 to-purple-500', accent: 'text-violet-600' },
-  { key: 'active', label: 'Active Streak', value: '67', sub: 'Days in a row', icon: Flame, bg: 'bg-emerald-50 dark:bg-emerald-950/30', iconBg: 'bg-gradient-to-br from-emerald-400 to-teal-500', accent: 'text-emerald-600' },
-  { key: 'tests', label: 'Tests Done', value: '40', sub: 'Last test 2 days ago', icon: Award, bg: 'bg-orange-50 dark:bg-orange-950/30', iconBg: 'bg-gradient-to-br from-orange-400 to-red-400', accent: 'text-orange-600' },
-  { key: 'tasks', label: "Today's Tasks", value: '3/5', sub: '2 pending', icon: CheckCircle2, bg: 'bg-pink-50 dark:bg-pink-950/30', iconBg: 'bg-gradient-to-br from-pink-400 to-rose-500', accent: 'text-pink-600' },
+  { key: 'journey', label: 'Journey Days', value: '14', sub: 'Since start of prep', icon: Calendar, iconBg: 'bg-primary' },
+  { key: 'hours', label: 'Study Hours', value: '0', sub: 'Complete quizzes to track', icon: Clock, iconBg: 'bg-primary' },
+  { key: 'active', label: 'Active Streak', value: '0', sub: 'Complete 2 quizzes today', icon: Flame, iconBg: 'bg-primary' },
+  { key: 'tests', label: 'Tests Done', value: '0', sub: 'Start your first quiz!', icon: Award, iconBg: 'bg-primary' },
+  { key: 'tasks', label: "Today's Tasks", value: '0/0', sub: '', icon: CheckCircle2, iconBg: 'bg-primary' },
 ] as const;
 
 // Study status donut data
 const studyStatusData = [
   { name: 'Passed', value: 28, color: 'hsl(var(--primary))' },
-  { name: 'Pending', value: 8, color: 'hsl(var(--muted-foreground))' },
+  { name: 'Pending', value: 8, color: 'hsl(var(--muted))' },
   { name: 'Failed', value: 4, color: 'hsl(0 84% 60%)' },
 ];
 
@@ -61,13 +65,10 @@ const topPerformers = [
 
 // Upcoming exams
 const upcomingExamsList = [
-  { name: 'IBPS RRB PO', date: 'Mon, 24 Feb', badge: 'Hot', badgeColor: 'bg-orange-100 text-orange-600', icon: '🏦' },
-  { name: 'IBPS RRB Clerk', date: 'Wed, 26 Feb', badge: 'Hot', badgeColor: 'bg-orange-100 text-orange-600', icon: '🏦' },
-  { name: 'NIACL AO Mains', date: 'Sat, 1 Mar', badge: '7d left', badgeColor: 'bg-amber-100 text-amber-700', icon: '🌐' },
-  { name: 'LIC AAO Mains', date: 'Sun, 2 Mar', badge: '8d left', badgeColor: 'bg-amber-100 text-amber-700', icon: '🌐' },
-  { name: 'SSC CGL Tier 1', date: 'Mon, 10 Mar', badge: 'New', badgeColor: 'bg-blue-100 text-blue-600', icon: '📋' },
-  { name: 'RRB NTPC', date: 'Sat, 15 Mar', badge: '21d left', badgeColor: 'bg-amber-100 text-amber-700', icon: '🚂' },
-  { name: 'SBI PO Prelims', date: 'Sun, 23 Mar', badge: 'Closing', badgeColor: 'bg-red-100 text-red-600', icon: '🏦' },
+  { name: 'SSC CGL', tier: 'Tier I', date: '1 Sept 2026', daysLeft: 142, icon: '📋' },
+  { name: 'IBPS PO', tier: 'Prelims', date: '15 Oct 2026', daysLeft: 186, icon: '🏦' },
+  { name: 'IBPS Clerk', tier: 'Prelims', date: '20 Nov 2026', daysLeft: 222, icon: '🏦' },
+  { name: 'SBI PO', tier: 'Prelims', date: '5 Dec 2026', daysLeft: 237, icon: '🏦' },
 ];
 
 // Recent mock test performance data
@@ -78,12 +79,12 @@ const recentMockTests = [
   { name: 'IBPS RRB PO Mock 3', score: 88, total: 100, accuracy: 81.2, date: '5 Mar 2026', rank: 98 },
 ];
 
-// Section-wise readiness for donut charts
+// Section-wise readiness — consistent teal-green shades
 const sectionReadiness = [
-  { name: 'Quantitative', percent: 72, color: '#38bdf8' },
-  { name: 'Reasoning', percent: 85, color: '#a78bfa' },
-  { name: 'English', percent: 64, color: '#fbbf24' },
-  { name: 'Gen. Awareness', percent: 58, color: '#34d399' },
+  { name: 'Quantitative', percent: 62, color: 'hsl(var(--primary))' },
+  { name: 'Reasoning', percent: 70, color: '#6366f1' },
+  { name: 'English', percent: 65, color: 'hsl(var(--primary))' },
+  { name: 'Gen. Awareness', percent: 58, color: '#f59e0b' },
 ];
 
 const performanceData = [
@@ -112,27 +113,64 @@ const liveTests = [
 ];
 
 // Mini donut chart component for subject readiness
-const SubjectDonut = ({ percent, color, name }: { percent: number; color: string; name: string }) => {
+const SubjectDonut = ({ percent, color, name, size = 'md' }: { percent: number; color: string; name: string; size?: 'sm' | 'md' | 'lg' }) => {
+  const dimensions = size === 'lg' ? { w: 'w-20 h-20 sm:w-24 sm:h-24', inner: 28, outer: 38, textSize: 'text-base sm:text-lg' } 
+    : size === 'md' ? { w: 'w-16 h-16 sm:w-20 sm:h-20', inner: 22, outer: 32, textSize: 'text-sm' }
+    : { w: 'w-14 h-14 sm:w-16 sm:h-16', inner: 18, outer: 25, textSize: 'text-xs' };
   const data = [
     { value: percent },
     { value: 100 - percent },
   ];
   return (
-    <div className="flex flex-col items-center gap-1">
-      <div className="relative w-14 h-14 sm:w-16 sm:h-16">
+    <div className="flex flex-col items-center gap-1.5">
+      <div className={`relative ${dimensions.w}`}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie data={data} cx="50%" cy="50%" innerRadius={18} outerRadius={25} dataKey="value" strokeWidth={0} startAngle={90} endAngle={-270}>
+            <Pie data={data} cx="50%" cy="50%" innerRadius={dimensions.inner} outerRadius={dimensions.outer} dataKey="value" strokeWidth={0} startAngle={90} endAngle={-270}>
               <Cell fill={color} />
               <Cell fill="hsl(var(--muted))" />
             </Pie>
           </PieChart>
         </ResponsiveContainer>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-xs font-bold text-foreground">{percent}%</span>
+          <span className={`${dimensions.textSize} font-bold text-foreground`}>{percent}%</span>
         </div>
       </div>
-      <span className="text-[10px] font-medium text-muted-foreground text-center leading-tight">{name}</span>
+      <span className="text-[10px] sm:text-xs font-medium text-muted-foreground text-center leading-tight">{name}</span>
+    </div>
+  );
+};
+
+// Streak Milestone Banner
+const StreakMilestoneBanner = ({ currentStreak, onClose }: { currentStreak: number; onClose: () => void }) => {
+  const milestone = STREAK_MILESTONES.find(m => m === currentStreak);
+  if (!milestone) return null;
+  
+  const messages: Record<number, string> = {
+    7: '🔥 1 Week Streak! You\'re building a habit!',
+    15: '⚡ 15 Day Streak! Consistency is key!',
+    30: '🏆 30 Day Champion! One month strong!',
+    50: '🌟 50 Day Legend! Halfway to 100!',
+    75: '💎 75 Day Diamond! Almost there!',
+    100: '👑 100 Day Master! Incredible dedication!',
+  };
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-4 sm:p-5 animate-fade-in">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl">
+            {currentStreak >= 100 ? '👑' : currentStreak >= 50 ? '🌟' : '🔥'}
+          </div>
+          <div>
+            <h3 className="font-bold text-base sm:text-lg">{messages[milestone]}</h3>
+            <p className="text-xs opacity-80 mt-0.5">Keep going! Next milestone: {STREAK_MILESTONES.find(m => m > currentStreak) || '∞'} days</p>
+          </div>
+        </div>
+        <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-white/10 flex-shrink-0" onClick={onClose}>
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 };
@@ -164,6 +202,11 @@ const StudentDashboard = () => {
   ]);
   const [newGoal, setNewGoal] = useState('');
 
+  // Streak celebration state
+  const [currentStreak] = useState(67); // Would come from real data
+  const [showStreakBanner, setShowStreakBanner] = useState(false);
+  const [triggerConfetti, setTriggerConfetti] = useState(false);
+
   const { exams: selfCareExams } = useSelfCareExams();
   const recentNotifications = examNotifications.slice(0, 5);
 
@@ -183,10 +226,20 @@ const StudentDashboard = () => {
 
   const totalTests = studyStatusData.reduce((a, b) => a + b.value, 0);
 
-  const examDate = new Date('2026-04-15');
+  const examDate = new Date('2026-10-05');
   const today = new Date();
   const daysLeft = Math.max(0, Math.ceil((examDate.getTime() - today.getTime()) / 86400000));
-  const overallPrep = 72;
+  const overallPrep = 64;
+
+  // Check for streak milestone on mount
+  useEffect(() => {
+    if (STREAK_MILESTONES.includes(currentStreak)) {
+      setShowStreakBanner(true);
+      setTriggerConfetti(true);
+      const timer = setTimeout(() => setTriggerConfetti(false), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [currentStreak]);
 
   // Study timer effect
   useEffect(() => {
@@ -256,80 +309,80 @@ const StudentDashboard = () => {
     { value: 100 - overallPrep },
   ];
 
+  // Dynamic stat card values based on goals
+  const dynamicStatCards = statCards.map(s => {
+    if (s.key === 'tasks') {
+      const done = goals.filter(g => g.done).length;
+      return { ...s, value: `${done}/${goals.length}`, sub: `${goals.length - done} pending` };
+    }
+    return s;
+  });
+
   return (
     <div className="h-screen overflow-y-auto bg-muted/30">
+      {/* Confetti for streak milestones */}
+      <ConfettiCelebration trigger={triggerConfetti} type="milestone" />
+
       <div className="p-3 sm:p-4 max-w-full space-y-4">
 
-        {/* Enhanced Target Examination Card */}
+        {/* Streak Milestone Banner */}
+        {showStreakBanner && (
+          <StreakMilestoneBanner currentStreak={currentStreak} onClose={() => setShowStreakBanner(false)} />
+        )}
+
+        {/* Enhanced Target Examination Card — with top accent bar */}
         <Card className="overflow-hidden border border-border/80 shadow-sm rounded-2xl bg-card">
+          {/* Top accent bar */}
+          <div className="h-1 bg-gradient-to-r from-primary via-primary/80 to-primary/40" />
           <div className="p-4 sm:p-6">
-            <div className="flex flex-col lg:flex-row items-start gap-4 lg:gap-6">
-              {/* Left: Info */}
+            <div className="flex flex-col lg:flex-row items-start gap-6">
+              {/* Left: Info + Donuts */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <Target className="h-4 w-4 text-primary" />
-                  <span className="text-xs font-medium text-primary uppercase tracking-wider">Target Examination</span>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Target className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="text-xs font-semibold text-primary uppercase tracking-wider">Target Examination</span>
                 </div>
-                <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-0.5">SBI CLERK</h1>
-                <p className="text-sm text-muted-foreground mb-3">Preliminary Examination · 13,735 Vacancies</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-0.5">IBPS RRB-PO</h1>
+                <p className="text-sm text-muted-foreground mb-3">Preliminary Examination • 9,985 Vacancies</p>
                 
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="flex items-center gap-1.5 text-xs bg-muted/50 px-2.5 py-1.5 rounded-lg border border-border">
-                    <Clock className="h-3 w-3 text-primary" /> 60 min · 100 marks
+                <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mb-5">
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="h-3.5 w-3.5 text-primary" /> 5 Oct 2026
                   </span>
-                  <span className="flex items-center gap-1.5 text-xs bg-muted/50 px-2.5 py-1.5 rounded-lg border border-border">
-                    <Calendar className="h-3 w-3 text-primary" /> Day 47 of Prep
-                  </span>
-                  <span className="flex items-center gap-1.5 text-xs bg-muted/50 px-2.5 py-1.5 rounded-lg border border-border">
-                    <MapPin className="h-3 w-3 text-primary" /> Pan India
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5 text-primary" /> 45 min • 80 Marks
                   </span>
                 </div>
 
                 {/* Subject-wise Donut Charts */}
-                <div className="flex items-center gap-4 sm:gap-6 mb-4">
+                <div className="flex items-center gap-3 sm:gap-5 mb-5">
+                  <SubjectDonut percent={overallPrep} color="hsl(var(--primary))" name="Overall" size="lg" />
                   {sectionReadiness.map((sec) => (
-                    <SubjectDonut key={sec.name} percent={sec.percent} color={sec.color} name={sec.name} />
+                    <SubjectDonut key={sec.name} percent={sec.percent} color={sec.color} name={sec.name} size="md" />
                   ))}
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm" variant="default" className="text-xs h-8 gap-1" asChild>
-                    <Link to="/student/tests"><Play className="h-3 w-3" />Start Full Mock</Link>
+                  <Button size="sm" variant="default" className="text-xs h-9 gap-1.5 rounded-lg" asChild>
+                    <Link to="/student/tests"><Play className="h-3.5 w-3.5" />Start Full Mock</Link>
                   </Button>
-                  <Button size="sm" variant="outline" className="text-xs h-8 gap-1" asChild>
-                    <Link to="/student/syllabus"><BookOpen className="h-3 w-3" />View Syllabus</Link>
+                  <Button size="sm" variant="outline" className="text-xs h-9 gap-1.5 rounded-lg" asChild>
+                    <Link to="/student/syllabus"><BookOpen className="h-3.5 w-3.5" />View Syllabus</Link>
                   </Button>
-                  <Button size="sm" variant="outline" className="text-xs h-8 gap-1">
-                    <TrendingUp className="h-3 w-3" />Score Prediction
+                  <Button size="sm" variant="outline" className="text-xs h-9 gap-1.5 rounded-lg">
+                    <TrendingUp className="h-3.5 w-3.5" />Score Prediction
                   </Button>
                 </div>
               </div>
 
-              {/* Right: Overall Progress + Days Left */}
-              <div className="flex flex-row lg:flex-col items-center gap-4 flex-shrink-0">
-                {/* Overall Circular Progress */}
-                <div className="relative w-24 h-24 sm:w-28 sm:h-28">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={overallDonutData} cx="50%" cy="50%" innerRadius={32} outerRadius={44} dataKey="value" strokeWidth={0} startAngle={90} endAngle={-270}>
-                        <Cell fill="hsl(var(--primary))" />
-                        <Cell fill="hsl(var(--muted))" />
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-xl sm:text-2xl font-black text-primary">{overallPrep}%</span>
-                    <span className="text-[9px] text-muted-foreground">Overall</span>
-                  </div>
-                </div>
-
-                {/* Days Left Box */}
-                <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl p-4 text-center min-w-[110px] border border-emerald-200 dark:border-emerald-800">
-                  <div className="text-3xl sm:text-4xl font-black text-emerald-600 leading-none">{daysLeft}</div>
-                  <div className="text-xs font-semibold text-emerald-600 mt-1">Days Left</div>
-                  <div className="w-full h-px bg-emerald-200 dark:bg-emerald-800 my-2" />
-                  <div className="text-[10px] text-muted-foreground">Exam Date</div>
-                  <div className="text-xs font-semibold text-foreground">15 Apr 2026</div>
+              {/* Right: Days Left Box */}
+              <div className="flex-shrink-0">
+                <div className="bg-gradient-to-b from-primary to-primary/80 rounded-2xl p-5 sm:p-6 text-center min-w-[140px] sm:min-w-[160px] text-primary-foreground">
+                  <div className="text-5xl sm:text-6xl font-black leading-none">{daysLeft}</div>
+                  <div className="text-sm font-bold mt-2 uppercase tracking-wider">Days Left</div>
+                  <div className="text-xs opacity-80 mt-1">to exam day</div>
                 </div>
               </div>
             </div>
@@ -338,42 +391,43 @@ const StudentDashboard = () => {
 
         {/* Tab Navigation */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="w-full grid grid-cols-4 h-11 rounded-xl bg-muted/60 border border-border/60">
-            <TabsTrigger value="overview" className="text-xs sm:text-sm font-medium rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1">
+          <TabsList className="w-full grid grid-cols-4 h-11 rounded-xl bg-card border border-border/60">
+            <TabsTrigger value="overview" className="text-xs sm:text-sm font-medium rounded-lg data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none gap-1.5 border-b-2 border-transparent data-[state=active]:border-primary">
               <LayoutGrid className="h-3.5 w-3.5 hidden sm:block" />Overview
             </TabsTrigger>
-            <TabsTrigger value="practice" className="text-xs sm:text-sm font-medium rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1">
-              <Zap className="h-3.5 w-3.5 hidden sm:block" />Practice
+            <TabsTrigger value="practice" className="text-xs sm:text-sm font-medium rounded-lg data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none gap-1.5 border-b-2 border-transparent data-[state=active]:border-primary">
+              <BookOpen className="h-3.5 w-3.5 hidden sm:block" />Practice
             </TabsTrigger>
-            <TabsTrigger value="performance" className="text-xs sm:text-sm font-medium rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1">
-              <BarChart3 className="h-3.5 w-3.5 hidden sm:block" />Performance
+            <TabsTrigger value="performance" className="text-xs sm:text-sm font-medium rounded-lg data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none gap-1.5 border-b-2 border-transparent data-[state=active]:border-primary">
+              <TrendingUp className="h-3.5 w-3.5 hidden sm:block" />Performance
             </TabsTrigger>
-            <TabsTrigger value="resources" className="text-xs sm:text-sm font-medium rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1">
-              <BookOpen className="h-3.5 w-3.5 hidden sm:block" />Resources
+            <TabsTrigger value="resources" className="text-xs sm:text-sm font-medium rounded-lg data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-none gap-1.5 border-b-2 border-transparent data-[state=active]:border-primary">
+              <BarChart3 className="h-3.5 w-3.5 hidden sm:block" />Resources
             </TabsTrigger>
           </TabsList>
 
           {/* =================== OVERVIEW TAB =================== */}
           <TabsContent value="overview" className="space-y-4 mt-4">
-            {/* 5 Stat Cards */}
+            {/* 5 Stat Cards — consistent primary-colored icons */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-              {statCards.map((stat) => {
+              {dynamicStatCards.map((stat) => {
                 const Icon = stat.icon;
                 return (
                   <Card 
                     key={stat.key}
-                    className={`p-3 sm:p-4 ${stat.bg} border border-border/60 shadow-sm hover:shadow-md transition-all cursor-pointer rounded-2xl`}
+                    className="p-3 sm:p-4 bg-card border border-border/60 shadow-sm hover:shadow-md transition-all cursor-pointer rounded-2xl"
                     onClick={() => stat.key !== 'tasks' && setStatDialogType(stat.key as any)}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
-                        <p className="text-[10px] sm:text-xs font-medium text-muted-foreground mb-1 truncate">{stat.label}</p>
+                        <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${stat.iconBg} flex items-center justify-center mb-2`}>
+                          <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
+                        </div>
                         <p className="text-xl sm:text-2xl font-bold text-foreground">{stat.value}</p>
-                        <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{stat.sub}</p>
+                        <p className="text-[10px] sm:text-xs font-medium text-muted-foreground mt-0.5">{stat.label}</p>
+                        <p className="text-[10px] text-muted-foreground/70 mt-0.5">{stat.sub}</p>
                       </div>
-                      <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl ${stat.iconBg} flex items-center justify-center shadow-lg flex-shrink-0`}>
-                        <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-                      </div>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground/40 flex-shrink-0 mt-1" />
                     </div>
                   </Card>
                 );
@@ -386,23 +440,29 @@ const StudentDashboard = () => {
               <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-1 h-5 bg-primary rounded-full" />
-                    <CheckCircle2 className="h-4 w-4 text-primary" />
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <CheckCircle2 className="h-4 w-4 text-primary" />
+                    </div>
                     <h3 className="font-semibold text-base">Today's Goals</h3>
                   </div>
-                  <Badge variant="outline" className="text-xs">
-                    {goals.filter(g => g.done).length}/{goals.length} done
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" variant="default" className="h-7 text-xs gap-1 rounded-lg" onClick={() => document.getElementById('goal-input')?.focus()}>
+                      + Add Goal
+                    </Button>
+                    <Button size="sm" variant="outline" className="h-7 text-xs gap-1 rounded-lg">
+                      <Calendar className="h-3 w-3" />History
+                    </Button>
+                  </div>
                 </div>
                 <div className="space-y-2 mb-3">
                   {goals.map((goal) => (
                     <div 
                       key={goal.id} 
-                      className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all ${goal.done ? 'bg-emerald-50 dark:bg-emerald-950/20' : 'bg-muted/30 hover:bg-muted/50'}`}
+                      className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-all ${goal.done ? 'bg-primary/5' : 'bg-muted/30 hover:bg-muted/50'}`}
                       onClick={() => toggleGoal(goal.id)}
                     >
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${goal.done ? 'bg-emerald-500 border-emerald-500' : 'border-muted-foreground/40'}`}>
-                        {goal.done && <CheckCircle2 className="h-3 w-3 text-white" />}
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${goal.done ? 'bg-primary border-primary' : 'border-muted-foreground/40'}`}>
+                        {goal.done && <CheckCircle2 className="h-3 w-3 text-primary-foreground" />}
                       </div>
                       <span className={`text-sm flex-1 ${goal.done ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{goal.text}</span>
                     </div>
@@ -410,8 +470,9 @@ const StudentDashboard = () => {
                 </div>
                 <div className="flex gap-2">
                   <input
+                    id="goal-input"
                     type="text"
-                    className="flex-1 text-sm border border-border rounded-lg px-3 py-2 bg-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="flex-1 text-sm border border-border rounded-lg px-3 py-2 bg-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                     placeholder="Add a new goal..."
                     value={newGoal}
                     onChange={(e) => setNewGoal(e.target.value)}
@@ -423,10 +484,21 @@ const StudentDashboard = () => {
 
               {/* Study Timer */}
               <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-1 h-5 bg-primary rounded-full" />
-                  <Timer className="h-4 w-4 text-primary" />
-                  <h3 className="font-semibold text-base">Study Timer</h3>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Timer className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-base">Study Timer</h3>
+                      <p className="text-[10px] text-muted-foreground">Beginner · Max 180 min</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Badge variant="outline" className="text-xs gap-1 h-6">
+                      <Lock className="h-3 w-3" />Normal
+                    </Badge>
+                  </div>
                 </div>
                 
                 <div className="text-center mb-4">
@@ -446,31 +518,34 @@ const StudentDashboard = () => {
                           key={mins} 
                           variant={timerMinutes === mins ? 'default' : 'outline'} 
                           size="sm" 
-                          className="text-xs"
+                          className="text-xs rounded-lg"
                           onClick={() => { setTimerMinutes(mins); setTimerSeconds(mins * 60); }}
                         >
                           {mins >= 60 ? `${mins / 60}hr` : `${mins}m`}
                         </Button>
                       ))}
                     </div>
-                    <Button className="w-full gap-2" onClick={() => startTimer(timerMinutes)}>
+                    <Button className="w-full gap-2 rounded-lg" onClick={() => startTimer(timerMinutes)}>
                       <Play className="h-4 w-4" />Start Studying
                     </Button>
                   </>
                 ) : (
                   <div className="flex gap-2">
-                    <Button variant="outline" className="flex-1 gap-1" onClick={() => setTimerPaused(!timerPaused)}>
+                    <Button variant="outline" className="flex-1 gap-1 rounded-lg" onClick={() => setTimerPaused(!timerPaused)}>
                       {timerPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
                       {timerPaused ? 'Resume' : 'Pause'}
                     </Button>
-                    <Button variant="destructive" className="gap-1" onClick={() => { setTimerActive(false); setTimerSeconds(timerMinutes * 60); }}>
+                    <Button variant="destructive" className="gap-1 rounded-lg" onClick={() => { setTimerActive(false); setTimerSeconds(timerMinutes * 60); }}>
                       <X className="h-4 w-4" />Stop
                     </Button>
                   </div>
                 )}
 
                 <div className="mt-4 pt-3 border-t border-border/40">
-                  <Button variant="ghost" size="sm" className="w-full gap-2 text-xs text-destructive hover:text-destructive" onClick={startStrictMode}>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
+                    <span>Custom Duration — Max 180 min</span>
+                  </div>
+                  <Button variant="ghost" size="sm" className="w-full gap-2 text-xs text-destructive hover:text-destructive rounded-lg" onClick={startStrictMode}>
                     <Lock className="h-3.5 w-3.5" />Start Strict Mode (25 min focus)
                   </Button>
                 </div>
@@ -485,17 +560,17 @@ const StudentDashboard = () => {
                     <Trophy className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-base">Your Current Exams Status</h3>
-                    <p className="text-xs text-muted-foreground">Tracking <span className="text-primary font-semibold">{selfCareExams.length}</span> active applications</p>
+                    <h3 className="font-semibold text-base text-primary">Your Current Exams Status</h3>
+                    <p className="text-xs text-muted-foreground">Tracking <span className="text-primary font-semibold">{selfCareExams.length || 3}</span> active applications</p>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" className="gap-1" asChild>
+                <Button variant="outline" size="sm" className="gap-1 rounded-lg text-primary border-primary/30 hover:bg-primary/5" asChild>
                   <Link to="/student/self-care">View All <ArrowRight className="h-3.5 w-3.5" /></Link>
                 </Button>
               </div>
               {selfCareExams.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {selfCareExams.slice(0, 4).map((exam) => {
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {selfCareExams.slice(0, 3).map((exam) => {
                     const currentStageIdx = exam.stages.findIndex(s => s.status === 'pending');
                     return (
                       <Card key={exam.id} className="p-4 border border-border/60 rounded-xl hover:shadow-md transition-shadow">
@@ -513,7 +588,7 @@ const StudentDashboard = () => {
                             <React.Fragment key={idx}>
                               <div className={`flex flex-col items-center ${idx <= currentStageIdx || currentStageIdx === -1 ? '' : 'opacity-40'}`}>
                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 ${
-                                  stage.status === 'cleared' ? 'bg-emerald-500 text-white border-emerald-500' :
+                                  stage.status === 'cleared' ? 'bg-primary text-primary-foreground border-primary' :
                                   stage.status === 'pending' && idx === currentStageIdx ? 'bg-primary text-primary-foreground border-primary border-dashed' :
                                   'bg-muted text-muted-foreground border-muted'
                                 }`}>
@@ -524,7 +599,7 @@ const StudentDashboard = () => {
                                 </span>
                               </div>
                               {idx < exam.stages.length - 1 && (
-                                <div className={`flex-1 h-0.5 mt-[-12px] ${stage.status === 'cleared' ? 'bg-emerald-400' : 'bg-muted'}`} />
+                                <div className={`flex-1 h-0.5 mt-[-12px] ${stage.status === 'cleared' ? 'bg-primary' : 'bg-muted'}`} />
                               )}
                             </React.Fragment>
                           ))}
@@ -543,11 +618,43 @@ const StudentDashboard = () => {
                 <div className="text-center py-8 text-muted-foreground">
                   <Trophy className="h-10 w-10 mx-auto mb-2 opacity-30" />
                   <p className="text-sm">No active exam applications yet.</p>
-                  <Button variant="outline" size="sm" className="mt-2" asChild>
+                  <Button variant="outline" size="sm" className="mt-2 rounded-lg" asChild>
                     <Link to="/student/self-care">Add Your First Exam</Link>
                   </Button>
                 </div>
               )}
+            </Card>
+
+            {/* Upcoming Exams (from reference image) */}
+            <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  <h3 className="font-semibold text-base">Upcoming Exams</h3>
+                </div>
+                <Button variant="link" size="sm" className="gap-1 text-primary" asChild>
+                  <Link to="/student/exam-notifications">View All <ArrowRight className="h-3.5 w-3.5" /></Link>
+                </Button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {upcomingExamsList.map((exam, idx) => (
+                  <Link key={idx} to="/student/exam-notifications">
+                    <Card className="p-4 text-center border-t-[3px] border-t-primary border border-border/50 rounded-xl hover:shadow-md transition-all cursor-pointer">
+                      <div className="w-12 h-12 mx-auto rounded-xl bg-primary/10 flex items-center justify-center text-2xl mb-3">
+                        {exam.icon}
+                      </div>
+                      <p className="text-sm font-bold text-foreground mb-0.5">{exam.name}</p>
+                      <p className="text-xs text-muted-foreground mb-2">{exam.tier}</p>
+                      <p className="text-xs text-muted-foreground flex items-center justify-center gap-1 mb-2">
+                        <Calendar className="h-3 w-3" />{exam.date}
+                      </p>
+                      <Badge className="bg-primary text-primary-foreground text-xs font-bold px-3 py-1">
+                        • {exam.daysLeft} DAYS LEFT
+                      </Badge>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
             </Card>
           </TabsContent>
 
@@ -557,8 +664,9 @@ const StudentDashboard = () => {
             <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-primary rounded-full" />
-                  <FileText className="h-4 w-4 text-primary" />
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <FileText className="h-4 w-4 text-primary" />
+                  </div>
                   <h3 className="font-semibold text-base">Daily Free Tests</h3>
                 </div>
                 <Button variant="link" size="sm" className="gap-1 text-primary" asChild>
@@ -581,7 +689,7 @@ const StudentDashboard = () => {
                         </p>
                       </div>
                     </div>
-                    <Button size="sm" className="h-8 gap-1"><Play className="h-3 w-3" />Start</Button>
+                    <Button size="sm" className="h-8 gap-1 rounded-lg"><Play className="h-3 w-3" />Start</Button>
                   </div>
                 ))}
               </div>
@@ -590,8 +698,9 @@ const StudentDashboard = () => {
             {/* Upcoming Live Tests */}
             <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-1 h-5 bg-destructive rounded-full" />
-                <Zap className="h-4 w-4 text-destructive" />
+                <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center">
+                  <Zap className="h-4 w-4 text-destructive" />
+                </div>
                 <h3 className="font-semibold text-base">Upcoming Live Tests</h3>
               </div>
               <div className="space-y-3">
@@ -613,7 +722,7 @@ const StudentDashboard = () => {
                         </p>
                       </div>
                     </div>
-                    <Button size="sm" variant={test.isLive ? 'default' : 'outline'} className="h-8 gap-1">
+                    <Button size="sm" variant={test.isLive ? 'default' : 'outline'} className="h-8 gap-1 rounded-lg">
                       {test.isLive ? <><Play className="h-3 w-3" />Join Now</> : 'Register'}
                     </Button>
                   </div>
@@ -625,8 +734,9 @@ const StudentDashboard = () => {
             <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-amber-500 rounded-full" />
-                  <Sparkles className="h-4 w-4 text-amber-500" />
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                  </div>
                   <h3 className="font-semibold text-base">Speed Drills</h3>
                 </div>
                 <Button variant="link" size="sm" className="gap-1 text-primary" asChild>
@@ -636,8 +746,8 @@ const StudentDashboard = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {['Simplification', 'Number Series', 'Syllogism', 'Reading Comp.'].map((drill, idx) => (
                   <Card key={idx} className="p-3 text-center border border-border/50 rounded-xl hover:shadow-md hover:border-primary/30 transition-all cursor-pointer">
-                    <div className="w-10 h-10 mx-auto rounded-xl bg-amber-50 dark:bg-amber-950/30 flex items-center justify-center mb-2">
-                      <Zap className="h-5 w-5 text-amber-500" />
+                    <div className="w-10 h-10 mx-auto rounded-xl bg-primary/10 flex items-center justify-center mb-2">
+                      <Zap className="h-5 w-5 text-primary" />
                     </div>
                     <p className="text-xs font-semibold text-foreground">{drill}</p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">10 Qs · 5 min</p>
@@ -652,49 +762,53 @@ const StudentDashboard = () => {
             {/* Performance Graph */}
             <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-1 h-6 bg-primary rounded-full" />
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                </div>
                 <div>
                   <h3 className="font-semibold text-base">Weekly Performance</h3>
                   <p className="text-xs text-muted-foreground">Average scores over 8 weeks</p>
                 </div>
                 <div className="ml-auto flex items-center gap-4 text-xs">
                   <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-primary" />Tests</span>
-                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-sky-300" />Quizzes</span>
+                  <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-primary/40" />Quizzes</span>
                 </div>
               </div>
-              <div className="h-[300px] w-full">
+              <div className="h-[240px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={performanceData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                  <AreaChart data={performanceData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
                     <defs>
-                      <linearGradient id="testGrad" x1="0" y1="0" x2="0" y2="1">
+                      <linearGradient id="testGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
                         <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                       </linearGradient>
-                      <linearGradient id="quizGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#7dd3fc" stopOpacity={0.2} />
-                        <stop offset="95%" stopColor="#7dd3fc" stopOpacity={0} />
+                      <linearGradient id="quizGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.15} />
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="week" tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} />
-                    <YAxis tick={{ fontSize: 12 }} stroke="hsl(var(--muted-foreground))" domain={[0, 100]} tickLine={false} axisLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px', fontSize: '12px' }} />
-                    <Area type="monotone" dataKey="quizzes" stroke="#7dd3fc" strokeWidth={2.5} fill="url(#quizGrad)" dot={{ fill: '#7dd3fc', strokeWidth: 2, r: 4 }} />
-                    <Area type="monotone" dataKey="tests" stroke="hsl(var(--primary))" strokeWidth={2.5} fill="url(#testGrad)" dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                    <XAxis dataKey="week" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} />
+                    <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} domain={[30, 100]} />
+                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '11px' }} />
+                    <Area type="monotone" dataKey="tests" stroke="hsl(var(--primary))" fill="url(#testGradient)" strokeWidth={2} dot={{ r: 3, fill: 'hsl(var(--primary))' }} />
+                    <Area type="monotone" dataKey="quizzes" stroke="hsl(var(--primary))" fill="url(#quizGradient)" strokeWidth={2} strokeDasharray="4 4" dot={{ r: 3, fill: 'hsl(var(--primary))', strokeDasharray: '0' }} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
             </Card>
 
-            {/* Study Status + Percentile */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Percentile + Study Status */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Study Status Donut */}
               <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-1 h-5 bg-primary rounded-full" />
-                  <h3 className="font-semibold text-base">Study Status</h3>
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <BarChart3 className="h-4 w-4 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-base">Test Status</h3>
                 </div>
-                <div className="h-52 relative">
+                <div className="relative w-40 h-40 mx-auto">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie data={studyStatusData} cx="50%" cy="50%" innerRadius={55} outerRadius={80} dataKey="value" strokeWidth={0}>
@@ -723,7 +837,9 @@ const StudentDashboard = () => {
               {/* Exam Percentile + Strong/Weak */}
               <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
                 <div className="flex items-center gap-2 mb-4">
-                  <div className="w-1 h-5 bg-primary rounded-full" />
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Trophy className="h-4 w-4 text-primary" />
+                  </div>
                   <h3 className="font-semibold text-base">Your Standing</h3>
                 </div>
                 <div className="text-center mb-4">
@@ -734,14 +850,14 @@ const StudentDashboard = () => {
                 <div className="space-y-3 mt-4">
                   <div>
                     <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="flex items-center gap-1.5 text-emerald-600 font-medium"><TrendingUp className="h-3 w-3" />Strongest: Reasoning</span>
+                      <span className="flex items-center gap-1.5 text-primary font-medium"><TrendingUp className="h-3 w-3" />Strongest: Reasoning</span>
                       <span className="font-bold">85%</span>
                     </div>
                     <Progress value={85} className="h-1.5" />
                   </div>
                   <div>
                     <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="flex items-center gap-1.5 text-amber-600 font-medium"><TrendingUp className="h-3 w-3 rotate-180" />Weakest: Gen. Awareness</span>
+                      <span className="flex items-center gap-1.5 text-muted-foreground font-medium"><TrendingUp className="h-3 w-3 rotate-180" />Weakest: Gen. Awareness</span>
                       <span className="font-bold">58%</span>
                     </div>
                     <Progress value={58} className="h-1.5" />
@@ -764,8 +880,9 @@ const StudentDashboard = () => {
             <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-primary rounded-full" />
-                  <BarChart3 className="h-4 w-4 text-primary" />
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <BarChart3 className="h-4 w-4 text-primary" />
+                  </div>
                   <h3 className="font-semibold text-base">Recent Mock Tests</h3>
                 </div>
                 <Button variant="link" size="sm" className="gap-1 text-primary" asChild>
@@ -787,7 +904,7 @@ const StudentDashboard = () => {
                     {recentMockTests.map((test, idx) => (
                       <tr key={idx} className="border-b border-border/30 hover:bg-muted/30 transition-colors">
                         <td className="py-3 px-3"><p className="font-medium text-sm text-foreground">{test.name}</p></td>
-                        <td className="text-center py-3 px-3"><span className="font-bold text-emerald-600">{test.score}</span><span className="text-muted-foreground">/{test.total}</span></td>
+                        <td className="text-center py-3 px-3"><span className="font-bold text-primary">{test.score}</span><span className="text-muted-foreground">/{test.total}</span></td>
                         <td className="text-center py-3 px-3"><span className="font-medium">{test.accuracy}%</span></td>
                         <td className="text-center py-3 px-3 text-muted-foreground hidden sm:table-cell">{test.date}</td>
                         <td className="text-center py-3 px-3"><Badge className="bg-primary/10 text-primary border-0 font-bold">#{test.rank}</Badge></td>
@@ -798,8 +915,8 @@ const StudentDashboard = () => {
               </div>
               <div className="mt-3 pt-3 border-t border-border/40">
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-emerald-500" />
-                  <span className="text-sm font-medium text-emerald-600">↑ +7 marks improvement over last 3 tests</span>
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium text-primary">↑ +7 marks improvement over last 3 tests</span>
                 </div>
               </div>
             </Card>
@@ -807,7 +924,9 @@ const StudentDashboard = () => {
             {/* Weekly Activity */}
             <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-1 h-5 bg-primary rounded-full" />
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Calendar className="h-4 w-4 text-primary" />
+                </div>
                 <h3 className="font-semibold text-base">Weekly Activity</h3>
                 <span className="ml-auto text-xs font-medium text-primary">This Week</span>
               </div>
@@ -835,8 +954,9 @@ const StudentDashboard = () => {
             <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-primary rounded-full" />
-                  <GraduationCap className="h-4 w-4 text-primary" />
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <GraduationCap className="h-4 w-4 text-primary" />
+                  </div>
                   <h3 className="font-semibold text-base">Featured Courses</h3>
                 </div>
                 <Button variant="link" size="sm" className="gap-1 text-primary" asChild>
@@ -877,44 +997,13 @@ const StudentDashboard = () => {
               </div>
             </Card>
 
-            {/* Upcoming Exams */}
-            <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-primary rounded-full" />
-                  <TrendingUp className="h-4 w-4 text-primary" />
-                  <h3 className="font-semibold text-base">Upcoming Exams</h3>
-                </div>
-                <Button variant="link" size="sm" className="gap-1 text-primary" asChild>
-                  <Link to="/student/exam-notifications">View More <ArrowRight className="h-3.5 w-3.5" /></Link>
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
-                {upcomingExamsList.map((exam, idx) => (
-                  <Link key={idx} to="/student/exam-notifications">
-                    <Card className="p-3 text-center border border-border/50 rounded-xl hover:shadow-md transition-all cursor-pointer hover:border-primary/30">
-                      <div className="w-12 h-12 mx-auto rounded-xl bg-muted/60 flex items-center justify-center text-2xl mb-2">
-                        {exam.icon}
-                      </div>
-                      <p className="text-xs font-semibold text-foreground leading-tight mb-1 line-clamp-2">{exam.name}</p>
-                      <p className="text-[10px] text-muted-foreground flex items-center justify-center gap-1 mb-1.5">
-                        <Calendar className="h-2.5 w-2.5" />{exam.date}
-                      </p>
-                      <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${exam.badgeColor}`}>
-                        {exam.badge}
-                      </span>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
-            </Card>
-
             {/* Notifications */}
             <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-primary rounded-full" />
-                  <Bell className="h-4 w-4 text-primary" />
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Bell className="h-4 w-4 text-primary" />
+                  </div>
                   <h3 className="font-semibold text-base">Recent Notifications</h3>
                 </div>
                 <Button variant="link" size="sm" className="gap-1 text-primary" asChild>
@@ -951,7 +1040,9 @@ const StudentDashboard = () => {
             {/* Word of the Day */}
             <Card className="p-4 sm:p-5 bg-card border border-border/60 rounded-2xl">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-1 h-5 bg-primary rounded-full" />
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <BookOpen className="h-4 w-4 text-primary" />
+                </div>
                 <h3 className="font-semibold text-base">Word of the Day</h3>
                 <span className="ml-auto text-xs text-muted-foreground">
                   {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
@@ -977,7 +1068,7 @@ const StudentDashboard = () => {
                     ))}
                   </div>
                 </div>
-                <Button variant="outline" size="sm" className="gap-1 text-xs flex-shrink-0">
+                <Button variant="outline" size="sm" className="gap-1 text-xs flex-shrink-0 rounded-lg">
                   <Bookmark className="h-3 w-3" />Save
                 </Button>
               </div>
@@ -987,8 +1078,9 @@ const StudentDashboard = () => {
             <Card className="p-4 bg-card border border-border/60 rounded-2xl">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-primary rounded-full" />
-                  <Newspaper className="h-4 w-4 text-primary" />
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Newspaper className="h-4 w-4 text-primary" />
+                  </div>
                   <h3 className="font-semibold text-base">Current Affairs</h3>
                 </div>
                 <Button variant="link" size="sm" className="gap-1 text-primary" asChild>
@@ -1031,14 +1123,14 @@ const StudentDashboard = () => {
               <p className="text-base font-medium text-white/80">Quantitative Aptitude - Practice Set 5</p>
             </div>
             <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mb-8">
-              <div className="h-full rounded-full bg-gradient-to-r from-destructive to-emerald-500 transition-all duration-1000" style={{ width: `${strictProgress}%` }} />
+              <div className="h-full rounded-full bg-gradient-to-r from-destructive to-primary transition-all duration-1000" style={{ width: `${strictProgress}%` }} />
             </div>
             <div className="flex items-center justify-center gap-4">
-              <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 gap-2" onClick={() => setIsStrictPaused(!isStrictPaused)}>
+              <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 gap-2 rounded-lg" onClick={() => setIsStrictPaused(!isStrictPaused)}>
                 {isStrictPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
                 {isStrictPaused ? 'Resume' : 'Pause'}
               </Button>
-              <Button variant="outline" className="border-destructive/50 text-destructive hover:bg-destructive/10 gap-2" onClick={() => { setIsStrictModeActive(false); setStrictTimeLeft(25 * 60); }}>
+              <Button variant="outline" className="border-destructive/50 text-destructive hover:bg-destructive/10 gap-2 rounded-lg" onClick={() => { setIsStrictModeActive(false); setStrictTimeLeft(25 * 60); }}>
                 <X className="h-4 w-4" />End Session
               </Button>
             </div>
