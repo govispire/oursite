@@ -1,73 +1,176 @@
 
 
-# Student Dashboard Redesign — Tab-Based Focus Layout
+# Smart Mentorship Pipeline — Implementation Plan
 
-## Concept
-Replace the current long-scroll dashboard with a **tab-based single-focus layout**. The Target Exam card stays at the top, followed by 4 tabs: **Overview, Practice, Performance, Resources**. Each tab shows only its relevant content, reducing cognitive overload.
+## Scope
+Build a complete mentorship onboarding + auto-matching + monitoring system across Student, Mentor, and Superadmin roles. All data stored client-side using localStorage (no backend yet) so the flow is fully demoable.
 
-## Current vs New Structure
+---
+
+## Part 1: Extended Student Onboarding (`/student/exam-categories`)
+
+Extend the existing `ExamCategorySelection` page into a multi-step wizard:
 
 ```text
-CURRENT (scroll-heavy):             NEW (tab-focused):
-┌─────────────────────────┐         ┌──────────────────────────┐
-│ Target Exam Card        │         │ Target Exam Card         │
-│ Search Bar              │         │  + circular progress     │
-│ 4 Stat Cards            │         │  + donut charts per subj │
-│ Current Exam Status     │         │  + Days Left (green box) │
-│ Upcoming Exams          │         │  + Action buttons        │
-│ Performance Graph       │         ├──────────────────────────┤
-│ Study Status Donut      │         │ [Overview][Practice]     │
-│ Mock Test Table         │         │ [Performance][Resources] │
-│ My Courses              │         ├──────────────────────────┤
-│ Notifications           │         │ Tab content only         │
-│ Current Affairs         │         │ (one section at a time)  │
-│ ... (sidebar widgets)   │         └──────────────────────────┘
-└─────────────────────────┘
+Step 1: Exam Category    →  Banking / SSC / Railway / UPSC / TNPSC / NEET / Insurance
+Step 2: Target Exam      →  SBI Clerk / IBPS PO / SSC CGL / RRB NTPC ...
+Step 3: Stage            →  Prelims / Mains / Interview / Overall
+Step 4: Subjects         →  English / Quant / Reasoning / GA  (+ Interview for Mains)
+Step 5: Language         →  English / Hindi / Tamil / Malayalam / Kannada / Telugu
+Step 6: Learning Style   →  Strict / Balanced / Flexible
+Step 7: Confirm Profile  →  Summary card with edit buttons
+Step 8: Matching Loader  →  Animated "finding mentor" screen
+Step 9: Mentor Assigned  →  Success card with mentor details + CTAs
 ```
 
-## Tab Content Breakdown
+**New file**: `src/pages/student/MentorshipOnboarding.tsx` (multi-step wizard)
+**New hook**: `src/hooks/useMentorshipOnboarding.ts` (saves to localStorage)
+**New data**: `src/data/mentorPoolData.ts` (~15 mock mentors with language/stage/capacity)
 
-### Overview Tab
-- 5 stat cards (Journey Days, Study Hours, Active Streak, Tests Done, Today's Tasks) in a row
-- Today's Goals section (add goal, view history)
-- Study Timer widget (duration picker: 30m, 1hr, 1.5hr, 2hr)
-- Current Exam Status (existing)
+---
 
-### Practice Tab
-- Daily Free Tests card (list of 5 tests with questions/duration/difficulty + "Start Test" buttons)
-- Upcoming Live Tests section (with "Live" badge, register button)
-- Speed Drills quick-access
+## Part 2: Auto Mentor Matching Engine
 
-### Performance Tab
-- Performance Graph (weekly average scores line chart — full width)
-- Exam Percentile gauge (semi-circle gauge showing percentile)
-- Strong/Weak subjects breakdown
-- Recent Mock Test table
+**New file**: `src/lib/mentorMatching.ts`
 
-### Resources Tab
-- Featured Courses horizontal carousel with course cards (image, title, instructor, badge, rating, price)
-- Upcoming Exams grid (existing)
-- Recent Exam Notifications (existing)
+Matching priority:
+1. Same preferred language
+2. Same stage expertise (Prelims/Mains/Interview/Overall)
+3. Same exam category
+4. Mentor capacity < 20 students
+5. Highest rating
 
-## Target Exam Card Enhancements
-- Add **circular donut charts** for each subject (Quantitative, Reasoning, English, Gen. Awareness) showing percentage, replacing the linear progress bars
-- Add a large **overall circular progress** (64% style) on the right side
-- Keep the green "Days Left" box but make it more prominent with larger font
-- Add exam metadata: date, duration, marks inline
+Fallback: language → stage → overall → manual queue.
 
-## Key Changes in `StudentDashboard.tsx`
-1. Add `activeTab` state (`'overview' | 'practice' | 'performance' | 'resources'`)
-2. Replace the two-column layout with a single full-width column under tabs
-3. Move sidebar widgets (Top Performers, Weekly Activity, Word of the Day, Strict Mode) into relevant tabs or remove from default view
-4. Replace section-readiness linear bars with circular donut mini-charts using Recharts `PieChart`
-5. Add Today's Goals section with add/history buttons
-6. Add Study Timer with duration picker buttons
-7. Add Daily Free Tests list in Practice tab
-8. Add Exam Percentile gauge in Performance tab
-9. Add Featured Courses carousel in Resources tab
-10. Remove the search bar (content is now organized by tabs)
-11. Remove the right sidebar entirely — all content lives in tabs
+Stores assignment in `localStorage` key `mentorAssignment` and increments mentor's student count.
 
-## Files Modified
-1. `src/pages/student/StudentDashboard.tsx` — Complete restructure with tab-based layout
+---
+
+## Part 3: 5-Test Diagnostic Flow
+
+After mentor assignment, redirect to `/student/diagnostic-tests`.
+
+**New file**: `src/pages/student/DiagnosticTests.tsx`
+
+Shows 5 test cards generated dynamically based on stage + subjects:
+- For Prelims: English / Quant / Reasoning / GA / Mini Mock
+- For Mains: Deep English / Advanced Quant / Reasoning / GA / Full Mock
+
+After completion → diagnostic result page with strong/weak/average breakdown using existing `Recharts`.
+
+**New file**: `src/pages/student/DiagnosticResults.tsx`
+
+---
+
+## Part 4: Student Mentorship Dashboard Updates
+
+Update `src/pages/student/MentorshipDashboard.tsx` to show:
+- Assigned mentor card (name, photo, expertise, language, capacity)
+- Today's tasks (predefined + mentor-added)
+- Diagnostic profile (weak/strong areas)
+- Chat shortcut
+- Leaderboard rank
+- Review mentor button
+
+**New components**:
+- `src/components/student/mentorship/AssignedMentorCard.tsx`
+- `src/components/student/mentorship/DailyTaskList.tsx`
+- `src/components/student/mentorship/MentorChat.tsx`
+- `src/components/student/mentorship/MentorReviewDialog.tsx`
+
+---
+
+## Part 5: Mentor Dashboard
+
+Update `src/pages/mentor/MentorDashboard.tsx` and related pages with:
+
+**Tab-based layout**:
+- **Overview**: Total students, today's completion %, pending messages, alerts
+- **Students**: Filterable list (language/stage/score/activity) with student detail drill-down
+- **Tasks**: Task assignment builder (templates + custom + batch)
+- **Chat**: Inbox with 1:1 + batch messaging + pinned messages
+- **Analytics**: Test performance trends, weak-area heatmap per student
+- **Leaderboard**: Task completion, mock scores, streaks, discipline panel
+
+**New components**:
+- `src/components/mentor/StudentListPanel.tsx`
+- `src/components/mentor/StudentDetailDrawer.tsx`
+- `src/components/mentor/TaskBuilderDialog.tsx`
+- `src/components/mentor/MentorChatPanel.tsx`
+- `src/components/mentor/TestAnalyticsPanel.tsx`
+- `src/components/mentor/MentorLeaderboard.tsx`
+
+---
+
+## Part 6: Superadmin Mentor Pipeline
+
+Update `src/pages/superadmin/SuperAdminDashboard.tsx` and add new pages:
+
+- `src/pages/superadmin/MentorManagement.tsx` — create/approve mentors, assign language/stage tags, capacity control
+- `src/pages/superadmin/AllocationDashboard.tsx` — live allocation: available students, available mentors, overloaded mentors, manual reassignment
+- `src/pages/superadmin/MentorPerformance.tsx` — mentor ratings, response time, student success %, engagement
+- `src/pages/superadmin/MentorReviews.tsx` — student reviews + flags
+
+Add routes to `src/routes/SuperAdminRoutes.tsx`.
+
+---
+
+## Part 7: Shared State + Data
+
+**New context**: `src/contexts/MentorshipContext.tsx` — single source of truth for:
+- Onboarding profile
+- Assigned mentor
+- Tasks (predefined + mentor-added)
+- Messages thread
+- Diagnostic results
+- Reviews
+
+All persisted to localStorage so refresh keeps state.
+
+**New data files**:
+- `src/data/mentorPoolData.ts` — 15 mentors
+- `src/data/diagnosticTestBank.ts` — test sets per exam/stage
+- `src/data/predefinedTasks.ts` — daily task templates per exam
+
+---
+
+## Part 8: Routes
+
+Add to `StudentRoutes.tsx`:
+- `/student/mentorship-onboarding`
+- `/student/diagnostic-tests`
+- `/student/diagnostic-results`
+- `/student/mentor-chat`
+
+Add to `MentorRoutes.tsx`:
+- Refined dashboard tabs (already exist as separate pages — consolidate)
+
+Add to `SuperAdminRoutes.tsx`:
+- `/super-admin/mentor-management`
+- `/super-admin/allocation`
+- `/super-admin/mentor-performance`
+- `/super-admin/mentor-reviews`
+
+---
+
+## Files Summary
+
+**New (17)**:
+- 1 context, 1 hook, 1 matching lib
+- 4 student pages (onboarding wizard, diagnostic tests, results, chat)
+- 4 student components (mentor card, tasks, chat, review)
+- 6 mentor components (list, detail, task builder, chat, analytics, leaderboard)
+- 4 superadmin pages (management, allocation, performance, reviews)
+- 3 data files (mentors, diagnostic bank, predefined tasks)
+
+**Modified (5)**:
+- `StudentRoutes.tsx`, `MentorRoutes.tsx`, `SuperAdminRoutes.tsx`
+- `MentorshipDashboard.tsx`, `MentorDashboard.tsx`
+
+---
+
+## Notes
+- Backend not enabled — using localStorage. When ready to scale, this should migrate to Lovable Cloud (Supabase) with proper tables for mentors, assignments, tasks, messages, reviews, and an RLS-protected `user_roles` table.
+- Chat is simulated (no realtime) until backend is enabled.
+- Build proceeds in this order: Onboarding → Matching → Diagnostic → Student Dashboard → Mentor Dashboard → Superadmin.
 
