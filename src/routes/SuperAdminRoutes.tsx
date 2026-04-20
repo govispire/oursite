@@ -8,6 +8,10 @@ import CreateAdmins from '@/pages/superadmin/CreateAdmins';
 import ManageUsers from '@/pages/superadmin/ManageUsers';
 import PaymentPlans from '@/pages/superadmin/PaymentPlans';
 import SuperAdminAnalytics from '@/pages/superadmin/SuperAdminAnalytics';
+import MentorManagement from '@/pages/superadmin/MentorManagement';
+import AllocationDashboard from '@/pages/superadmin/AllocationDashboard';
+import MentorPerformance from '@/pages/superadmin/MentorPerformance';
+import MentorReviews from '@/pages/superadmin/MentorReviews';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import NotFound from '@/pages/NotFound';
 
@@ -22,6 +26,10 @@ const SuperAdminRoutes = () => {
           <Route path="/manage-users" element={<ManageUsers />} />
           <Route path="/payment-plans" element={<PaymentPlans />} />
           <Route path="/analytics" element={<SuperAdminAnalytics />} />
+          <Route path="/mentor-management" element={<MentorManagement />} />
+          <Route path="/allocation" element={<AllocationDashboard />} />
+          <Route path="/mentor-performance" element={<MentorPerformance />} />
+          <Route path="/mentor-reviews" element={<MentorReviews />} />
           <Route path="*" element={<NotFound />} />
         </Route>
       </Route>
