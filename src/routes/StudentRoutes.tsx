@@ -21,6 +21,10 @@ import FAQ from '@/pages/student/FAQ';
 import ZeroToHero from '@/pages/student/ZeroToHero';
 import MentorshipDashboard from '@/pages/student/MentorshipDashboard';
 import MentorshipSelection from '@/pages/student/MentorshipSelection';
+import MentorshipOnboarding from '@/pages/student/MentorshipOnboarding';
+import DiagnosticTests from '@/pages/student/DiagnosticTests';
+import DiagnosticResults from '@/pages/student/DiagnosticResults';
+import MentorChat from '@/pages/student/MentorChat';
 import StudentProfile from '@/pages/student/StudentProfile';
 import ExamCategorySelection from '@/pages/student/ExamCategorySelection';
 import CourseDetail from '@/pages/student/CourseDetail';
@@ -40,6 +44,10 @@ const StudentRoutes = () => {
         {/* Standalone pages */}
         <Route path="/exam-categories" element={<ExamCategorySelection />} />
         <Route path="/mentorship/selection" element={<MentorshipSelection />} />
+        <Route path="/mentorship-onboarding" element={<MentorshipOnboarding />} />
+        <Route path="/diagnostic-tests" element={<DiagnosticTests />} />
+        <Route path="/diagnostic-results" element={<DiagnosticResults />} />
+        <Route path="/mentor-chat" element={<MentorChat />} />
         
         {/* Regular dashboard routes */}
         <Route element={<DashboardLayout role="student" basePath="/student" />}>

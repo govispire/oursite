@@ -3,6 +3,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { StudentDataProvider } from '@/contexts/StudentDataContext';
 import { ExamCategoryProvider } from '@/contexts/ExamCategoryContext';
+import { MentorshipProvider } from '@/contexts/MentorshipContext';
 import StudentRoutes from '@/routes/StudentRoutes';
 import MentorRoutes from '@/routes/MentorRoutes';
 import AdminRoutes from '@/routes/AdminRoutes';
@@ -27,6 +28,7 @@ function App() {
       <AuthProvider>
         <StudentDataProvider>
           <ExamCategoryProvider>
+            <MentorshipProvider>
             <div className="min-h-screen bg-background">
               <Routes>
                 <Route path="/" element={<Index />} />
@@ -49,6 +51,7 @@ function App() {
               </Routes>
               <Toaster />
             </div>
+            </MentorshipProvider>
           </ExamCategoryProvider>
         </StudentDataProvider>
       </AuthProvider>
