@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Link, useNavigate } from 'react-router-dom';
-import { Star, Users, Clock, Play, BookOpen, TrendingUp, Eye } from 'lucide-react';
+import { Star, Users, Clock, Play, BookOpen, TrendingUp, Eye, Flame, Timer, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DemoVideoPreview } from './DemoVideoPreview';
+
+export type SmartTag = 'Bestseller' | 'Beginner Friendly' | 'High Scoring' | 'Most Selected' | 'Trending';
 
 interface MinimalistCourseCardProps {
   course: {
@@ -27,11 +29,25 @@ interface MinimalistCourseCardProps {
     subjects?: string[];
   };
   variant?: 'default' | 'compact' | 'featured';
+  smartTag?: SmartTag;
+  urgencyText?: string;
+  reason?: string;
 }
+
+const SMART_TAG_STYLES: Record<SmartTag, string> = {
+  'Bestseller': 'bg-amber-500 text-white',
+  'Beginner Friendly': 'bg-emerald-500 text-white',
+  'High Scoring': 'bg-rose-500 text-white',
+  'Most Selected': 'bg-violet-500 text-white',
+  'Trending': 'bg-orange-500 text-white',
+};
 
 export const MinimalistCourseCard: React.FC<MinimalistCourseCardProps> = ({ 
   course, 
-  variant = 'default' 
+  variant = 'default',
+  smartTag,
+  urgencyText,
+  reason,
 }) => {
   const [showDemo, setShowDemo] = useState(false);
   const navigate = useNavigate();
@@ -132,11 +148,18 @@ export const MinimalistCourseCard: React.FC<MinimalistCourseCardProps> = ({
           />
           
           {/* Overlay badges */}
-          <div className="absolute top-2 left-2 flex gap-1.5">
+          <div className="absolute top-2 left-2 flex flex-wrap gap-1.5 max-w-[80%]">
             <Badge className="bg-black/70 text-white text-[10px] backdrop-blur-sm">
               {course.type}
             </Badge>
-            {course.isTrending && (
+            {smartTag && (
+              <Badge className={cn("text-[10px]", SMART_TAG_STYLES[smartTag])}>
+                {smartTag === 'Bestseller' && <Sparkles className="h-2.5 w-2.5 mr-0.5" />}
+                {smartTag === 'Trending' && <TrendingUp className="h-2.5 w-2.5 mr-0.5" />}
+                {smartTag}
+              </Badge>
+            )}
+            {!smartTag && course.isTrending && (
               <Badge className="bg-orange-500 text-white text-[10px]">
                 <TrendingUp className="h-2.5 w-2.5 mr-0.5" />
                 Trending
@@ -178,6 +201,12 @@ export const MinimalistCourseCard: React.FC<MinimalistCourseCardProps> = ({
         
         {/* Content */}
         <div className="p-4 flex-1 flex flex-col">
+          {reason && (
+            <div className="flex items-center gap-1 mb-1.5 text-[10px] text-primary font-medium bg-primary/10 px-2 py-1 rounded-md w-fit">
+              <Sparkles className="h-3 w-3" />
+              <span className="line-clamp-1">{reason}</span>
+            </div>
+          )}
           <Link to={`/student/courses/${course.id}`}>
             <h3 className="font-semibold text-sm line-clamp-2 text-foreground group-hover:text-primary transition-colors">
               {course.title}
@@ -223,17 +252,28 @@ export const MinimalistCourseCard: React.FC<MinimalistCourseCardProps> = ({
           )}
           
           {/* Pricing and CTA */}
-          <div className="mt-auto pt-4 flex items-center justify-between border-t border-border/50">
-            <div>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-lg font-bold text-primary">₹{course.price.toLocaleString()}</span>
-                {course.originalPrice && (
-                  <span className="text-xs text-muted-foreground line-through">
-                    ₹{course.originalPrice.toLocaleString()}
-                  </span>
+          <div className="mt-auto pt-4 border-t border-border/50">
+            {urgencyText && (
+              <div className="flex items-center gap-1 mb-2 text-[10px] font-medium text-orange-600">
+                {urgencyText.toLowerCase().includes('end') ? (
+                  <Timer className="h-3 w-3" />
+                ) : (
+                  <Flame className="h-3 w-3" />
                 )}
+                <span>{urgencyText}</span>
               </div>
-            </div>
+            )}
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-lg font-bold text-primary">₹{course.price.toLocaleString()}</span>
+                  {course.originalPrice && (
+                    <span className="text-xs text-muted-foreground line-through">
+                      ₹{course.originalPrice.toLocaleString()}
+                    </span>
+                  )}
+                </div>
+              </div>
             
             <div className="flex gap-1.5">
               <Button 
@@ -265,6 +305,7 @@ export const MinimalistCourseCard: React.FC<MinimalistCourseCardProps> = ({
                   'Start Now'
                 )}
               </Button>
+            </div>
             </div>
           </div>
         </div>
