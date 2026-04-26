@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Link, useNavigate } from 'react-router-dom';
-import { Star, Users, Clock, Play, BookOpen, TrendingUp, Eye } from 'lucide-react';
+import { Star, Users, Clock, Play, BookOpen, TrendingUp, Eye, Flame, Timer, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DemoVideoPreview } from './DemoVideoPreview';
+
+export type SmartTag = 'Bestseller' | 'Beginner Friendly' | 'High Scoring' | 'Most Selected' | 'Trending';
 
 interface MinimalistCourseCardProps {
   course: {
@@ -27,7 +29,18 @@ interface MinimalistCourseCardProps {
     subjects?: string[];
   };
   variant?: 'default' | 'compact' | 'featured';
+  smartTag?: SmartTag;
+  urgencyText?: string;
+  reason?: string;
 }
+
+const SMART_TAG_STYLES: Record<SmartTag, string> = {
+  'Bestseller': 'bg-amber-500 text-white',
+  'Beginner Friendly': 'bg-emerald-500 text-white',
+  'High Scoring': 'bg-rose-500 text-white',
+  'Most Selected': 'bg-violet-500 text-white',
+  'Trending': 'bg-orange-500 text-white',
+};
 
 export const MinimalistCourseCard: React.FC<MinimalistCourseCardProps> = ({ 
   course, 
