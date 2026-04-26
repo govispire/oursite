@@ -148,11 +148,18 @@ export const MinimalistCourseCard: React.FC<MinimalistCourseCardProps> = ({
           />
           
           {/* Overlay badges */}
-          <div className="absolute top-2 left-2 flex gap-1.5">
+          <div className="absolute top-2 left-2 flex flex-wrap gap-1.5 max-w-[80%]">
             <Badge className="bg-black/70 text-white text-[10px] backdrop-blur-sm">
               {course.type}
             </Badge>
-            {course.isTrending && (
+            {smartTag && (
+              <Badge className={cn("text-[10px]", SMART_TAG_STYLES[smartTag])}>
+                {smartTag === 'Bestseller' && <Sparkles className="h-2.5 w-2.5 mr-0.5" />}
+                {smartTag === 'Trending' && <TrendingUp className="h-2.5 w-2.5 mr-0.5" />}
+                {smartTag}
+              </Badge>
+            )}
+            {!smartTag && course.isTrending && (
               <Badge className="bg-orange-500 text-white text-[10px]">
                 <TrendingUp className="h-2.5 w-2.5 mr-0.5" />
                 Trending
