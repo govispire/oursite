@@ -306,6 +306,7 @@ export const MinimalistCourseCard: React.FC<MinimalistCourseCardProps> = ({
                 )}
               </Button>
             </div>
+            </div>
           </div>
         </div>
       </Card>
