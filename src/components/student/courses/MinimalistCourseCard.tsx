@@ -44,7 +44,10 @@ const SMART_TAG_STYLES: Record<SmartTag, string> = {
 
 export const MinimalistCourseCard: React.FC<MinimalistCourseCardProps> = ({ 
   course, 
-  variant = 'default' 
+  variant = 'default',
+  smartTag,
+  urgencyText,
+  reason,
 }) => {
   const [showDemo, setShowDemo] = useState(false);
   const navigate = useNavigate();
