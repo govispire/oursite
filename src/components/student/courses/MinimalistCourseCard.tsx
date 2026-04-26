@@ -252,17 +252,28 @@ export const MinimalistCourseCard: React.FC<MinimalistCourseCardProps> = ({
           )}
           
           {/* Pricing and CTA */}
-          <div className="mt-auto pt-4 flex items-center justify-between border-t border-border/50">
-            <div>
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-lg font-bold text-primary">₹{course.price.toLocaleString()}</span>
-                {course.originalPrice && (
-                  <span className="text-xs text-muted-foreground line-through">
-                    ₹{course.originalPrice.toLocaleString()}
-                  </span>
+          <div className="mt-auto pt-4 border-t border-border/50">
+            {urgencyText && (
+              <div className="flex items-center gap-1 mb-2 text-[10px] font-medium text-orange-600">
+                {urgencyText.toLowerCase().includes('end') ? (
+                  <Timer className="h-3 w-3" />
+                ) : (
+                  <Flame className="h-3 w-3" />
                 )}
+                <span>{urgencyText}</span>
               </div>
-            </div>
+            )}
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-lg font-bold text-primary">₹{course.price.toLocaleString()}</span>
+                  {course.originalPrice && (
+                    <span className="text-xs text-muted-foreground line-through">
+                      ₹{course.originalPrice.toLocaleString()}
+                    </span>
+                  )}
+                </div>
+              </div>
             
             <div className="flex gap-1.5">
               <Button 
