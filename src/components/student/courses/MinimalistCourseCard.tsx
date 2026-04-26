@@ -201,6 +201,12 @@ export const MinimalistCourseCard: React.FC<MinimalistCourseCardProps> = ({
         
         {/* Content */}
         <div className="p-4 flex-1 flex flex-col">
+          {reason && (
+            <div className="flex items-center gap-1 mb-1.5 text-[10px] text-primary font-medium bg-primary/10 px-2 py-1 rounded-md w-fit">
+              <Sparkles className="h-3 w-3" />
+              <span className="line-clamp-1">{reason}</span>
+            </div>
+          )}
           <Link to={`/student/courses/${course.id}`}>
             <h3 className="font-semibold text-sm line-clamp-2 text-foreground group-hover:text-primary transition-colors">
               {course.title}
