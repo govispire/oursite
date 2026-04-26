@@ -1,176 +1,103 @@
 
+# Student Courses Page Redesign — Marketplace-Grade UX
 
-# Smart Mentorship Pipeline — Implementation Plan
+## Goal
+Transform `/student/courses` from a long, flat list into a discovery → retention → conversion funnel that mirrors top edtech marketplaces.
 
-## Scope
-Build a complete mentorship onboarding + auto-matching + monitoring system across Student, Mentor, and Superadmin roles. All data stored client-side using localStorage (no backend yet) so the flow is fully demoable.
-
----
-
-## Part 1: Extended Student Onboarding (`/student/exam-categories`)
-
-Extend the existing `ExamCategorySelection` page into a multi-step wizard:
+## New Page Structure (top → bottom)
 
 ```text
-Step 1: Exam Category    →  Banking / SSC / Railway / UPSC / TNPSC / NEET / Insurance
-Step 2: Target Exam      →  SBI Clerk / IBPS PO / SSC CGL / RRB NTPC ...
-Step 3: Stage            →  Prelims / Mains / Interview / Overall
-Step 4: Subjects         →  English / Quant / Reasoning / GA  (+ Interview for Mains)
-Step 5: Language         →  English / Hindi / Tamil / Malayalam / Kannada / Telugu
-Step 6: Learning Style   →  Strict / Balanced / Flexible
-Step 7: Confirm Profile  →  Summary card with edit buttons
-Step 8: Matching Loader  →  Animated "finding mentor" screen
-Step 9: Mentor Assigned  →  Success card with mentor details + CTAs
+1. DISCOVERY HEADER          → category + search + streak/notifications
+2. EXAM FILTER BAR           → SBI Clerk · IBPS PO · SSC CGL · RRB NTPC ...
+3. ADVANCED FILTERS          → Level · Language · Price · Duration · Sort
+4. MY ENROLLED COURSES       → progress bar + Continue CTA  (retention)
+5. FREE TEST CTA STRIP       → "Not sure? Take a free test → get a recommendation"
+6. RECOMMENDED FOR YOU       → AI-style reasoning chips ("Because you're weak in Quant")
+7. COURSE CARDS GRID         → conversion-optimized cards w/ urgency + smart tags
+8. PREPARATION ROADMAP       → keep (compact)
+9. TRUST + VALUE STRIP       → instructors · students · success rate · tests · support
 ```
 
-**New file**: `src/pages/student/MentorshipOnboarding.tsx` (multi-step wizard)
-**New hook**: `src/hooks/useMentorshipOnboarding.ts` (saves to localStorage)
-**New data**: `src/data/mentorPoolData.ts` (~15 mock mentors with language/stage/capacity)
+The current "Smart Preparation Banner", "Daily Practice Zone", "Exam Stage Tabs", "Exam Countdown" are kept but reordered/condensed so the page feels lighter.
 
 ---
 
-## Part 2: Auto Mentor Matching Engine
+## Section-by-section changes
 
-**New file**: `src/lib/mentorMatching.ts`
+### 1. Discovery header (new compact bar)
+Replace the giant gradient banner with a tighter header row:
+- Left: greeting + streak badge (`🔥 12-day streak`) + notifications bell
+- Right: global search (existing)
+- Below: category selector (existing)
 
-Matching priority:
-1. Same preferred language
-2. Same stage expertise (Prelims/Mains/Interview/Overall)
-3. Same exam category
-4. Mentor capacity < 20 students
-5. Highest rating
+The big "Prepare for SBI PO" banner becomes a single-line strip with countdown chip on the right.
 
-Fallback: language → stage → overall → manual queue.
+### 2. Exam filter bar (horizontal pills)
+Current grid of exam cards → horizontal scrollable pill bar:
+`[All] [SBI Clerk] [IBPS PO] [SSC CGL] [RRB NTPC] [UPSC CSE] ...`
+Active pill = primary fill. Reduces vertical space drastically.
 
-Stores assignment in `localStorage` key `mentorAssignment` and increments mentor's student count.
+### 3. Advanced filter system (NEW)
+Sticky filter row with 5 dropdowns/pills:
+- **Level** — Beginner · Intermediate · Advanced
+- **Language** — English · Hindi · Tamil · Malayalam · Telugu · Kannada
+- **Price** — Free · <₹999 · ₹1k–3k · ₹3k+
+- **Duration** — <1 month · 1–3 mo · 3–6 mo · 6 mo+
+- **Sort** — Popular · Newest · Price ↑ · Price ↓ · Rating
 
----
+Implemented client-side filtering against `globalFilteredCourses`.
 
-## Part 3: 5-Test Diagnostic Flow
+### 4. My Enrolled Courses (promoted to top)
+Currently buried as "Continue Learning". Promote it:
+- Title: "📚 My Enrolled Courses · Continue where you left off"
+- Horizontal scroll, larger cards with progress bar + bold "Continue" CTA
+- Show only if user has progress > 0; otherwise hide section
 
-After mentor assignment, redirect to `/student/diagnostic-tests`.
+### 5. Free Test CTA strip (NEW — critical)
+A high-contrast banner card placed *just above* "Recommended For You":
+- Headline: "Not sure where to start?"
+- Sub: "Take a 10-min free diagnostic test and get a personalized course recommendation"
+- CTA: "Take Free Test →" (links to `/student/diagnostic-tests`)
+- Visual: gradient primary background, target icon
 
-**New file**: `src/pages/student/DiagnosticTests.tsx`
+### 6. Recommended For You (with reasoning)
+Each recommended card gets a "Why?" chip above the title:
+- "Because you're weak in Quant"
+- "Based on your last test"
+- "Most picked by SBI PO aspirants"
 
-Shows 5 test cards generated dynamically based on stage + subjects:
-- For Prelims: English / Quant / Reasoning / GA / Mini Mock
-- For Mains: Deep English / Advanced Quant / Reasoning / GA / Full Mock
+For now, reasoning is mock/string-mapped per course id.
 
-After completion → diagnostic result page with strong/weak/average breakdown using existing `Recharts`.
+### 7. Course cards — conversion upgrades
+Extend `MinimalistCourseCard` with:
+- **Smart tags** (replace generic "Trending"): `Bestseller`, `Beginner Friendly`, `High Scoring`, `Most Selected`
+- **Urgency triggers** (small text under price):
+  - `🔥 120 enrolled this week`
+  - `⏰ Offer ends in 2h 14m` (when discount > 0)
+- Keep existing: thumbnail, type badge, rating, students, duration, price+discount, Preview + Enroll CTAs
 
-**New file**: `src/pages/student/DiagnosticResults.tsx`
-
----
-
-## Part 4: Student Mentorship Dashboard Updates
-
-Update `src/pages/student/MentorshipDashboard.tsx` to show:
-- Assigned mentor card (name, photo, expertise, language, capacity)
-- Today's tasks (predefined + mentor-added)
-- Diagnostic profile (weak/strong areas)
-- Chat shortcut
-- Leaderboard rank
-- Review mentor button
-
-**New components**:
-- `src/components/student/mentorship/AssignedMentorCard.tsx`
-- `src/components/student/mentorship/DailyTaskList.tsx`
-- `src/components/student/mentorship/MentorChat.tsx`
-- `src/components/student/mentorship/MentorReviewDialog.tsx`
-
----
-
-## Part 5: Mentor Dashboard
-
-Update `src/pages/mentor/MentorDashboard.tsx` and related pages with:
-
-**Tab-based layout**:
-- **Overview**: Total students, today's completion %, pending messages, alerts
-- **Students**: Filterable list (language/stage/score/activity) with student detail drill-down
-- **Tasks**: Task assignment builder (templates + custom + batch)
-- **Chat**: Inbox with 1:1 + batch messaging + pinned messages
-- **Analytics**: Test performance trends, weak-area heatmap per student
-- **Leaderboard**: Task completion, mock scores, streaks, discipline panel
-
-**New components**:
-- `src/components/mentor/StudentListPanel.tsx`
-- `src/components/mentor/StudentDetailDrawer.tsx`
-- `src/components/mentor/TaskBuilderDialog.tsx`
-- `src/components/mentor/MentorChatPanel.tsx`
-- `src/components/mentor/TestAnalyticsPanel.tsx`
-- `src/components/mentor/MentorLeaderboard.tsx`
+### 8. Trust + Value strip (NEW — bottom)
+5-column horizontal strip just before page end:
+`👨‍🏫 500+ Expert Instructors  |  👥 50K+ Students  |  🏆 98% Success Rate  |  📝 10K+ Tests  |  💬 24/7 Support`
+Cards with subtle border, primary-tinted icons. Builds trust → conversion.
 
 ---
 
-## Part 6: Superadmin Mentor Pipeline
+## Files Modified / Created
 
-Update `src/pages/superadmin/SuperAdminDashboard.tsx` and add new pages:
+**Modified**
+- `src/pages/student/StudentCourses.tsx` — reorder sections, add filter state, free-test CTA, trust strip, recommendation reasoning, exam pill bar
+- `src/components/student/courses/MinimalistCourseCard.tsx` — add `smartTag`, `urgencyText`, `reason` optional props; render badges/strip
 
-- `src/pages/superadmin/MentorManagement.tsx` — create/approve mentors, assign language/stage tags, capacity control
-- `src/pages/superadmin/AllocationDashboard.tsx` — live allocation: available students, available mentors, overloaded mentors, manual reassignment
-- `src/pages/superadmin/MentorPerformance.tsx` — mentor ratings, response time, student success %, engagement
-- `src/pages/superadmin/MentorReviews.tsx` — student reviews + flags
+**Created**
+- `src/components/student/courses/CourseFiltersBar.tsx` — Level/Language/Price/Duration/Sort controls
+- `src/components/student/courses/FreeTestCTA.tsx` — diagnostic CTA banner
+- `src/components/student/courses/TrustValueStrip.tsx` — 5-stat trust strip
+- `src/components/student/courses/EnrolledCoursesRail.tsx` — horizontal "Continue learning" rail
 
-Add routes to `src/routes/SuperAdminRoutes.tsx`.
-
----
-
-## Part 7: Shared State + Data
-
-**New context**: `src/contexts/MentorshipContext.tsx` — single source of truth for:
-- Onboarding profile
-- Assigned mentor
-- Tasks (predefined + mentor-added)
-- Messages thread
-- Diagnostic results
-- Reviews
-
-All persisted to localStorage so refresh keeps state.
-
-**New data files**:
-- `src/data/mentorPoolData.ts` — 15 mentors
-- `src/data/diagnosticTestBank.ts` — test sets per exam/stage
-- `src/data/predefinedTasks.ts` — daily task templates per exam
-
----
-
-## Part 8: Routes
-
-Add to `StudentRoutes.tsx`:
-- `/student/mentorship-onboarding`
-- `/student/diagnostic-tests`
-- `/student/diagnostic-results`
-- `/student/mentor-chat`
-
-Add to `MentorRoutes.tsx`:
-- Refined dashboard tabs (already exist as separate pages — consolidate)
-
-Add to `SuperAdminRoutes.tsx`:
-- `/super-admin/mentor-management`
-- `/super-admin/allocation`
-- `/super-admin/mentor-performance`
-- `/super-admin/mentor-reviews`
-
----
-
-## Files Summary
-
-**New (17)**:
-- 1 context, 1 hook, 1 matching lib
-- 4 student pages (onboarding wizard, diagnostic tests, results, chat)
-- 4 student components (mentor card, tasks, chat, review)
-- 6 mentor components (list, detail, task builder, chat, analytics, leaderboard)
-- 4 superadmin pages (management, allocation, performance, reviews)
-- 3 data files (mentors, diagnostic bank, predefined tasks)
-
-**Modified (5)**:
-- `StudentRoutes.tsx`, `MentorRoutes.tsx`, `SuperAdminRoutes.tsx`
-- `MentorshipDashboard.tsx`, `MentorDashboard.tsx`
-
----
-
-## Notes
-- Backend not enabled — using localStorage. When ready to scale, this should migrate to Lovable Cloud (Supabase) with proper tables for mentors, assignments, tasks, messages, reviews, and an RLS-protected `user_roles` table.
-- Chat is simulated (no realtime) until backend is enabled.
-- Build proceeds in this order: Onboarding → Matching → Diagnostic → Student Dashboard → Mentor Dashboard → Superadmin.
-
+## Technical Notes
+- All filtering done client-side via `useMemo` over `globalFilteredCourses`
+- Smart tags + urgency derived deterministically from `course.id` hash so they stay stable per render (no real backend yet)
+- Color palette stays on existing teal-green primary / navy secondary (per `mem://design/primary-color-theme`)
+- Mobile: filter bar collapses into a single "Filters" button opening a Sheet; exam pills horizontally scroll; trust strip becomes 2-col grid
+- No new dependencies needed (uses existing shadcn `Select`, `Sheet`, `ScrollArea`, `Badge`)
