@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Grid, List, Clock, Users, Target, CheckCircle, RotateCcw, BarChart3, Play, Pause, BookOpen, Bookmark } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { TestAnalysisModal } from './TestAnalysisModal';
 import { generateMockAnalysisData } from '@/data/testAnalysisData';
 import { useBookmarkedTests } from '@/hooks/useBookmarkedTests';
@@ -47,12 +47,12 @@ const EnhancedTestTypeGrid: React.FC<EnhancedTestTypeGridProps> = ({ tests, test
     selectedSubject === 'all' || test.subject === selectedSubject
   );
 
+  const navigate = useNavigate();
   const handleTestAction = (action: 'solution' | 'reattempt' | 'analysis', test: TestItem) => {
     console.log(`${action} clicked for test ${test.id}`);
     
     if (action === 'analysis') {
-      setSelectedTestForAnalysis(test);
-      setShowAnalysisModal(true);
+      navigate(`/student/test-analysis/${encodeURIComponent(test.id)}`);
     } else if (action === 'solution') {
       console.log('Navigate to solution page for test:', test.id);
       // Would navigate to solution page
