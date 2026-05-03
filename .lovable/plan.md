@@ -1,103 +1,108 @@
+# Test Analysis Page Redesign
 
-# Student Courses Page Redesign — Marketplace-Grade UX
+Redesign the Test Analysis modal to exactly match the reference image (clean white-card layout, green primary accent matching the project's teal-green theme #20c996, professional sans-serif typography), enhanced with consistent color tokens and interactivity.
 
-## Goal
-Transform `/student/courses` from a long, flat list into a discovery → retention → conversion funnel that mirrors top edtech marketplaces.
-
-## New Page Structure (top → bottom)
+## Reference Layout (from uploaded image)
 
 ```text
-1. DISCOVERY HEADER          → category + search + streak/notifications
-2. EXAM FILTER BAR           → SBI Clerk · IBPS PO · SSC CGL · RRB NTPC ...
-3. ADVANCED FILTERS          → Level · Language · Price · Duration · Sort
-4. MY ENROLLED COURSES       → progress bar + Continue CTA  (retention)
-5. FREE TEST CTA STRIP       → "Not sure? Take a free test → get a recommendation"
-6. RECOMMENDED FOR YOU       → AI-style reasoning chips ("Because you're weak in Quant")
-7. COURSE CARDS GRID         → conversion-optimized cards w/ urgency + smart tags
-8. PREPARATION ROADMAP       → keep (compact)
-9. TRUST + VALUE STRIP       → instructors · students · success rate · tests · support
+[← Test Analysis]                  [Review Test] [View Solutions] [Weakness Map]
+
+┌─ Test Header Card ────────────────────────────────────────────────┐
+│ [icon]  IBPS PO Prelims 2024 (Mock Test 12)                       │
+│         Full Syllabus Mock Test                                   │
+│         [English] • [Quantitative] • [Reasoning]                  │
+│         📅 12 May 2024  🕐 10AM-11AM  ⏱ 60 Minutes                 │
+└───────────────────────────────────────────────────────────────────┘
+
+[Overview] Section Wise | Subject Wise | Question Wise | Time | Compare
+─────────
+
+┌ Score ┐ ┌ Percentile ┐ ┌ Accuracy ┐ ┌ Rank ┐ ┌ Improvement ┐
+│ 70/100│ │ 87.45      │ │ 76.32%   │ │12,612│ │ +18.6%      │
+│ Good  │ │ top 12.55% │ │ 229/300  │ │/1.25L│ │ better      │
+└───────┘ └────────────┘ └──────────┘ └──────┘ └─────────────┘
+
+┌─ Section Wise Performance ────────────────────────────────────────┐
+│ Section | Attempted | Correct/Wrong | Skipped | Score | Rank |...│
+│ Reasoning   30   28/2   5   28/35   15   92%   93.3%  ⏱45m       │
+│ ...                                                                │
+│ [■ Correct] [■ Wrong] [■ Skipped]                                 │
+└───────────────────────────────────────────────────────────────────┘
+
+┌ Performance Overview (Line Chart) ┐ ┌ Question Summary (Donut) ┐
+│ Your / Average / Topper × Mock1-12│ │  300 Total                │
+│                                    │ │  ● Correct 229            │
+│ "Improved 18.6% vs last test"     │ │  ● Incorrect 56           │
+└────────────────────────────────────┘ │  ● Unattempted 15         │
+                                       │  [View All Questions]     │
+                                       └───────────────────────────┘
+
+┌ Time Analysis (table) ────────────┐ ┌ Leaderboard Top 10 ────────┐
+│ Section | Spent | Ideal | Δ | Acc │ │ Rank | Name | Score | %ile │
+│ ...                                │ │ 🥇 1 Aarav 92/100 99.45%   │
+│ [info]: spent more time...         │ │ ...                         │
+└────────────────────────────────────┘ │ 12,612 You 70/100 87.45%   │
+                                       └────────────────────────────┘
 ```
 
-The current "Smart Preparation Banner", "Daily Practice Zone", "Exam Stage Tabs", "Exam Countdown" are kept but reordered/condensed so the page feels lighter.
+## Implementation
 
----
+### 1. Convert modal → full-screen route page
+- Create new route `/student/test-analysis/:testId` rendering `TestAnalysisPage.tsx`.
+- Update `TestAnalysisModal` triggers in `EnhancedTestTypeGrid.tsx` and `TestTypeGrid.tsx` to navigate to the new page (keep modal as fallback).
+- Add route in `src/routes/StudentRoutes.tsx`.
 
-## Section-by-section changes
+### 2. New file: `src/pages/student/TestAnalysisPage.tsx`
+Layout sections:
+1. **Top bar** — back arrow + "Test Analysis" title + 3 outline action buttons (Review Test [filled green], View Solutions, Weakness Map) using `lucide-react` icons (FileText, BookOpen, Target).
+2. **Test header card** — green clipboard icon tile, test name (bold, 24px), subtitle, subject pills (small rounded badges in light gray), meta row with calendar/clock/timer icons.
+3. **Section tabs** — underline-style tabs (Overview active = green underline + green text). Built with shadcn `Tabs` overridden for underline variant.
+4. **5 KPI cards** — white cards with thin border, label + small icon top-right, large number (Score green, Percentile blue, Accuracy green, Rank black, Improvement green), small caption pill underneath.
+5. **Section Wise Performance table** — clean table with section icons, color-coded correct/wrong (green/red), score, rank, percentile, accuracy, time with clock icon. Legend chips below.
+6. **Performance Overview** (Recharts LineChart) — Your Score (green), Average Score (gray dashed), Topper Score (blue). Mock1–Mock12 X axis. Last point labeled "70" in green pill. Footer note in light-green banner.
+7. **Question Summary** (Recharts donut) — 300 Total center label, color legend (green/red/amber), "View All Questions" outline button.
+8. **Time Analysis table** — section, time spent, ideal, +/-difference (red), accuracy bar.
+9. **Leaderboard Top 10** — ranked list with medal icons (gold/silver/bronze) for top 3, "You (Your Rank)" highlighted row at bottom in light green.
 
-### 1. Discovery header (new compact bar)
-Replace the giant gradient banner with a tighter header row:
-- Left: greeting + streak badge (`🔥 12-day streak`) + notifications bell
-- Right: global search (existing)
-- Below: category selector (existing)
+### 3. New components in `src/components/student/test-analysis/`
+- `TestHeaderCard.tsx`
+- `KpiCard.tsx` (variants: green, blue, neutral)
+- `SectionPerformanceTable.tsx`
+- `PerformanceOverviewChart.tsx`
+- `QuestionSummaryDonut.tsx`
+- `TimeAnalysisTable.tsx`
+- `LeaderboardCard.tsx`
+- `AnalysisTabs.tsx` (underline tabs)
 
-The big "Prepare for SBI PO" banner becomes a single-line strip with countdown chip on the right.
+All use existing shadcn primitives (Card, Table, Badge, Button, Tabs) + Recharts.
 
-### 2. Exam filter bar (horizontal pills)
-Current grid of exam cards → horizontal scrollable pill bar:
-`[All] [SBI Clerk] [IBPS PO] [SSC CGL] [RRB NTPC] [UPSC CSE] ...`
-Active pill = primary fill. Reduces vertical space drastically.
+### 4. Color & typography consistency
+- Primary green: `hsl(var(--primary))` — already #20c996 teal-green per memory. Map all "green" accents to primary token (no hardcoded hex).
+- Red: `text-destructive` / `hsl(var(--destructive))`.
+- Blue: define `--accent-blue` in `index.css` for "topper" / percentile accents.
+- Text: keep system Inter font already in use; weights 400/500/600/700 only.
+- Card style: `rounded-xl border border-border bg-card shadow-sm`.
 
-### 3. Advanced filter system (NEW)
-Sticky filter row with 5 dropdowns/pills:
-- **Level** — Beginner · Intermediate · Advanced
-- **Language** — English · Hindi · Tamil · Malayalam · Telugu · Kannada
-- **Price** — Free · <₹999 · ₹1k–3k · ₹3k+
-- **Duration** — <1 month · 1–3 mo · 3–6 mo · 6 mo+
-- **Sort** — Popular · Newest · Price ↑ · Price ↓ · Rating
+### 5. Data
+- Reuse `TestAnalysisData` from `src/data/testAnalysisData.ts`. Add fallback mock for `improvement`, `leaderboard`, `idealTimePerSection` if missing (extend interface with optional fields + provide defaults).
+- Add a `getTestAnalysis(testId)` lookup that returns the mock IBPS PO data when no match.
 
-Implemented client-side filtering against `globalFilteredCourses`.
+### 6. Other tabs (Section / Subject / Question / Time / Compare)
+- Implement Section Wise & Subject Wise as filtered views of the same table.
+- Question Wise: grid of numbered question chips colored by status (existing pattern).
+- Time Analysis: extends the time table with per-question stats.
+- Compare: reuse existing `ComparativeInsightsTab`.
 
-### 4. My Enrolled Courses (promoted to top)
-Currently buried as "Continue Learning". Promote it:
-- Title: "📚 My Enrolled Courses · Continue where you left off"
-- Horizontal scroll, larger cards with progress bar + bold "Continue" CTA
-- Show only if user has progress > 0; otherwise hide section
+### 7. Responsive
+- Desktop: 2-column grid for chart + donut, table + leaderboard.
+- Mobile: stacks vertically per memory constraint (no desktop alteration).
 
-### 5. Free Test CTA strip (NEW — critical)
-A high-contrast banner card placed *just above* "Recommended For You":
-- Headline: "Not sure where to start?"
-- Sub: "Take a 10-min free diagnostic test and get a personalized course recommendation"
-- CTA: "Take Free Test →" (links to `/student/diagnostic-tests`)
-- Visual: gradient primary background, target icon
+## Files to create
+- `src/pages/student/TestAnalysisPage.tsx`
+- `src/components/student/test-analysis/` (8 components above)
 
-### 6. Recommended For You (with reasoning)
-Each recommended card gets a "Why?" chip above the title:
-- "Because you're weak in Quant"
-- "Based on your last test"
-- "Most picked by SBI PO aspirants"
-
-For now, reasoning is mock/string-mapped per course id.
-
-### 7. Course cards — conversion upgrades
-Extend `MinimalistCourseCard` with:
-- **Smart tags** (replace generic "Trending"): `Bestseller`, `Beginner Friendly`, `High Scoring`, `Most Selected`
-- **Urgency triggers** (small text under price):
-  - `🔥 120 enrolled this week`
-  - `⏰ Offer ends in 2h 14m` (when discount > 0)
-- Keep existing: thumbnail, type badge, rating, students, duration, price+discount, Preview + Enroll CTAs
-
-### 8. Trust + Value strip (NEW — bottom)
-5-column horizontal strip just before page end:
-`👨‍🏫 500+ Expert Instructors  |  👥 50K+ Students  |  🏆 98% Success Rate  |  📝 10K+ Tests  |  💬 24/7 Support`
-Cards with subtle border, primary-tinted icons. Builds trust → conversion.
-
----
-
-## Files Modified / Created
-
-**Modified**
-- `src/pages/student/StudentCourses.tsx` — reorder sections, add filter state, free-test CTA, trust strip, recommendation reasoning, exam pill bar
-- `src/components/student/courses/MinimalistCourseCard.tsx` — add `smartTag`, `urgencyText`, `reason` optional props; render badges/strip
-
-**Created**
-- `src/components/student/courses/CourseFiltersBar.tsx` — Level/Language/Price/Duration/Sort controls
-- `src/components/student/courses/FreeTestCTA.tsx` — diagnostic CTA banner
-- `src/components/student/courses/TrustValueStrip.tsx` — 5-stat trust strip
-- `src/components/student/courses/EnrolledCoursesRail.tsx` — horizontal "Continue learning" rail
-
-## Technical Notes
-- All filtering done client-side via `useMemo` over `globalFilteredCourses`
-- Smart tags + urgency derived deterministically from `course.id` hash so they stay stable per render (no real backend yet)
-- Color palette stays on existing teal-green primary / navy secondary (per `mem://design/primary-color-theme`)
-- Mobile: filter bar collapses into a single "Filters" button opening a Sheet; exam pills horizontally scroll; trust strip becomes 2-col grid
-- No new dependencies needed (uses existing shadcn `Select`, `Sheet`, `ScrollArea`, `Badge`)
+## Files to edit
+- `src/routes/StudentRoutes.tsx` (add route)
+- `src/components/student/exam/EnhancedTestTypeGrid.tsx` and `TestTypeGrid.tsx` (navigate instead of/in addition to opening modal)
+- `src/data/testAnalysisData.ts` (extend with optional `improvement`, `leaderboard`, `idealTime` fields + sample data)
+- `src/index.css` (add `--accent-blue` token if needed)
