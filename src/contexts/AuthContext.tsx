@@ -232,8 +232,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Check if user is stored in localStorage on mount
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    if (!storedUser) return;
+    try {
+      const parsed = JSON.parse(storedUser);
+      const ALLOWED_ROLES: UserRole[] = ['student', 'employee', 'admin', 'super-admin', 'owner', 'mentor'];
+      // Validate against the canonical demo user record so a tampered
+      // localStorage payload cannot grant elevated roles or fake identities.
+      const canonical = DEMO_USERS.find(
+        (u) => u.id === parsed?.id && u.email === parsed?.email,
+      );
+      if (
+        !parsed ||
+        typeof parsed !== 'object' ||
+        typeof parsed.id !== 'string' ||
+        typeof parsed.email !== 'string' ||
+        typeof parsed.name !== 'string' ||
+        !ALLOWED_ROLES.includes(parsed.role) ||
+        !canonical ||
+        canonical.role !== parsed.role
+      ) {
+        localStorage.removeItem('user');
+        return;
+      }
+      const { password: _pw, ...safeUser } = canonical;
+      setUser(safeUser);
+    } catch {
+      localStorage.removeItem('user');
     }
   }, []);
 
