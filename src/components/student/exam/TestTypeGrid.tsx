@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Clock, CheckCircle, Play, RotateCcw, Trophy, Star, Calendar, BarChart3, BookOpen } from 'lucide-react';
 import { TestProgress } from '@/hooks/useExamProgress';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { TestAnalysisModal } from './TestAnalysisModal';
 import { generateMockAnalysisData } from '@/data/testAnalysisData';
 
@@ -31,12 +31,12 @@ export const TestTypeGrid: React.FC<TestTypeGridProps> = ({
   viewMode = 'grid' 
 }) => {
   const { category, examId } = useParams();
+  const navigate = useNavigate();
   const [showAnalysisModal, setShowAnalysisModal] = useState(false);
   const [selectedTestForAnalysis, setSelectedTestForAnalysis] = useState<TestProgress | null>(null);
 
   const handleAnalysisClick = (test: TestProgress) => {
-    setSelectedTestForAnalysis(test);
-    setShowAnalysisModal(true);
+    navigate(`/student/test-analysis/${encodeURIComponent(test.testId)}`);
   };
 
   const handleSolutionClick = (test: TestProgress) => {
