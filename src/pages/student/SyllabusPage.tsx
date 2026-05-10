@@ -14,32 +14,34 @@ import {
   Bookmark, ListVideo, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { useExamCategoryContext } from '@/contexts/ExamCategoryContext';
-import { 
-  allSyllabusData, 
-  getExamsByCategoryForSyllabus, 
+import {
+  allSyllabusData,
+  getExamsByCategoryForSyllabus,
   getIconByName,
   ExamSyllabusConfig,
   TopicConfig
 } from '@/data/syllabusData';
+import { useSyllabusStore } from '@/hooks/useSyllabusStore';
+import { detectVideoUrl } from '@/lib/fileUpload';
 import { examCategories } from '@/data/examData';
 import ExamComparison from '@/components/student/syllabus/ExamComparison';
 import StudyPlanGenerator from '@/components/student/syllabus/StudyPlanGenerator';
 
 const SyllabusPage = () => {
   const { selectedCategories } = useExamCategoryContext();
-  
+  const { data: storeData } = useSyllabusStore();
+
   // Get available exams based on selected categories
   const availableExams = useMemo(() => {
     if (selectedCategories.length === 0) {
-      // Show default exams if no category selected
       return [
-        { id: 'ibps-po', name: 'IBPS PO', category: 'banking', logo: allSyllabusData['ibps-po']?.logo || '' },
-        { id: 'ssc-cgl', name: 'SSC CGL', category: 'ssc', logo: allSyllabusData['ssc-cgl']?.logo || '' },
-        { id: 'rrb-ntpc', name: 'RRB NTPC', category: 'railway', logo: allSyllabusData['rrb-ntpc']?.logo || '' },
-      ];
+        { id: 'ibps-po', name: 'IBPS PO', category: 'banking', logo: storeData['ibps-po']?.logo || '' },
+        { id: 'ssc-cgl', name: 'SSC CGL', category: 'ssc', logo: storeData['ssc-cgl']?.logo || '' },
+        { id: 'rrb-ntpc', name: 'RRB NTPC', category: 'railway', logo: storeData['rrb-ntpc']?.logo || '' },
+      ].filter(e => storeData[e.id]);
     }
     return getExamsByCategoryForSyllabus(selectedCategories);
-  }, [selectedCategories]);
+  }, [selectedCategories, storeData]);
   
   const [selectedExam, setSelectedExam] = useState<string>(availableExams[0]?.id || 'ibps-po');
   const [selectedTier, setSelectedTier] = useState<string>('');
