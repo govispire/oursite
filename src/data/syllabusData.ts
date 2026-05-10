@@ -3,37 +3,55 @@ import { Calculator, Brain, BookOpen, Globe, Scale, Monitor, Shield, Zap, FileTe
 import { examCategories, getExamsByCategory } from './examData';
 
 // Topic Resources Interface
+export interface VideoResource {
+  id: string;
+  title: string;
+  instructor: string;
+  duration: string;
+  rating: number;
+  completed: boolean;
+  url?: string;
+  source?: 'youtube' | 'vimeo' | 'upload' | 'external';
+  thumbnail?: string;
+  description?: string;
+  uploadedAt?: string;
+}
+
+export interface PdfResource {
+  id: string;
+  title: string;
+  type: 'notes' | 'pyq' | 'formulas' | 'summary';
+  pages: number;
+  url?: string;
+  fileSize?: number;
+  description?: string;
+  uploadedAt?: string;
+}
+
+export interface TestResource {
+  id: string;
+  title: string;
+  questions: number;
+  difficulty: 'easy' | 'medium' | 'hard';
+  duration: string;
+  url?: string;
+  description?: string;
+}
+
 export interface TopicResources {
-  videos: {
-    id: string;
-    title: string;
-    instructor: string;
-    duration: string;
-    rating: number;
-    completed: boolean;
-  }[];
-  pdfs: {
-    id: string;
-    title: string;
-    type: 'notes' | 'pyq' | 'formulas' | 'summary';
-    pages: number;
-  }[];
-  tests: {
-    id: string;
-    title: string;
-    questions: number;
-    difficulty: 'easy' | 'medium' | 'hard';
-    duration: string;
-  }[];
+  videos: VideoResource[];
+  pdfs: PdfResource[];
+  tests: TestResource[];
 }
 
 export interface TopicConfig {
   id: string;
   name: string;
   progress: number;
-  videos: TopicResources['videos'];
-  pdfs: TopicResources['pdfs'];
-  tests: TopicResources['tests'];
+  description?: string;
+  videos: VideoResource[];
+  pdfs: PdfResource[];
+  tests: TestResource[];
 }
 
 export interface SubjectConfig {
