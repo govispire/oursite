@@ -88,13 +88,19 @@ const SyllabusPage = () => {
     'https://www.w3schools.com/html/mov_bbb.mp4',
   ];
   
-  const getVideoUrl = (videoId: string) => {
-    const index = Math.abs(videoId.charCodeAt(0)) % sampleVideoUrls.length;
+  const getVideoUrl = (video: TopicConfig['videos'][0]) => {
+    if (video?.url) {
+      const meta = detectVideoUrl(video.url);
+      if (meta && (meta.source === 'youtube' || meta.source === 'vimeo')) return meta.embedUrl;
+      return video.url;
+    }
+    const id = video?.id || '';
+    const index = Math.abs(id.charCodeAt(0) || 0) % sampleVideoUrls.length;
     return sampleVideoUrls[index];
   };
-  
-  // Get current exam config
-  const examConfig = allSyllabusData[selectedExam];
+
+  // Get current exam config from the live store
+  const examConfig = storeData[selectedExam];
   
   // Set initial tier when exam changes
   useEffect(() => {
