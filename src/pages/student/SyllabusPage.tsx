@@ -369,7 +369,7 @@ const SyllabusPage = () => {
             key={exam.id}
             onClick={() => {
               setSelectedExam(exam.id);
-              setSelectedTier(allSyllabusData[exam.id]?.tiers[0]?.id || '');
+              setSelectedTier(storeData[exam.id]?.tiers[0]?.id || '');
             }}
             className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
               selectedExam === exam.id
@@ -667,7 +667,7 @@ const SyllabusPage = () => {
               <div className="relative aspect-video">
                 <video
                   ref={videoRef}
-                  src={videoPlayer.video ? getVideoUrl(videoPlayer.video.id) : ''}
+                  src={videoPlayer.video ? getVideoUrl(videoPlayer.video) : ''}
                   className="w-full h-full"
                   onTimeUpdate={handleTimeUpdate}
                   onLoadedMetadata={handleLoadedMetadata}
