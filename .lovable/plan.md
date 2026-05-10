@@ -1,108 +1,106 @@
-# Test Analysis Page Redesign
+# Manage Syllabus — Full Functionality Plan
 
-Redesign the Test Analysis modal to exactly match the reference image (clean white-card layout, green primary accent matching the project's teal-green theme #20c996, professional sans-serif typography), enhanced with consistent color tokens and interactivity.
+You picked **localStorage** for persistence + **upload AND URL** for inputs. Since localStorage can't realistically hold large video/PDF files, the strategy is:
 
-## Reference Layout (from uploaded image)
+- **URLs (YouTube, Vimeo, Drive, any link)** → stored as plain strings, unlimited.
+- **Direct file uploads** → stored as base64 data URLs in localStorage with a hard cap (default 10 MB per file; PDFs up to 25 MB). Files larger than the cap show a clear error and prompt the user to paste a URL instead.
+- All syllabus mutations persist to `localStorage` immediately and reload on next visit. A "Reset to defaults" action restores the seed data.
 
-```text
-[← Test Analysis]                  [Review Test] [View Solutions] [Weakness Map]
+> Heads-up: localStorage is per-browser and per-device. Other admins, students, or another browser will not see these edits. Switching to Lovable Cloud later would give true multi-user persistence and unlimited file storage — say the word and we'll migrate.
 
-┌─ Test Header Card ────────────────────────────────────────────────┐
-│ [icon]  IBPS PO Prelims 2024 (Mock Test 12)                       │
-│         Full Syllabus Mock Test                                   │
-│         [English] • [Quantitative] • [Reasoning]                  │
-│         📅 12 May 2024  🕐 10AM-11AM  ⏱ 60 Minutes                 │
-└───────────────────────────────────────────────────────────────────┘
+---
 
-[Overview] Section Wise | Subject Wise | Question Wise | Time | Compare
-─────────
+## 1. Persistence layer
 
-┌ Score ┐ ┌ Percentile ┐ ┌ Accuracy ┐ ┌ Rank ┐ ┌ Improvement ┐
-│ 70/100│ │ 87.45      │ │ 76.32%   │ │12,612│ │ +18.6%      │
-│ Good  │ │ top 12.55% │ │ 229/300  │ │/1.25L│ │ better      │
-└───────┘ └────────────┘ └──────────┘ └──────┘ └─────────────┘
+Create `src/hooks/useSyllabusStore.ts`:
+- Reads from `localStorage["prepsmart.syllabus.v1"]` on init (falls back to `allSyllabusData`).
+- Writes on every change (debounced ~300 ms).
+- Exposes typed mutators: `addExam`, `updateExam`, `deleteExam`, `addTier`, `updateTier`, `deleteTier`, `addSubject`, `updateSubject`, `deleteSubject`, `addTopic`, `updateTopic`, `deleteTopic`, `addResource`, `updateResource`, `deleteResource`, `reorderResource`.
+- `resetToDefaults()` and `exportJSON()` / `importJSON()` for backup.
+- A lightweight pub-sub (custom event `syllabus:changed`) so the **student-facing** Know Your Syllabus pages re-read the same store and reflect admin edits live.
 
-┌─ Section Wise Performance ────────────────────────────────────────┐
-│ Section | Attempted | Correct/Wrong | Skipped | Score | Rank |...│
-│ Reasoning   30   28/2   5   28/35   15   92%   93.3%  ⏱45m       │
-│ ...                                                                │
-│ [■ Correct] [■ Wrong] [■ Skipped]                                 │
-└───────────────────────────────────────────────────────────────────┘
+## 2. Resource model — extended fields
 
-┌ Performance Overview (Line Chart) ┐ ┌ Question Summary (Donut) ┐
-│ Your / Average / Topper × Mock1-12│ │  300 Total                │
-│                                    │ │  ● Correct 229            │
-│ "Improved 18.6% vs last test"     │ │  ● Incorrect 56           │
-└────────────────────────────────────┘ │  ● Unattempted 15         │
-                                       │  [View All Questions]     │
-                                       └───────────────────────────┘
+Extend `src/data/syllabusData.ts` types (additive, optional, won't break existing UI):
 
-┌ Time Analysis (table) ────────────┐ ┌ Leaderboard Top 10 ────────┐
-│ Section | Spent | Ideal | Δ | Acc │ │ Rank | Name | Score | %ile │
-│ ...                                │ │ 🥇 1 Aarav 92/100 99.45%   │
-│ [info]: spent more time...         │ │ ...                         │
-└────────────────────────────────────┘ │ 12,612 You 70/100 87.45%   │
-                                       └────────────────────────────┘
-```
+- `VideoResource`: `url?: string`, `source?: 'youtube' | 'vimeo' | 'upload' | 'external'`, `thumbnail?: string`, `description?: string`, `uploadedAt?: string`
+- `PdfResource`: `url?: string`, `fileSize?: number`, `description?: string`, `uploadedAt?: string`
+- `TestResource`: `url?: string` (link to test interface), `description?: string`, `topics?: string[]`
 
-## Implementation
+## 3. File-upload utility
 
-### 1. Convert modal → full-screen route page
-- Create new route `/student/test-analysis/:testId` rendering `TestAnalysisPage.tsx`.
-- Update `TestAnalysisModal` triggers in `EnhancedTestTypeGrid.tsx` and `TestTypeGrid.tsx` to navigate to the new page (keep modal as fallback).
-- Add route in `src/routes/StudentRoutes.tsx`.
+`src/lib/fileUpload.ts`:
+- `readFileAsDataUrl(file, maxBytes)` → base64 string or rejection with friendly message.
+- Validators: video MIME (`video/mp4`, `webm`, `ogg`), PDF MIME, max sizes.
+- URL validator + helper to detect YouTube/Vimeo and auto-extract thumbnail + embed URL.
 
-### 2. New file: `src/pages/student/TestAnalysisPage.tsx`
-Layout sections:
-1. **Top bar** — back arrow + "Test Analysis" title + 3 outline action buttons (Review Test [filled green], View Solutions, Weakness Map) using `lucide-react` icons (FileText, BookOpen, Target).
-2. **Test header card** — green clipboard icon tile, test name (bold, 24px), subtitle, subject pills (small rounded badges in light gray), meta row with calendar/clock/timer icons.
-3. **Section tabs** — underline-style tabs (Overview active = green underline + green text). Built with shadcn `Tabs` overridden for underline variant.
-4. **5 KPI cards** — white cards with thin border, label + small icon top-right, large number (Score green, Percentile blue, Accuracy green, Rank black, Improvement green), small caption pill underneath.
-5. **Section Wise Performance table** — clean table with section icons, color-coded correct/wrong (green/red), score, rank, percentile, accuracy, time with clock icon. Legend chips below.
-6. **Performance Overview** (Recharts LineChart) — Your Score (green), Average Score (gray dashed), Topper Score (blue). Mock1–Mock12 X axis. Last point labeled "70" in green pill. Footer note in light-green banner.
-7. **Question Summary** (Recharts donut) — 300 Total center label, color legend (green/red/amber), "View All Questions" outline button.
-8. **Time Analysis table** — section, time spent, ideal, +/-difference (red), accuracy bar.
-9. **Leaderboard Top 10** — ranked list with medal icons (gold/silver/bronze) for top 3, "You (Your Rank)" highlighted row at bottom in light green.
+## 4. Resource editor dialog (rebuilt)
 
-### 3. New components in `src/components/student/test-analysis/`
-- `TestHeaderCard.tsx`
-- `KpiCard.tsx` (variants: green, blue, neutral)
-- `SectionPerformanceTable.tsx`
-- `PerformanceOverviewChart.tsx`
-- `QuestionSummaryDonut.tsx`
-- `TimeAnalysisTable.tsx`
-- `LeaderboardCard.tsx`
-- `AnalysisTabs.tsx` (underline tabs)
+Replace the current `editResourceDialog` with `ResourceEditorDialog.tsx` (one component, three modes):
 
-All use existing shadcn primitives (Card, Table, Badge, Button, Tabs) + Recharts.
+**Header:** title of topic + tab switcher (Videos / PDFs / Tests).
 
-### 4. Color & typography consistency
-- Primary green: `hsl(var(--primary))` — already #20c996 teal-green per memory. Map all "green" accents to primary token (no hardcoded hex).
-- Red: `text-destructive` / `hsl(var(--destructive))`.
-- Blue: define `--accent-blue` in `index.css` for "topper" / percentile accents.
-- Text: keep system Inter font already in use; weights 400/500/600/700 only.
-- Card style: `rounded-xl border border-border bg-card shadow-sm`.
+**Add/Edit form** with two input modes via toggle:
+- **Upload file** — drag-and-drop zone + file picker, shows progress, preview thumbnail, size, validation errors.
+- **Paste URL** — single input + auto-detect (YouTube/Vimeo embed preview, PDF link preview).
 
-### 5. Data
-- Reuse `TestAnalysisData` from `src/data/testAnalysisData.ts`. Add fallback mock for `improvement`, `leaderboard`, `idealTimePerSection` if missing (extend interface with optional fields + provide defaults).
-- Add a `getTestAnalysis(testId)` lookup that returns the mock IBPS PO data when no match.
+**Common fields per resource type:**
+- Video: title, instructor, duration, rating, description, thumbnail (auto or upload).
+- PDF: title, pages, type (notes / pyq / formulas / summary), description, file size.
+- Test: title, questions, duration, difficulty, link to test, description.
 
-### 6. Other tabs (Section / Subject / Question / Time / Compare)
-- Implement Section Wise & Subject Wise as filtered views of the same table.
-- Question Wise: grid of numbered question chips colored by status (existing pattern).
-- Time Analysis: extends the time table with per-question stats.
-- Compare: reuse existing `ComparativeInsightsTab`.
+**List of existing resources** with inline actions: Edit (opens form pre-filled), Delete (confirm), Drag handle to reorder, Preview (opens video/PDF in modal).
 
-### 7. Responsive
-- Desktop: 2-column grid for chart + donut, table + leaderboard.
-- Mobile: stacks vertically per memory constraint (no desktop alteration).
+## 5. Inline edits everywhere
+
+Currently only topic name and subject name/marks are editable. Add:
+- **Exam**: edit dialog for full name, short name, category, stages, exam date, logo URL/upload.
+- **Tier**: edit dialog for name, duration, total marks, negative marking, sectional cutoff.
+- **Subject**: add icon picker + color picker (currently only name/marks).
+- **Topic**: add description, weightage, expected questions count.
+- **Reorder** subjects & topics via drag handles (use `@dnd-kit/sortable`, already installed in many Lovable projects — verify and add if missing).
+
+## 6. Bulk upload
+
+Wire the existing `bulkUploadDialog`:
+- Upload a CSV (template downloadable) with columns: `subject, topic, resource_type, title, url_or_filename, duration, pages, questions, difficulty, instructor`.
+- Parse with PapaParse (verify availability or add).
+- Preview parsed rows in a table → confirm → batch insert.
+
+## 7. Live student-side reflection
+
+Update consumers that import `allSyllabusData` to read from `useSyllabusStore` instead, so edits show up immediately on:
+- `src/pages/student/SyllabusPage.tsx`
+- `src/components/student/exam/SyllabusTab.tsx`
+- Any course/topic detail pages that hydrate from `syllabusData`.
+
+(Admin local edits will only appear on the same browser — same persistence rule applies to students.)
+
+## 8. Header utilities
+
+Add to the page header:
+- **Export JSON** (download current syllabus as backup).
+- **Import JSON** (restore from backup).
+- **Reset to defaults** (with confirm).
+- A small "Saved locally" indicator with last-saved timestamp.
+
+---
 
 ## Files to create
-- `src/pages/student/TestAnalysisPage.tsx`
-- `src/components/student/test-analysis/` (8 components above)
+- `src/hooks/useSyllabusStore.ts`
+- `src/lib/fileUpload.ts`
+- `src/components/admin/syllabus/ResourceEditorDialog.tsx`
+- `src/components/admin/syllabus/ResourceForm.tsx` (video/pdf/test variants)
+- `src/components/admin/syllabus/EditExamDialog.tsx`
+- `src/components/admin/syllabus/EditTierDialog.tsx`
+- `src/components/admin/syllabus/BulkUploadDialog.tsx`
+- `src/components/admin/syllabus/FileDropzone.tsx`
 
-## Files to edit
-- `src/routes/StudentRoutes.tsx` (add route)
-- `src/components/student/exam/EnhancedTestTypeGrid.tsx` and `TestTypeGrid.tsx` (navigate instead of/in addition to opening modal)
-- `src/data/testAnalysisData.ts` (extend with optional `improvement`, `leaderboard`, `idealTime` fields + sample data)
-- `src/index.css` (add `--accent-blue` token if needed)
+## Files to modify
+- `src/data/syllabusData.ts` — extend types with optional `url`, `source`, `description`, etc.
+- `src/pages/admin/ManageSyllabus.tsx` — swap local state for `useSyllabusStore`, wire new dialogs, add header utilities.
+- `src/pages/student/SyllabusPage.tsx` and `src/components/student/exam/SyllabusTab.tsx` — read from the store.
+
+## Out of scope
+- Real cloud storage and multi-user sync (would require Lovable Cloud — happy to add later).
+- Video transcoding or compression.

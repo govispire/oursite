@@ -14,32 +14,34 @@ import {
   Bookmark, ListVideo, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { useExamCategoryContext } from '@/contexts/ExamCategoryContext';
-import { 
-  allSyllabusData, 
-  getExamsByCategoryForSyllabus, 
+import {
+  allSyllabusData,
+  getExamsByCategoryForSyllabus,
   getIconByName,
   ExamSyllabusConfig,
   TopicConfig
 } from '@/data/syllabusData';
+import { useSyllabusStore } from '@/hooks/useSyllabusStore';
+import { detectVideoUrl } from '@/lib/fileUpload';
 import { examCategories } from '@/data/examData';
 import ExamComparison from '@/components/student/syllabus/ExamComparison';
 import StudyPlanGenerator from '@/components/student/syllabus/StudyPlanGenerator';
 
 const SyllabusPage = () => {
   const { selectedCategories } = useExamCategoryContext();
-  
+  const { data: storeData } = useSyllabusStore();
+
   // Get available exams based on selected categories
   const availableExams = useMemo(() => {
     if (selectedCategories.length === 0) {
-      // Show default exams if no category selected
       return [
-        { id: 'ibps-po', name: 'IBPS PO', category: 'banking', logo: allSyllabusData['ibps-po']?.logo || '' },
-        { id: 'ssc-cgl', name: 'SSC CGL', category: 'ssc', logo: allSyllabusData['ssc-cgl']?.logo || '' },
-        { id: 'rrb-ntpc', name: 'RRB NTPC', category: 'railway', logo: allSyllabusData['rrb-ntpc']?.logo || '' },
-      ];
+        { id: 'ibps-po', name: 'IBPS PO', category: 'banking', logo: storeData['ibps-po']?.logo || '' },
+        { id: 'ssc-cgl', name: 'SSC CGL', category: 'ssc', logo: storeData['ssc-cgl']?.logo || '' },
+        { id: 'rrb-ntpc', name: 'RRB NTPC', category: 'railway', logo: storeData['rrb-ntpc']?.logo || '' },
+      ].filter(e => storeData[e.id]);
     }
     return getExamsByCategoryForSyllabus(selectedCategories);
-  }, [selectedCategories]);
+  }, [selectedCategories, storeData]);
   
   const [selectedExam, setSelectedExam] = useState<string>(availableExams[0]?.id || 'ibps-po');
   const [selectedTier, setSelectedTier] = useState<string>('');
@@ -86,13 +88,19 @@ const SyllabusPage = () => {
     'https://www.w3schools.com/html/mov_bbb.mp4',
   ];
   
-  const getVideoUrl = (videoId: string) => {
-    const index = Math.abs(videoId.charCodeAt(0)) % sampleVideoUrls.length;
+  const getVideoUrl = (video: TopicConfig['videos'][0]) => {
+    if (video?.url) {
+      const meta = detectVideoUrl(video.url);
+      if (meta && (meta.source === 'youtube' || meta.source === 'vimeo')) return meta.embedUrl;
+      return video.url;
+    }
+    const id = video?.id || '';
+    const index = Math.abs(id.charCodeAt(0) || 0) % sampleVideoUrls.length;
     return sampleVideoUrls[index];
   };
-  
-  // Get current exam config
-  const examConfig = allSyllabusData[selectedExam];
+
+  // Get current exam config from the live store
+  const examConfig = storeData[selectedExam];
   
   // Set initial tier when exam changes
   useEffect(() => {
@@ -361,7 +369,7 @@ const SyllabusPage = () => {
             key={exam.id}
             onClick={() => {
               setSelectedExam(exam.id);
-              setSelectedTier(allSyllabusData[exam.id]?.tiers[0]?.id || '');
+              setSelectedTier(storeData[exam.id]?.tiers[0]?.id || '');
             }}
             className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
               selectedExam === exam.id
@@ -659,7 +667,7 @@ const SyllabusPage = () => {
               <div className="relative aspect-video">
                 <video
                   ref={videoRef}
-                  src={videoPlayer.video ? getVideoUrl(videoPlayer.video.id) : ''}
+                  src={videoPlayer.video ? getVideoUrl(videoPlayer.video) : ''}
                   className="w-full h-full"
                   onTimeUpdate={handleTimeUpdate}
                   onLoadedMetadata={handleLoadedMetadata}
