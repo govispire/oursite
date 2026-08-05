@@ -1,0 +1,187 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.1",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "updatedexam",
+      "version": "0.1.0",
+      "title": "Updatedexam"
+    },
+    "tools": [
+      {
+        "name": "list_exam_categories",
+        "title": "List exam categories",
+        "description": "List all competitive exam categories offered on the platform (Banking & Insurance, SSC, Railways, UPSC, State PSC and more) with descriptions and enrolment counts.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_exams",
+        "title": "List exams in a category",
+        "description": "List the individual exams available inside one exam category. Use `list_exam_categories` first to get a valid category id.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "categoryId": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Exam category id, e.g. 'banking-insurance' or 'ssc'."
+            }
+          },
+          "required": [
+            "categoryId"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "search_courses",
+        "title": "Search courses",
+        "description": "Search the public course catalog by keyword, category and course type (Prelims, Mains, Interview, Complete). Returns price, rating, duration and content counts.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Free-text search over course title, instructor and subjects. Null for all."
+            },
+            "category": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Course category id to filter by, e.g. 'banking'. Null for all."
+            },
+            "type": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "Prelims",
+                    "Mains",
+                    "Interview",
+                    "Complete"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Course type filter. Null for all."
+            },
+            "limit": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Max results to return. Null defaults to 20."
+            }
+          },
+          "required": [
+            "query",
+            "category",
+            "type",
+            "limit"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_course",
+        "title": "Get course details",
+        "description": "Get full public details for a single course by id, including instructor profile. Use `search_courses` to find ids.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "courseId": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Course id."
+            }
+          },
+          "required": [
+            "courseId"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_exam_notifications",
+        "title": "List exam notifications",
+        "description": "List public exam notifications with application windows, payment deadlines, exam dates and official links. Optionally filter to one exam category or only upcoming exams.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "categoryId": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Exam category id to filter by. Null for all categories."
+            },
+            "upcomingOnly": {
+              "type": [
+                "boolean",
+                "null"
+              ],
+              "description": "When true, return only exams flagged as upcoming. Null means no filter."
+            }
+          },
+          "required": [
+            "categoryId",
+            "upcomingOnly"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

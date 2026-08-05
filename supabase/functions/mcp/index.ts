@@ -32,7 +32,7 @@ var list_exam_categories_default = defineTool({
 
 // src/lib/mcp/tools/list-exams.ts
 import { defineTool as defineTool2, ToolError } from "npm:@lovable.dev/mcp-js@0.26.1";
-import { z } from "npm:zod@^3.23.8";
+import { z } from "npm:zod@^3.25.76";
 import { examCategories as examCategories2, getExamsByCategory } from "npm:@/data/examData";
 var list_exams_default = defineTool2({
   name: "list_exams",
@@ -60,7 +60,7 @@ var list_exams_default = defineTool2({
 
 // src/lib/mcp/tools/search-courses.ts
 import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.26.1";
-import { z as z2 } from "npm:zod@^3.23.8";
+import { z as z2 } from "npm:zod@^3.25.76";
 import { courses } from "npm:@/data/courseData";
 var search_courses_default = defineTool3({
   name: "search_courses",
@@ -102,7 +102,7 @@ var search_courses_default = defineTool3({
 
 // src/lib/mcp/tools/get-course.ts
 import { defineTool as defineTool4, ToolError as ToolError2 } from "npm:@lovable.dev/mcp-js@0.26.1";
-import { z as z3 } from "npm:zod@^3.23.8";
+import { z as z3 } from "npm:zod@^3.25.76";
 import { getCourseById, getInstructorById } from "npm:@/data/courseData";
 var get_course_default = defineTool4({
   name: "get_course",
@@ -134,7 +134,7 @@ var get_course_default = defineTool4({
 
 // src/lib/mcp/tools/list-exam-notifications.ts
 import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.26.1";
-import { z as z4 } from "npm:zod@^3.23.8";
+import { z as z4 } from "npm:zod@^3.25.76";
 import { examNotifications } from "npm:@/data/examNotificationData";
 var list_exam_notifications_default = defineTool5({
   name: "list_exam_notifications",
