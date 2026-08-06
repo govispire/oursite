@@ -1,106 +1,53 @@
-# Manage Syllabus — Full Functionality Plan
+# Test Analysis + Solution Review — Full Rebuild
 
-You picked **localStorage** for persistence + **upload AND URL** for inputs. Since localStorage can't realistically hold large video/PDF files, the strategy is:
+Two connected surfaces, one shared component library:
 
-- **URLs (YouTube, Vimeo, Drive, any link)** → stored as plain strings, unlimited.
-- **Direct file uploads** → stored as base64 data URLs in localStorage with a hard cap (default 10 MB per file; PDFs up to 25 MB). Files larger than the cap show a clear error and prompt the user to paste a URL instead.
-- All syllabus mutations persist to `localStorage` immediately and reload on next visit. A "Reset to defaults" action restores the seed data.
+1. **Analysis** — 5-tab diagnostic dashboard, rendered both as a full-screen modal (after submitting a test) and as the full page at `/student/test-analysis/:testId`.
+2. **Solutions** — a dedicated question-by-question review environment at `/student/test-solutions/:testId`.
 
-> Heads-up: localStorage is per-browser and per-device. Other admins, students, or another browser will not see these edits. Switching to Lovable Cloud later would give true multi-user persistence and unlimited file storage — say the word and we'll migrate.
+All features from the spec are implemented. The visual design is my own senior-level system rather than a copy of the reference — see Design Direction.
 
----
+## Design Direction
 
-## 1. Persistence layer
+Keep the platform's teal-green primary and navy secondary, but treat this as a serious *report* surface, not a colorful dashboard.
 
-Create `src/hooks/useSyllabusStore.ts`:
-- Reads from `localStorage["prepsmart.syllabus.v1"]` on init (falls back to `allSyllabusData`).
-- Writes on every change (debounced ~300 ms).
-- Exposes typed mutators: `addExam`, `updateExam`, `deleteExam`, `addTier`, `updateTier`, `deleteTier`, `addSubject`, `updateSubject`, `deleteSubject`, `addTopic`, `updateTopic`, `deleteTopic`, `addResource`, `updateResource`, `deleteResource`, `reorderResource`.
-- `resetToDefaults()` and `exportJSON()` / `importJSON()` for backup.
-- A lightweight pub-sub (custom event `syllabus:changed`) so the **student-facing** Know Your Syllabus pages re-read the same store and reflect admin edits live.
+- **Surface**: near-white canvas, pure-white elevated cards, one hairline border, generous 24–32px rhythm. No gradients-on-gradients, no colored card backgrounds except semantic state chips.
+- **Data color is meaning only**: teal = correct/strong, coral-red = wrong/critical, amber = borderline/moderate, slate = skipped. A single hue never appears decoratively.
+- **Typography**: one family, tabular numerals for every metric, tight uppercase micro-labels, big confident numbers. Score/rank read instantly from across the room.
+- **Hero bar**: a single horizontal metric strip (Score, Rank, Percentile, Accuracy, Attempted) with thin progress rails under each — replaces the 4 gradient boxes.
+- **Charts**: flat, gridline-light, one accent per series, custom tooltips. Gauges and donuts drawn with clean SVG arcs.
+- **Motion**: 200ms count-ups on hero numbers, staggered card fade-in, chart draw-in. Nothing bouncy.
+- **Mobile**: hero strip becomes a 2-col grid, tabs scroll horizontally with icons, tables become stacked rows, palette becomes a bottom drawer.
 
-## 2. Resource model — extended fields
+## Part 1 — Analysis (5 tabs)
 
-Extend `src/data/syllabusData.ts` types (additive, optional, won't break existing UI):
+Shared header: test name, exam-type badge (Full / Live / Speed / Sectional / Prelims / Mains / PYQ), Solutions button, Review button, close/back. Then the hero metric strip.
 
-- `VideoResource`: `url?: string`, `source?: 'youtube' | 'vimeo' | 'upload' | 'external'`, `thumbnail?: string`, `description?: string`, `uploadedAt?: string`
-- `PdfResource`: `url?: string`, `fileSize?: number`, `description?: string`, `uploadedAt?: string`
-- `TestResource`: `url?: string` (link to test interface), `description?: string`, `topics?: string[]`
+- **Overview** — quick stat pills (attempted, negative marks, net score, accuracy), section-wise performance table (attempted, correct/wrong, skipped, score, sectional rank & percentile, accuracy, time) with a bold totals row, question-summary donut, section time-vs-ideal comparison with ±minute flags, and a key-takeaway insight box.
+- **Score Trend** — metric toggle (score / rank / accuracy), range filter (last 5 / 10 / 15), smooth area-line chart with milestone markers, and an improving / stable / declining verdict with average delta.
+- **Exam Readiness** — 270° SVG gauge with three zones, readiness snapshot (score vs cutoff, gap ±marks), and an exam-aware sectional cutoff table marking each section Safe / Borderline / Below.
+- **You vs Topper** — head-to-head hero cards (you vs rank #1), quick metrics (beat %, accuracy gap, time gap, score gap), subject-wise dual bars, actionable "score X more in Y" recommendations, and a top-5 podium.
+- **Weakness Predictor** — four strength category cards (Strong 80%+, Moderate 60–79%, Weak 40–59%, Critical <40%/unattempted), full syllabus topic breakdown with accuracy, correct/total and avg time per question, plus subject / strength / keyword filters.
 
-## 3. File-upload utility
+## Part 2 — Solution Page
 
-`src/lib/fileUpload.ts`:
-- `readFileAsDataUrl(file, maxBytes)` → base64 string or rejection with friendly message.
-- Validators: video MIME (`video/mp4`, `webm`, `ogg`), PDF MIME, max sizes.
-- URL validator + helper to detect YouTube/Vimeo and auto-extract thumbnail + embed URL.
+- Header with test title, section name, review-mode badge, close.
+- Section switcher, freely navigable.
+- **Adaptive layout**: single panel for standalone questions; dual panel (passage/DI chart left, question right) for set-based questions.
+- Language selector (English / Hindi), color-coded options — teal for correct, red for your wrong pick, neutral otherwise.
+- **Stat chip bar**: status, difficulty, your time vs avg, marks earned, global accuracy %, speed tag (Superfast / On Time / Slow).
+- **Explanation block**: step-by-step solution, key-points box, shortcut tip box.
+- **Action tools**: bookmark, add to Mistake Notebook, report issue, discuss.
+- **Right palette**: status shapes, All / Correct / Incorrect / Skipped filters, section grouping, collapsible.
+- **Bottom nav**: Previous, "Jump to First Incorrect", Next.
 
-## 4. Resource editor dialog (rebuilt)
+Bookmarks, mistake-notebook entries, active tab, filter and last-viewed question all persist in local storage.
 
-Replace the current `editResourceDialog` with `ResourceEditorDialog.tsx` (one component, three modes):
+## Technical Notes
 
-**Header:** title of topic + tab switcher (Videos / PDFs / Tests).
-
-**Add/Edit form** with two input modes via toggle:
-- **Upload file** — drag-and-drop zone + file picker, shows progress, preview thumbnail, size, validation errors.
-- **Paste URL** — single input + auto-detect (YouTube/Vimeo embed preview, PDF link preview).
-
-**Common fields per resource type:**
-- Video: title, instructor, duration, rating, description, thumbnail (auto or upload).
-- PDF: title, pages, type (notes / pyq / formulas / summary), description, file size.
-- Test: title, questions, duration, difficulty, link to test, description.
-
-**List of existing resources** with inline actions: Edit (opens form pre-filled), Delete (confirm), Drag handle to reorder, Preview (opens video/PDF in modal).
-
-## 5. Inline edits everywhere
-
-Currently only topic name and subject name/marks are editable. Add:
-- **Exam**: edit dialog for full name, short name, category, stages, exam date, logo URL/upload.
-- **Tier**: edit dialog for name, duration, total marks, negative marking, sectional cutoff.
-- **Subject**: add icon picker + color picker (currently only name/marks).
-- **Topic**: add description, weightage, expected questions count.
-- **Reorder** subjects & topics via drag handles (use `@dnd-kit/sortable`, already installed in many Lovable projects — verify and add if missing).
-
-## 6. Bulk upload
-
-Wire the existing `bulkUploadDialog`:
-- Upload a CSV (template downloadable) with columns: `subject, topic, resource_type, title, url_or_filename, duration, pages, questions, difficulty, instructor`.
-- Parse with PapaParse (verify availability or add).
-- Preview parsed rows in a table → confirm → batch insert.
-
-## 7. Live student-side reflection
-
-Update consumers that import `allSyllabusData` to read from `useSyllabusStore` instead, so edits show up immediately on:
-- `src/pages/student/SyllabusPage.tsx`
-- `src/components/student/exam/SyllabusTab.tsx`
-- Any course/topic detail pages that hydrate from `syllabusData`.
-
-(Admin local edits will only appear on the same browser — same persistence rule applies to students.)
-
-## 8. Header utilities
-
-Add to the page header:
-- **Export JSON** (download current syllabus as backup).
-- **Import JSON** (restore from backup).
-- **Reset to defaults** (with confirm).
-- A small "Saved locally" indicator with last-saved timestamp.
-
----
-
-## Files to create
-- `src/hooks/useSyllabusStore.ts`
-- `src/lib/fileUpload.ts`
-- `src/components/admin/syllabus/ResourceEditorDialog.tsx`
-- `src/components/admin/syllabus/ResourceForm.tsx` (video/pdf/test variants)
-- `src/components/admin/syllabus/EditExamDialog.tsx`
-- `src/components/admin/syllabus/EditTierDialog.tsx`
-- `src/components/admin/syllabus/BulkUploadDialog.tsx`
-- `src/components/admin/syllabus/FileDropzone.tsx`
-
-## Files to modify
-- `src/data/syllabusData.ts` — extend types with optional `url`, `source`, `description`, etc.
-- `src/pages/admin/ManageSyllabus.tsx` — swap local state for `useSyllabusStore`, wire new dialogs, add header utilities.
-- `src/pages/student/SyllabusPage.tsx` and `src/components/student/exam/SyllabusTab.tsx` — read from the store.
-
-## Out of scope
-- Real cloud storage and multi-user sync (would require Lovable Cloud — happy to add later).
-- Video transcoding or compression.
+- Data layer: extend `src/data/testAnalysisData.ts` with a deterministic per-`testId` generator (seeded so a test always yields the same numbers) covering sections, topics, per-question detail, history, topper, leaderboard and cutoffs. A new `src/data/solutionsData.ts` supplies question bodies, passages/DI sets, options, explanations, shortcuts, difficulty, timings and global accuracy — mirroring your existing exam mock data shape.
+- New components under `src/components/student/analysis/`: `AnalysisHeader`, `HeroMetricStrip`, `OverviewTab`, `ScoreTrendTab`, `ExamReadinessTab`, `YouVsTopperTab`, `WeaknessPredictorTab`, plus `ReadinessGauge`, `PodiumTop5`, `SectionTable`.
+- `TestAnalysisModal.tsx` and `TestAnalysisPage.tsx` both become thin shells around a shared `TestAnalysisView` so the modal and the route can never drift.
+- New `src/pages/student/TestSolutions.tsx` with components under `src/components/student/solutions/` (`SolutionQuestionPanel`, `SolutionStatBar`, `ExplanationBlock`, `SolutionPalette`, `SetPassagePanel`).
+- Routes added to `StudentRoutes.tsx`, reusing the existing ownership/role guard already applied to the analysis route.
+- No backend changes; all data stays local mock + local storage.
