@@ -26,6 +26,7 @@ import DiagnosticTests from '@/pages/student/DiagnosticTests';
 import DiagnosticResults from '@/pages/student/DiagnosticResults';
 import MentorChat from '@/pages/student/MentorChat';
 import TestAnalysisPage from '@/pages/student/TestAnalysisPage';
+import TestSolutions from '@/pages/student/TestSolutions';
 import StudentProfile from '@/pages/student/StudentProfile';
 import ExamCategorySelection from '@/pages/student/ExamCategorySelection';
 import CourseDetail from '@/pages/student/CourseDetail';
@@ -87,6 +88,7 @@ const StudentRoutes = () => {
         
         {/* Special standalone routes for exam interface */}
         <Route path="/tests/:category/:examId/exam" element={<ExamInterface />} />
+        <Route path="/test-solutions/:testId" element={<TestSolutions />} />
       </Route>
     </Routes>
   );
