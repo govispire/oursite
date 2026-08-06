@@ -133,6 +133,24 @@
     --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
     --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
     --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+
+    /* Semantic analysis-state tokens (dark) */
+    --success: 165 65% 45%;
+    --success-foreground: 165 80% 8%;
+    --success-soft: 165 40% 16%;
+    --warning: 38 90% 55%;
+    --warning-foreground: 36 90% 10%;
+    --warning-soft: 38 45% 17%;
+    --danger: 4 78% 60%;
+    --danger-foreground: 4 80% 10%;
+    --danger-soft: 4 40% 18%;
+    --neutralstate: 215 18% 60%;
+    --neutralstate-foreground: 215 40% 10%;
+    --neutralstate-soft: 215 20% 20%;
+    --gold: 41 88% 58%;
+    --gold-soft: 41 40% 18%;
+    --surface: 217 32% 17%;
+    --surface-muted: 217 32% 14%;
   }
 }
 
