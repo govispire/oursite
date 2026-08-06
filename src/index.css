@@ -64,6 +64,24 @@
     --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
     --tracking-normal: 0em;
     --spacing: 0.25rem;
+
+    /* Semantic analysis-state tokens */
+    --success: 165 72% 39%;
+    --success-foreground: 0 0% 100%;
+    --success-soft: 165 60% 95%;
+    --warning: 36 92% 48%;
+    --warning-foreground: 0 0% 100%;
+    --warning-soft: 40 90% 95%;
+    --danger: 4 74% 54%;
+    --danger-foreground: 0 0% 100%;
+    --danger-soft: 4 80% 96%;
+    --neutralstate: 215 16% 56%;
+    --neutralstate-foreground: 0 0% 100%;
+    --neutralstate-soft: 215 25% 95%;
+    --gold: 41 85% 50%;
+    --gold-soft: 41 90% 95%;
+    --surface: 0 0% 100%;
+    --surface-muted: 210 33% 97%;
   }
 
   .dark {
