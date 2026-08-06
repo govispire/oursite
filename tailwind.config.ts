@@ -35,6 +35,34 @@ export default {
     				light: '#e6faf5',
     				green: '#1ab386'
     			},
+    			success: {
+    				DEFAULT: 'hsl(var(--success))',
+    				foreground: 'hsl(var(--success-foreground))',
+    				soft: 'hsl(var(--success-soft))'
+    			},
+    			warning: {
+    				DEFAULT: 'hsl(var(--warning))',
+    				foreground: 'hsl(var(--warning-foreground))',
+    				soft: 'hsl(var(--warning-soft))'
+    			},
+    			danger: {
+    				DEFAULT: 'hsl(var(--danger))',
+    				foreground: 'hsl(var(--danger-foreground))',
+    				soft: 'hsl(var(--danger-soft))'
+    			},
+    			neutralstate: {
+    				DEFAULT: 'hsl(var(--neutralstate))',
+    				foreground: 'hsl(var(--neutralstate-foreground))',
+    				soft: 'hsl(var(--neutralstate-soft))'
+    			},
+    			gold: {
+    				DEFAULT: 'hsl(var(--gold))',
+    				soft: 'hsl(var(--gold-soft))'
+    			},
+    			surface: {
+    				DEFAULT: 'hsl(var(--surface))',
+    				muted: 'hsl(var(--surface-muted))'
+    			},
     			secondary: {
     				DEFAULT: 'hsl(var(--secondary))',
     				foreground: 'hsl(var(--secondary-foreground))'
