@@ -41,29 +41,25 @@ export const Panel: React.FC<{
 }> = ({ title, subtitle, right, className, bodyClassName, children }) => (
   <section
     className={cn(
-      'rounded-xl border border-border/70 bg-surface shadow-[0_1px_2px_rgba(15,23,42,0.04)]',
+      'rounded-2xl border border-border bg-surface shadow-[0_1px_2px_rgba(16,24,40,0.04)]',
       className
     )}
   >
     {(title || right) && (
-      <header className="flex items-start justify-between gap-3 border-b border-border/60 px-4 py-3 sm:px-5 sm:py-4">
+      <header className="flex items-start justify-between gap-3 px-5 pb-4 pt-5 sm:px-7 sm:pt-6">
         <div className="min-w-0">
-          {title && (
-            <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/80">
-              {title}
-            </h3>
-          )}
-          {subtitle && <p className="mt-1 text-sm text-foreground/70">{subtitle}</p>}
+          {title && <h3 className="text-base font-semibold text-foreground">{title}</h3>}
+          {subtitle && <p className="mt-1 text-[13px] text-muted-foreground">{subtitle}</p>}
         </div>
         {right && <div className="shrink-0">{right}</div>}
       </header>
     )}
-    <div className={cn('p-4 sm:p-5', bodyClassName)}>{children}</div>
+    <div className={cn('px-5 pb-6 sm:px-7', title ? '' : 'pt-5 sm:pt-6', bodyClassName)}>{children}</div>
   </section>
 );
 
 export const MicroLabel: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className }) => (
-  <span className={cn('text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80', className)}>
+  <span className={cn('text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground', className)}>
     {children}
   </span>
 );
@@ -83,10 +79,10 @@ export const StatPill: React.FC<{
       ? 'text-danger'
       : 'text-foreground';
   return (
-    <div className="rounded-lg border border-border/70 bg-surface-muted px-3 py-2.5">
+    <div className="rounded-2xl border border-border bg-surface px-5 py-4 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
       <MicroLabel>{label}</MicroLabel>
-      <div className={cn('mt-1 text-lg font-bold tabular-nums leading-none', toneText)}>{value}</div>
-      {hint && <div className="mt-1 text-[11px] text-muted-foreground/80">{hint}</div>}
+      <div className={cn('num mt-2 text-[26px] font-bold leading-none', toneText)}>{value}</div>
+      {hint && <div className="mt-2 text-[12px] text-muted-foreground">{hint}</div>}
     </div>
   );
 };
@@ -96,13 +92,14 @@ export const Rail: React.FC<{ value: number; tone?: string; className?: string }
   tone = 'bg-primary',
   className,
 }) => (
-  <div className={cn('h-1.5 w-full overflow-hidden rounded-full bg-border/70', className)}>
+  <div className={cn('h-1 w-full overflow-hidden rounded-full bg-border', className)}>
     <div
       className={cn('h-full rounded-full transition-[width] duration-700 ease-out', tone)}
       style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
     />
   </div>
 );
+
 
 /** Animated count-up used by the hero metrics. */
 export const useCountUp = (target: number, duration = 700) => {
