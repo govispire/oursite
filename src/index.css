@@ -175,6 +175,52 @@
   }
 }
 
+/* ---------------------------------------------------------------
+   Analysis report surface — "Cloud White" scoped design system.
+   Scoped so the rest of the app keeps its existing theme.
+---------------------------------------------------------------- */
+.analysis-scope {
+  font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: 'tnum' 1, 'cv05' 1;
+
+  --background: 210 33% 98%;
+  --foreground: 222 32% 14%;
+  --surface: 0 0% 100%;
+  --surface-muted: 210 33% 98%;
+  --border: 213 27% 92%;
+  --muted-foreground: 215 20% 58%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 222 32% 22%;
+  --secondary-foreground: 0 0% 100%;
+
+  --success: 160 71% 38%;
+  --success-soft: 160 55% 96%;
+  --warning: 38 92% 50%;
+  --warning-soft: 40 92% 96%;
+  --danger: 0 74% 56%;
+  --danger-soft: 0 80% 97%;
+  --neutralstate: 215 20% 65%;
+  --neutralstate-soft: 213 30% 96%;
+  --gold: 41 85% 50%;
+  --gold-soft: 41 90% 96%;
+}
+
+.analysis-scope h1,
+.analysis-scope h2,
+.analysis-scope h3,
+.analysis-scope .font-display {
+  font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.015em;
+}
+
+.analysis-scope .num {
+  font-family: 'Sora', ui-sans-serif, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+
 .hero-gradient {
   background: linear-gradient(135deg, #e6faf5 0%, #d1f5eb 100%);
 }
