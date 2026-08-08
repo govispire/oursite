@@ -39,24 +39,24 @@ export const TestAnalysisView: React.FC<Props> = ({ testId, testName, analysis: 
   const review = () => navigate(`/student/test-solutions/${analysis.testId}?filter=incorrect`);
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-background">
+    <div className="analysis-scope flex h-full min-h-0 flex-col bg-background text-foreground">
       <AnalysisHeader analysis={analysis} variant={variant} onClose={onClose} onOpenSolutions={openSolutions} onReview={review} />
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-[1400px] space-y-4 px-4 py-4 sm:px-6 sm:py-5">
+        <div className="mx-auto w-full max-w-[1200px] px-5 py-7 sm:px-8 sm:py-9">
           <HeroMetricStrip analysis={analysis} />
 
-          <div className="sticky top-0 z-10 -mx-1 overflow-x-auto bg-background/95 px-1 py-2 backdrop-blur">
-            <div className="inline-flex min-w-full gap-1 rounded-xl border border-border/70 bg-surface p-1 sm:min-w-0">
+          <div className="sticky top-0 z-10 mt-8 border-b border-border bg-background/95 backdrop-blur">
+            <div className="-mx-1 flex gap-6 overflow-x-auto px-1 sm:gap-8">
               {TABS.map((t) => (
                 <button
                   key={t.key}
                   onClick={() => setActiveTab(t.key)}
                   className={cn(
-                    'flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-semibold transition-colors sm:text-sm',
+                    'flex items-center gap-2 whitespace-nowrap border-b-2 pb-3.5 pt-1 text-[13px] font-semibold transition-colors sm:text-sm',
                     activeTab === t.key
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground/90 hover:bg-surface-muted hover:text-foreground'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
                   )}
                 >
                   <t.icon className="h-4 w-4 shrink-0" />
@@ -67,7 +67,7 @@ export const TestAnalysisView: React.FC<Props> = ({ testId, testName, analysis: 
             </div>
           </div>
 
-          <div className="animate-fade-in pb-8">
+          <div className="animate-fade-in pb-16 pt-7">
             {activeTab === 'overview' && <OverviewTab analysis={analysis} />}
             {activeTab === 'trend' && <ScoreTrendTab analysis={analysis} />}
             {activeTab === 'readiness' && <ExamReadinessTab analysis={analysis} />}
@@ -79,5 +79,6 @@ export const TestAnalysisView: React.FC<Props> = ({ testId, testName, analysis: 
     </div>
   );
 };
+
 
 export default TestAnalysisView;
