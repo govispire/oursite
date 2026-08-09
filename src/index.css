@@ -196,14 +196,15 @@
 
   --success: 160 71% 38%;
   --success-soft: 160 55% 96%;
-  --warning: 38 92% 50%;
-  --warning-soft: 40 92% 96%;
-  --danger: 0 74% 56%;
+  --warning: 32 90% 38%;
+  --warning-soft: 40 92% 95%;
+  --danger: 0 72% 45%;
   --danger-soft: 0 80% 97%;
-  --neutralstate: 215 20% 65%;
+  --neutralstate: 215 22% 46%;
   --neutralstate-soft: 213 30% 96%;
-  --gold: 41 85% 50%;
+  --gold: 38 80% 38%;
   --gold-soft: 41 90% 96%;
+  --muted-foreground: 215 22% 42%;
 }
 
 .analysis-scope h1,

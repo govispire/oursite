@@ -1,9 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import type { FullAnalysis, StrengthLevel } from '@/data/analysisEngine';
+import { useNavigate } from 'react-router-dom';
+import { buildRecommendations, type FullAnalysis, type StrengthLevel } from '@/data/analysisEngine';
 import { Panel, MicroLabel, Rail, levelStyles } from './primitives';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Search } from 'lucide-react';
+import { Search, Clock, Target } from 'lucide-react';
+
 
 const LEVELS: { key: StrengthLevel; label: string; range: string }[] = [
   { key: 'strong', label: 'Strong', range: '80%+ accuracy' },
@@ -13,9 +16,12 @@ const LEVELS: { key: StrengthLevel; label: string; range: string }[] = [
 ];
 
 export const WeaknessPredictorTab: React.FC<{ analysis: FullAnalysis }> = ({ analysis }) => {
+  const navigate = useNavigate();
   const [subject, setSubject] = useState<string>('all');
   const [level, setLevel] = useState<StrengthLevel | 'all'>('all');
   const [query, setQuery] = useState('');
+  const recommendations = useMemo(() => buildRecommendations(analysis), [analysis]);
+
 
   const counts = useMemo(
     () =>
@@ -39,19 +45,77 @@ export const WeaknessPredictorTab: React.FC<{ analysis: FullAnalysis }> = ({ ana
         {LEVELS.map((l) => (
           <button
             key={l.key}
+            aria-pressed={level === l.key}
+            aria-label={`${l.label} topics, ${counts[l.key] ?? 0} — ${l.range}. Filter by this level.`}
             onClick={() => setLevel(level === l.key ? 'all' : l.key)}
             className={cn(
-              'rounded-xl border p-4 text-left transition-all',
+              'rounded-xl border p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
               levelStyles[l.key].chip,
               level === l.key ? 'ring-2 ring-offset-1 ring-current/40' : 'hover:brightness-[0.98]'
             )}
           >
             <MicroLabel className={levelStyles[l.key].text}>{l.label}</MicroLabel>
             <div className={cn('mt-1 text-2xl font-bold tabular-nums', levelStyles[l.key].text)}>{counts[l.key] ?? 0}</div>
-            <p className="mt-0.5 text-[11px] text-foreground/65">{l.range}</p>
+            <p className="mt-0.5 text-[11px] text-foreground/70">{l.range}</p>
           </button>
         ))}
       </div>
+
+      <Panel
+        title="Practice recommendations"
+        subtitle={`Ranked by recoverable marks — ${recommendations.length} topics need work`}
+        bodyClassName="p-0 sm:p-0"
+      >
+        <ul className="divide-y divide-border/60">
+          {recommendations.slice(0, 8).map((r) => (
+            <li key={`${r.subject}-${r.topic}`} className="flex flex-wrap items-center gap-3 px-4 py-4 sm:px-5">
+              <span
+                className={cn(
+                  'rounded-md border px-2 py-0.5 text-[10px] font-bold',
+                  r.priority === 'P1'
+                    ? 'border-danger/40 bg-danger-soft text-danger'
+                    : r.priority === 'P2'
+                    ? 'border-warning/40 bg-warning-soft text-warning'
+                    : 'border-border bg-surface-muted text-muted-foreground'
+                )}
+              >
+                {r.priority}
+              </span>
+              <div className="min-w-[160px] flex-1">
+                <div className="text-sm font-semibold">{r.topic}</div>
+                <div className="text-[11px] text-muted-foreground">
+                  {r.subject} · {r.accuracy.toFixed(0)}% accuracy
+                </div>
+                <p className="mt-1 text-[12px] text-foreground/80">{r.action}</p>
+              </div>
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Clock className="h-3.5 w-3.5" aria-hidden />
+                {r.minutes} min
+              </span>
+              <span className="flex items-center gap-1 text-xs font-semibold text-success">
+                <Target className="h-3.5 w-3.5" aria-hidden />+{r.impact.toFixed(1)} marks
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 rounded-lg"
+                onClick={() =>
+                  navigate(`/student/speed-drills?topic=${encodeURIComponent(r.topic)}&subject=${encodeURIComponent(r.subject)}`)
+                }
+                aria-label={`Practice ${r.topic} from ${r.subject}`}
+              >
+                Practice
+              </Button>
+            </li>
+          ))}
+          {recommendations.length === 0 && (
+            <li className="px-5 py-10 text-center text-sm text-muted-foreground">
+              No weak topics — every area is at 80%+ accuracy.
+            </li>
+          )}
+        </ul>
+      </Panel>
+
 
       <Panel
         title="Syllabus topic breakdown"

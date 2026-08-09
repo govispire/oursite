@@ -391,3 +391,56 @@ export const buildAnalysis = (testIdRaw?: string, testNameOverride?: string): Fu
     topper,
   };
 };
+
+/* -------------------------------------------------- comparison utilities */
+
+/** Deterministic list of the student's earlier attempts in the same series. */
+export const previousTestIds = (testIdRaw?: string, count = 4): string[] => {
+  const testId = testIdRaw || 'sbi-po-prelims-mock-1';
+  const family = detectFamily(testId).toLowerCase().replace(/\s+/g, '-');
+  const type = detectType(testId).toLowerCase().replace(/\s+/g, '-');
+  const rnd = makeRandom(hashString(testId + ':prev'));
+  const base = between(rnd, 3, 18);
+  return Array.from({ length: count }, (_, i) => `${family}-${type}-mock-${base + i}`).filter(
+    (id) => id !== testId
+  );
+};
+
+export interface TopicRecommendation {
+  topic: string;
+  subject: string;
+  accuracy: number;
+  level: StrengthLevel;
+  priority: 'P1' | 'P2' | 'P3';
+  impact: number; // estimated marks recoverable
+  action: string;
+  minutes: number;
+}
+
+/** Ranks weak topics by recoverable marks and produces a concrete practice plan. */
+export const buildRecommendations = (analysis: FullAnalysis): TopicRecommendation[] =>
+  analysis.topics
+    .filter((t) => t.level !== 'strong')
+    .map((t) => {
+      const gap = Math.max(0, 85 - t.accuracy) / 100;
+      const impact = round1(t.total * gap);
+      const slow = t.avgTimePerQ > 70;
+      return {
+        topic: t.topic,
+        subject: t.subject,
+        accuracy: t.accuracy,
+        level: t.level,
+        priority: (t.level === 'critical' ? 'P1' : t.level === 'weak' ? 'P2' : 'P3') as 'P1' | 'P2' | 'P3',
+        impact,
+        action:
+          t.attempted === 0
+            ? 'Start with concept revision, then 15 easy questions'
+            : t.level === 'critical'
+            ? 'Re-learn the concept, then a 20-question accuracy drill'
+            : slow
+            ? 'Timed speed drill — 15 questions under 45s each'
+            : 'Mixed practice set of 20 questions to lock accuracy',
+        minutes: t.level === 'critical' ? 45 : t.level === 'weak' ? 30 : 20,
+      };
+    })
+    .sort((a, b) => (a.priority === b.priority ? b.impact - a.impact : a.priority.localeCompare(b.priority)));
