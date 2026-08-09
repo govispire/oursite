@@ -16,9 +16,12 @@ const LEVELS: { key: StrengthLevel; label: string; range: string }[] = [
 ];
 
 export const WeaknessPredictorTab: React.FC<{ analysis: FullAnalysis }> = ({ analysis }) => {
+  const navigate = useNavigate();
   const [subject, setSubject] = useState<string>('all');
   const [level, setLevel] = useState<StrengthLevel | 'all'>('all');
   const [query, setQuery] = useState('');
+  const recommendations = useMemo(() => buildRecommendations(analysis), [analysis]);
+
 
   const counts = useMemo(
     () =>
