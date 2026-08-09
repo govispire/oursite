@@ -28,8 +28,8 @@ export const AnalysisHeader: React.FC<Props> = ({ analysis, variant, onClose, on
     <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-5 px-5 py-6 sm:px-8 sm:py-8 lg:flex-row lg:items-end lg:justify-between">
       <div className="flex min-w-0 items-start gap-3">
         {variant === 'page' && (
-          <Button variant="ghost" size="icon" onClick={onClose} className="mt-1 h-8 w-8 shrink-0 rounded-full">
-            <ArrowLeft className="h-4 w-4" />
+          <Button variant="ghost" size="icon" aria-label="Go back" onClick={onClose} className="mt-1 h-8 w-8 shrink-0 rounded-full">
+            <ArrowLeft className="h-4 w-4" aria-hidden />
           </Button>
         )}
         <div className="min-w-0">
@@ -63,8 +63,8 @@ export const AnalysisHeader: React.FC<Props> = ({ analysis, variant, onClose, on
           Review
         </Button>
         {variant === 'modal' && (
-          <Button size="icon" variant="ghost" onClick={onClose} className="h-9 w-9 rounded-full">
-            <X className="h-4 w-4" />
+          <Button size="icon" variant="ghost" aria-label="Close analysis" onClick={onClose} className="h-9 w-9 rounded-full">
+            <X className="h-4 w-4" aria-hidden />
           </Button>
         )}
       </div>

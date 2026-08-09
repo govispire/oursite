@@ -46,12 +46,14 @@ export const OverviewTab: React.FC<{ analysis: FullAnalysis }> = ({ analysis }) 
       <Panel title="Section wise performance" subtitle="Every section, ruled side by side" bodyClassName="px-0 sm:px-0 pb-2">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[880px] text-sm">
+            <caption className="sr-only">Section wise performance for this test</caption>
             <thead>
               <tr className="border-y border-border text-left">
                 {['Section', 'Attempted', 'Correct / Wrong', 'Skipped', 'Score', 'Rank', 'Percentile', 'Accuracy', 'Time'].map(
                   (h, i) => (
                     <th
                       key={h}
+                      scope="col"
                       className={cn(
                         'px-5 py-3 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground',
                         i > 0 && 'text-right'
@@ -122,7 +124,11 @@ export const OverviewTab: React.FC<{ analysis: FullAnalysis }> = ({ analysis }) 
       <div className="grid gap-6 lg:grid-cols-2">
         <Panel title="Question summary" subtitle="How the paper broke down">
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:gap-8">
-            <div className="relative h-[190px] w-[190px] shrink-0">
+            <div
+              className="relative h-[190px] w-[190px] shrink-0"
+              role="img"
+              aria-label={`Question summary: ${analysis.correct} correct, ${analysis.wrong} incorrect, ${analysis.skipped} unattempted out of ${analysis.totalQuestions} questions`}
+            >
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={donut} dataKey="value" innerRadius={74} outerRadius={90} paddingAngle={1.5} stroke="none">
