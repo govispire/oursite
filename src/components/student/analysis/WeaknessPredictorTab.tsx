@@ -1,9 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import type { FullAnalysis, StrengthLevel } from '@/data/analysisEngine';
+import { useNavigate } from 'react-router-dom';
+import { buildRecommendations, type FullAnalysis, type StrengthLevel } from '@/data/analysisEngine';
 import { Panel, MicroLabel, Rail, levelStyles } from './primitives';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Search } from 'lucide-react';
+import { Search, Clock, Target } from 'lucide-react';
+
 
 const LEVELS: { key: StrengthLevel; label: string; range: string }[] = [
   { key: 'strong', label: 'Strong', range: '80%+ accuracy' },
